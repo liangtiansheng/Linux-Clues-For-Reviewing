@@ -205,12 +205,43 @@ sendfile:
 					}
 				注意：与http相关的指令只能放置http、server、location、upstream、if上下文中，某些只能用在其中的某几个上下文中
 				1、server{}
-					定义一个虚拟主机
-						server{
-						   listen 8080;
-						   server_name www.ly.com;
-						   root "/vhosts/web1";
-						}
+					定义虚拟主机
+						http {
+                            server {
+                                listen          80;
+                                server_name     www.a.com;
+                                access_log      logs/a.access.log main;
+                            
+                                index index.html;
+                                root  /var/www/a.com/htdocs;
+                            }
+                            
+                            server {
+                                listen          8080;
+                                server_name     www.b.com;
+                                access_log      logs/b.access.log main;
+                            
+                                index index.html;
+                                root  /var/www/b.com/htdocs;
+                            }
+                        }
+                            www.magedu.com   /www/magedu
+                            dz.magedu.com    /www/discuz
+                        
+                        A Default Catchall Virtual Host 
+                        http {
+                        server {
+                            listen          80 default;
+                            server_name     _;
+                            access_log      logs/default.access.log main;
+                        
+                            server_name_in_redirect  off;
+                        
+                            index index.html;
+                            root  /var/www/default/htdocs;
+                        }
+                        }
+
 				2、listen
 					指定监听的地址和端口
 						listen address[:port];
@@ -261,6 +292,36 @@ sendfile:
 					      fcgipass
 					   }
 					 }
+                     
+                     Example:
+                    location  = / {
+                    # matches the query / only.
+                    [ configuration A ] 
+                    }
+                    location  / {
+                    # matches any query, since all queries begin with /, but regular
+                    # expressions and any longer conventional blocks will be
+                    # matched first.
+                    [ configuration B ] 
+                    }
+                    location ^~ /images/ {
+                    # matches any query beginning with /images/ and halts searching,
+                    # so regular expressions will not be checked.
+                    [ configuration C ] 
+                    }
+                    location ~* \.(gif|jpg|jpeg)$ {
+                    # matches any request ending in gif, jpg, or jpeg. However, all
+                    # requests to the /images/ directory will be handled by
+                    # Configuration C.   
+                    [ configuration D ] 
+                    }
+
+                    Example requests:
+                        * / -> configuration A
+                    * /a.html
+                        * /documents/document.html -> configuration B
+                        * /images/1.gif -> configuration C
+                        * /documents/1.jpg -> configuration D 
 				6、alias path;
 					用于location配置段，定义路径别名
 
