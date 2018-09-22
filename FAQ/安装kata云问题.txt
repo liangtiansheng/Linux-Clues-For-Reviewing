@@ -1,0 +1,233 @@
+FAQ
+1、安装过程中出现的问题
+---->编译环境出现的依赖问题
+	---->libdevmapper-dev 和 automake依赖包需要安装
+		---->apt install automake 和 https://launchpad.net/ubuntu/xenial/arm64/libdevmapper-dev/2:1.02.110-1ubuntu10 下载的deb包及其依赖
+
+---->root@node3:~# ceph -s
+    cluster 4a4c83b0-5722-4cd8-815a-f7785deafaa2
+     health HEALTH_ERR <<<<<<
+            64 pgs are stuck inactive for more than 300 seconds
+            64 pgs stale
+            64 pgs stuck stale
+            3/3 in osds are down
+     monmap e1: 1 mons at {node1=172.16.4.101:6789/0}
+            election epoch 4, quorum 0 node1
+     osdmap e29: 3 osds: 0 up, 3 in
+            flags sortbitwise,require_jewel_osds
+      pgmap v472: 64 pgs, 1 pools, 75148 kB data, 41 objects
+            60839 MB used, 4965 GB / 5024 GB avail
+	---->ceph的osd数据目录共用了vespace的目录， vespace停掉之后，sdb被unmount
+		---->重启ceph-osd服务，在每个node上执行systemctl restart ceph.target
+
+---->无法map ceph块设备,执行rbd map hyper/test 时一直卡住
+	---->systemd-udevd服务未启动
+		---->systemctl start systemd-udevd
+			---->$ rbd map hyper/test
+				 /dev/rbd0
+				 $ rbd showmapped
+				 id pool  image snap device
+				 0  hyper test  -    /dev/rbd0
+		
+2、运维过程中出现的问题,以下ceph出现pgs不一致的情况
+---->root@node1:~# ceph -s
+	cluster 31fd5a3d-00ba-443e-95ad-5392d1a593a7
+		health HEALTH_ERR
+			1 pgs inconsistent
+			3 scrub errors
+		monmap e1: 1 mons at {node1=172.16.4.101:6789/0}
+			election epoch 8, quorum 0 node1
+		osdmap e66: 3 osds: 3 up, 3 in
+			flags sortbitwise,require_jewel_osds
+		pgmap v3579: 64 pgs, 1 pools, 308 MB data, 167 objects
+			60989 MB used, 4965 GB / 5024 GB avail
+			63 active+clean
+			1 active+clean+inconsistent
+	---->通过查看ceph集群健康详情是1.14pg有问题
+		root@node1:~# ceph health detail
+		HEALTH_ERR 1 pgs inconsistent; 3 scrub errors
+		pg 1.14 is active+clean+inconsistent, acting [2,3,1]
+		3 scrub errors
+		---->手动修复
+			root@node1:~# ceph pg repair 1.14
+			instructing pg 1.14 on osd.2 to repair
+			过一会就好了
+	---->再次出现ceph pg repair已不能修复
+	    root@node1:~# ceph health detail 
+		HEALTH_ERR 1 pgs inconsistent; 4 scrub errors
+		pg 1.26 is active+clean+inconsistent, acting [1,2,3]
+		4 scrub errors
+		root@node1:~# 
+		---->手动修复不能光靠pg repair要深入挖，参考https://ceph.com/geen-categorie/ceph-manually-repair-object/
+		bash
+		$ sudo ceph health detail
+		HEALTH_ERR 1 pgs inconsistent; 2 scrub errors
+		pg 17.1c1 is active+clean+inconsistent, acting [21,25,30]
+		2 scrub errors
+		
+		Ok, so the problematic PG is 17.1c1 and is acting on OSD 21, 25 and 30.
+
+		You can always try to run ceph pg repair 17.1c1 and check if this will fix your issue.
+		Sometime it does, something it does not and you need to dig further.
+		
+		Find the problem
+		In order to get the root cause, we need to dive into the OSD log files.
+		A simple grep -Hn 'ERR' /var/log/ceph/ceph-osd.21.log, note that if logs rotated you might have to use zgrep instead.
+
+		This gives us the following root cause:
+		log [ERR] : 17.1c1 shard 21: soid 58bcc1c1/rb.0.90213.238e1f29.00000001232d/head//17 digest 0 != known digest 3062795895
+		log [ERR] : 17.1c1 shard 25: soid 58bcc1c1/rb.0.90213.238e1f29.00000001232d/head//17 digest 0 != known digest 3062795895
+		What is telling this log?
+		Well it says that the object digest should be 3062795895 and is actually 0.
+		
+		Find the object
+		Now we have to dive into OSD 21 directory, thanks to the information we have it is pretty straightforward.
+
+		What do we know?
+
+		Problematic PG: 17.1c1
+		OSD number
+		Object name: rb.0.90213.238e1f29.00000001232d
+		
+		At this stage we search the object:
+		bash
+		$ sudo find /var/lib/ceph/osd/ceph-21/current/17.1c1_head/ -name 'rb.0.90213.238e1f29.00000001232d*' -ls
+		671193536 4096 -rw-r--r-- 1 root root 4194304 Feb 14 01:05 /var/lib/ceph/osd/ceph-21/current/17.1c1_head/DIR_1/DIR_C/DIR_1/DIR_C/rb.0.90213.238e1f29.00000001232d__head_5.....
+		
+		Now there are a couple of other things you can check:
+
+		Look at the size of each objects on every systems
+		Look at the MD5 of each objects on every systems
+		Then compare all of them to find the bad object.	
+		
+		Fix the problem
+		Just move the object away 🙂 with the following:
+
+		stop the OSD that has the wrong object responsible for that PG
+		flush the journal (ceph-osd -i <id> --flush-journal)
+		move the bad object to another location
+		start the OSD again
+		call ceph pg repair 17.1c1
+		
+		It might look a bit rough to delete an object but in the end it’s job Ceph’s job to do that.
+		Of course the above works well when you have 3 replicas when it is easier for Ceph to compare two versions against another one.
+		A situation with 2 replicas can be a bit different, Ceph might not be able to solve this conflict and the problem could persist.
+		So a simple trick could be to chose the latest version of the object, set the noout flag on the cluster, stop the OSD that has a wrong version.
+		Wait a bit, start the OSD again and unset the noout flag.
+		The cluster should sync up the good version of the object to OSD that had a wrong version.
+	---->还有一种没有太多根据但是凑效的方案
+		ceph osd pool set hyper size 1
+		ceph osd pool set hyper min_size 1
+		ceph pg repaire 1.26
+		ceph osd pool set hyper size 3
+		ceph osd pool set hyper min_size 2
+		ceph pg repaire 1.26
+		
+---->出现孤儿pod的情况
+	 kubelet：
+	 Orphaned pod "4db449f0-4eaf-11e8-94ab-90b8d042b91a" found, but volume paths are still present on disk : There were a total of 3 errors similar to this. Turn up verbosity to see them.
+	---->rm -rf /var/lib/kubelet/pods/4db449f0-4eaf-11e8-94ab-90b8d042b91a/volumes/rook.io~rook/pvc-4d3b9c2c-4eaf-11e8-b497-90b8d0abcd2b/
+		 从etcd中删除pod
+		 export ETCDCTL_API=3
+		 alias etcdctl="etcdctl --endpoints=https://109.105.30.155:2379 --cacert=/etc/etcd/ssl/etcd-ca.pem --cert=/etc/etcd/ssl/etcd.pem --key=/etc/etcd/ssl/etcd-key.pem"
+		 etcdctl del /registry/pods/default/wordpress-consul-5b88f4868-4ss8x
+		 
+---->kubelet日志中经常出现ImageFsInfo from image service failed
+	---->这种错误是说ImageFS API is not supported in frakti,参考官方说明 https://github.com/kubernetes/frakti/issues/304
+	
+---->mysql镜像目前支持的平台有限，mariadb支持的平台多一些，包括arm64
+	---->root@node3:~# docker run --rm mplatform/mquery mariadb
+		Unable to find image 'mplatform/mquery:latest' locally
+		latest: Pulling from mplatform/mquery
+		db6020507de3: Pull complete 
+		713cdc222639: Pull complete 
+		Digest: sha256:e15189e3d6fbcee8a6ad2ef04c1ec80420ab0fdcf0d70408c0e914af80dfb107
+		Status: Downloaded newer image for mplatform/mquery:latest
+		Image: mariadb
+		 * Manifest List: Yes
+		 * Supported platforms:
+		   - linux/amd64
+		   - linux/arm64/v8
+		   - linux/ppc64le
+
+		root@node3:~# docker run --rm mplatform/mquery mariadb:10.1.14
+		Image: mariadb:10.1.14
+		 * Manifest List: No
+		 * Supports: amd64/linux
+	---->root@node3:~# docker run --rm mplatform/mquery mysql
+		Image: mysql
+		 * Manifest List: Yes
+		 * Supported platforms:
+		   - linux/amd64
+
+---->mysql启动一直有问题，pod可以起来，但是pod里面的container异常退出，查看pod中的/var/log/mysql/error.log，可以看到innodb初始化失败或者是指出memory益出
+	---->决定pod内存的进程有以下几个
+		---->frakti默认内存64M，hyperd默认128M，所以现在实际最小pod 是128M，以下参数中可以自定义内存大小，在/lib/systemd/system/xxx.service中可添加
+			root@node3:~# ps aux | grep qemu
+			root      4388  0.0  0.0   9368   576 pts/0    S+   19:42   0:00 grep qemu
+			root     24451  5.5  0.5 3121012 340504 ?      Sl   18:05   5:26 /usr/bin/qemu-system-aarch64 -machine virt,accel=kvm,gic-version=host,usb=off -global kvm-pit.lost_tick_policy=discard -cpu host -kernel /var/lib/hyper/kernel -initrd /var/lib/hyper/hyper-initrd.img -append console=ttyAMA0 panic=1 iommu=no -realtime mlock=off -no-user-config -nodefaults -rtc base=utc,clock=host,driftfix=slew -no-reboot -display none -boot strict=on -m size=1024,slots=1,maxmem=32768M -smp cpus=1,maxcpus=8 -device pci-bridge,chassis_nr=1,id=pci.0 -qmp unix:/var/run/hyper/vm-lwVFDlibDh/qmp.sock,server,nowait -serial unix:/var/run/hyper/vm-lwVFDlibDh/console.sock,server,nowait -device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x2 -device virtio-scsi-pci,id=scsi0,bus=pci.0,addr=0x3 -chardev socket,id=charch0,path=/var/run/hyper/vm-lwVFDlibDh/hyper.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charch0,id=channel0,name=sh.hyper.channel.0 -chardev socket,id=charch1,path=/var/run/hyper/vm-lwVFDlibDh/tty.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charch1,id=channel1,name=sh.hyper.channel.1 -fsdev local,id=virtio9p,path=/var/run/hyper/vm-lwVFDlibDh/share_dir,security_model=none -device virtio-9p-pci,fsdev=virtio9p,mount_tag=share_dir -daemonize -pidfile /var/run/hyper/vm-lwVFDlibDh/pidfile -D /var/log/hyper/qemu/vm-lwVFDlibD.log
+			
+			root@node3:~# ps aux | grep frakti
+			root      1643  2.0  0.1 1260016 103920 ?      Ssl  10:01  11:43 /usr/bin/frakti --v=3 --log-dir=/var/log/frakti --logtostderr=false --cgroup-driver=cgroupfs --listen=/var/run/frakti.sock --streaming-server-addr=172.16.4.103 --hyper-endpoint=127.0.0.1:22318
+			root      2287  3.2  0.3 2197300 200756 ?      Ssl  10:01  18:50 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --cgroup-driver=cgroupfs --cni-bin-dir=/opt/cni/bin --cni-conf-dir=/etc/cni/net.d --network-plugin=cni --container-runtime=remote --container-runtime-endpoint=/var/run/frakti.sock --feature-gates=AllAlpha=true --enable-controller-attach-detach=false --node-ip=172.16.4.103 --logtostderr=false --log-dir=/var/log/kubernetes/ --v=3 --max-pods=2000 --system-reserved=memory=1G
+
+			root@node3:~# ps aux | grep hyperd
+			root      1662  0.9  0.1 1764860 113268 ?      Ssl  10:01   5:31 /usr/bin/hyperd --log_dir=/var/log/hyper
+			---->关于运行mariadb容器的问题，我们这边有点头绪了。
+				有两方面的原因：
+				1. 启动服务时，创建/var/run/mysqld/ld/mysqld.sock文件失败文件失败。解决办法是修改是修改my.cnf, 把f, 把/var/run/mysqld改成/var/lib/mysql， /var/lib/mysql使用rdb做volume
+				2. 初始化数据库时，遇到Can't init tc log。解决办法是办法是my.cnf中添加f中添加log_bin=ON
+				为了解决上述两个问题，需要修改my.cnf,因此我重新build了mariadb的Dockerfile
+				需要重新build mariadb的官方Dockerfile，这是记录的文档
+
+				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/1
+				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/2
+				镜像已推到dockerhub,叫 hyperhq/mariadb-arm64v8:10.3
+			
+---->基于k8s+kata+ceph+mysql做的基准测试
+---->root@node1:~# mysqlslap -a -c 50,100,150 --auto-generate-sql-load-type=mixed --create-schema=hellodb --iterations=3 --engine=innodb -
+	h 172.16.4.101 -P 30006 -u root -pEnter password: 
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	Benchmark
+		Running for engine innodb
+		Average number of seconds to run all queries: 1.468 seconds
+		Minimum number of seconds to run all queries: 1.223 seconds
+		Maximum number of seconds to run all queries: 1.679 seconds
+		Number of clients running queries: 50
+		Average number of queries per client: 0
+
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	Benchmark
+		Running for engine innodb
+		Average number of seconds to run all queries: 1.970 seconds
+		Minimum number of seconds to run all queries: 1.656 seconds
+		Maximum number of seconds to run all queries: 2.433 seconds
+		Number of clients running queries: 100
+		Average number of queries per client: 0
+
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1040 Too many connections
+	mysqlslap: Error when connecting to server: 1040 Too many connections
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
+	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'	
+
+	Benchmark
+		Running for engine innodb
+		Average number of seconds to run all queries: 1.865 seconds
+		Minimum number of seconds to run all queries: 1.707 seconds
+		Maximum number of seconds to run all queries: 2.127 seconds
+		Number of clients running queries: 150
+		Average number of queries per client: 0
+	如果是多个mysql pod做压力测试的时候出现的负载均横数据库会不一致的情况
+			
+			
+			
