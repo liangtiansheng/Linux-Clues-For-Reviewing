@@ -1183,28 +1183,6 @@ respawn hacluster /usr/local/lib64/heartbeat/ipfail
 apiauth ipfail gid=haclient uid=hacluster
 
 
-
-
-
-haresources
-主节点  RA1::parameter1::parameter2 RA2
-
-资源粘性：
-	资源是否倾向于留在当前节点
-		正数：乐意
-		负数：离开
-
-		node1.magedu.com: 100, 200
-		node2.magedu.com: 100, inf
-
-		IPaddr::172.16.100.1/16/eth0
-
-HA要求:
-	1、时间同步；
-	2、SSH双机互信；
-	3、主机名称要与uname -n，并通过/etc/hosts解析；
-
-
 HA的LVS集群有两台Director，在启动时，主节点占有集群负载均衡资源（VIP和LVS的转发及高度规则），备用节点监听主节点的“心跳”信息并在主节点出现异常时进行“故障转移”而取得资源使用权，这包括如下步骤：
 	1、添加VIP至其网络接口；
 	2、广播GARP信息，通知网络内的其它主机目前本Director其占有VIP；
