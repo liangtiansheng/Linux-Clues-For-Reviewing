@@ -1,4 +1,411 @@
-################################# Nginx Basic ##################################
+################################# nginx basic #############################
+Nginx特性：
+	libevent: 高性能的网络库
+		epoll():就是signal driven模型
+	模块化设计、较好的扩展性、不能动态加载，目前只能静态编绎
+	高可靠
+		master --> worker
+			进程管理机制优秀
+				一个主控进程
+					读取配置、启动关闭sock、生成关闭子进程，平滑升级等
+				多个子进程
+			低内存消耗
+				10000个keep-alive模式下的connection，仅需要2.5MB的内存
+			支持热部署
+				不停机而更新配置文件、日志文件滚动、升级程序版本
+	支持事件驱动机制、AIO、MMAP(内存映射机制)
+
+	基本功能：
+		静态资源的web服务器，能缓存打开的文件描述符：
+		http、smtp、pop3协议的反向代理服务器
+			Nginx反向代理：	缓存加速、安全控制、处理请求、为后端服务器减轻压力
+		缓存加速、负载均衡；
+		支持FastCGI(fpm,LNMP), uWSGI(Python)等；
+		模块化(非DOS机制)、过滤器zip、SSI及图像的大小调整；
+		支持SSL；
+	扩展功能：
+		基于名称和IP的虚拟主机；
+		支持keepalive
+		支持平滑升级
+		定制访问日志、支持使用日志缓冲区提供日志存储性能
+		支持url rewrite
+		支持路径别名
+		支持基于IP及用户的访问控制
+		支持速率限制，支持并发数限制
+sendfile: 
+	网络请求页面一般方式：client-->net_IO-->kernel-->userspace_app-->kernel-->disk_IO-->FILE-->kernel-->userspace_app-->kernel-->net_IO--client
+	而sendfile是client-->net_IO-->kernel-->userspace_app-->kernel-->disk_IO-->FILE-->kernel-->net_IO-->client
+	
+	Nginx的基本架构：
+		一个master进程，生成一个或多个worker进程；
+		siganl driven：epoll(边缘触发)、kqueue, /dev/poll
+			复用器：select, poll, rt signal
+		支持sendfile，sendfile64
+		支持AIO
+		支持MMAP
+	nginx的工作模式：非阻塞、事件驱动、由一个master进程生成多个worker线程，每个worker响应n个请求;
+		worker*n即是总数，一般单机5万个了不解了，套接字才65536个
+	
+	模块类型：
+		核心模块
+		Standard HTTP modules
+		Optional HTTP modules
+		Mail modules
+		3rd party modules
+		
+	安装	
+		yum install gcc openssl-devel pcre-devel zlib-devel 
+
+		# groupadd -r nginx
+		# useradd -r -g nginx -s /bin/false -M nginx
+
+		./configure \
+		  --prefix=/usr \
+		  --sbin-path=/usr/sbin/nginx \
+		  --conf-path=/etc/nginx/nginx.conf \
+		  --error-log-path=/var/log/nginx/error.log \
+		  --http-log-path=/var/log/nginx/access.log \
+		  --pid-path=/var/run/nginx/nginx.pid  \
+		  --lock-path=/var/lock/nginx.lock \
+		  --user=nginx \
+		  --group=nginx \
+		  --with-http_ssl_module \
+		  --with-http_flv_module \
+		  --with-http_stub_status_module \
+		  --with-http_gzip_static_module \
+		  --http-client-body-temp-path=/var/tmp/nginx/client/ \
+		  --http-proxy-temp-path=/var/tmp/nginx/proxy/ \
+		  --http-fastcgi-temp-path=/var/tmp/nginx/fcgi/ \
+		  --http-uwsgi-temp-path=/var/tmp/nginx/uwsgi \
+		  --http-scgi-temp-path=/var/tmp/nginx/scgi \
+		  --with-pcre
+  
+		make && make install
+
+		关于配置选项的简单说明： 
+
+		--prefix=<path> - The path relative to which all other Nginx paths will resolve. If not specified, defaults to /usr/local/nginx.
+		--sbin-path=<path> - The path to the nginx executable. Only used for installation. If not specified defaults to <prefix>/sbin/nginx.
+		--conf-path=<path> - The default location of nginx.conf if no -c parameter is provided. If not provided, defaults to <prefix>/conf/nginx.conf. 
+		--pid-path=<path> - The path to nginx.pid, if not set via the "pid" directive in nginx.conf. If not provided, defaults to <prefix>/logs/nginx.pid. 
+		--error-log-path=<path> - The location of the error log if not set via the "error_log" in nginx.conf. If not set, defaults to <prefix>/logs/error.log.
+		--http-log-path=<path> - The location of the access log if not set via the "access_log" directive in nginx.conf. If not set, defaults to <prefix>/logs/access.log.
+		--user=<user> - The default user that nginx will run as if not set in nginx.conf via the "user" directive. If not set, defaults to "nobody".
+		--group=<group> - The default group that nginx will run under if not set via the "user" directive in nginx.conf. If not set defaults to "nobody". 
+		--with-http_ssl_module - Enable ngx_http_ssl_module. Enables SSL support and the ability to handle HTTPS requests. Requires OpenSSL. On Debian, this is libssl-dev.
+		--with-http_flv_module - Enable ngx_http_flv_module 
+		--http-client-body-temp-path=PATH - Set path to the http client request body temporary files. If not set, defaults to <prefix>/client_body_temp 
+		--http-proxy-temp-path=PATH - Set path to the http proxy temporary files. If not set, defaults to <prefix>/proxy_temp
+		--http-fastcgi-temp-path=PATH - Set path to the http fastcgi temporary files. If not set, defaults to <prefix>/fastcgi_temp 
+		--lock-path=<path> - The path to the nginx.lock file. If not provided, defaults to <prefix>/logs/nginx.lock. 
+		Red Hat Nginx Init Script Should work on RHEL, Fedora, CentOS. Tested on CentOS 5. 
+
+		Save this file as /etc/init.d/nginx 
+		
+		配置文件：
+			main配置段：全局配置段
+			event: 定义event模型工作特性
+			http{}: 定义http协议相关的配置
+				http {
+				  server {
+				    location {
+				    }
+				    location
+				    {
+				    }
+				  }  
+				  server {
+				  }
+				}
+			配置指令：要以分号结尾，语法格式：
+				directive value1 [value2...]
+			支持使用变量：
+				内置变量：
+					模块会提供内建变量定义
+				自定义变量：
+					set var_name value
+			主配置段的指令：
+				用于调试、定位问题
+					1、daemon {on|off}
+						是否以守护进程方式运行nginx;调试时应该设置为off;
+					2、master_process {on|off}
+						是否以master/worker模型来运行nginx;调试时可以设置为off;
+					3、error_log file
+						指定位置和级别
+
+				正常运行必备的配置
+					
+					1、user USERNAME[group]
+						指定运行worker进程的用户和组
+					2、pid /path/to/pid_file;
+						指定nginx守护进程的pid文件
+						pid /var/run/nginx/nginx.pid;
+					3、worker_rlimit_nofile #;
+						指定所有worker进程所能打开的最大文件句柄数
+				优化性能的配置
+					1、worker_processes #;
+						worker进程的个数；通常应该略少于CPU物理核心数；
+					2、worker_cpu_affinity cpumask ...;
+						优点：提升缓存的命中率
+						并不能阻止上下文切换
+							上下文切换产生不必要的CPU消耗
+						cpumask：cpu掩码
+							0000 0000
+								八位二进制表示CPU位置
+							
+							0000 0001
+								第一颗
+							0000 0010
+								第二颗
+							0000 0100
+								第三颗
+							0000 1000
+								第四颗
+							worker_cpu_affinity 00000001 00000010 00000100
+					3、timer_resolution
+						计时器解析度：降低此值，可减少gettimeofday()系统调用次数；
+					
+					4、worker_priority number;
+						指明worker进程的nice值：
+						-20,19
+						100,139
+					
+				事件相关的配置
+					1、accept_mutex {off|on}
+						master调度用户请求至各worker进程时使用的负载均衡锁；on表示能让多个worker轮流有序地响应新请求
+					2、lock_file file;
+						accept_mutex用到的锁文件路径
+					3、user [epoll|rtsig|select|poll]
+						用于指明使用的IO复用模型，建议让nginx自选
+					4、worker_connections #;
+						设定单个worker进程所能够处理的最大并发连接数量
+							worker_connections * worker_processes
+				
+			总结：常需调整的几个参数
+				worker_process, worker_connections, worker_cpu_affinity, worker_priority
+			新改动配置生效的方式：
+				nginx -s reload
+					stop,quit,reopen
+			
+			Nginx作为web服务器时使用的配置：
+				http {}：由nginx_http_core_module模块所引入
+				配置框架：
+					http {
+					   upstream{
+					       ...
+					   }
+					   server {
+						location URL {
+						   if ... {
+						      ...
+						   }
+						   ...
+						} # 类似于httpd中的<location>,用于定义URL与本地文件系统的映射关系;
+					   } # 每个server类似于httpd中的一个<VirtualHost>;
+					}
+				注意：与http相关的指令只能放置http、server、location、upstream、if上下文中，某些只能用在其中的某几个上下文中
+				1、server{}
+					定义一个虚拟主机
+						server{
+						   listen 8080;
+						   server_name www.ly.com;
+						   root "/vhosts/web1";
+						}
+				2、listen
+					指定监听的地址和端口
+						listen address[:port];
+						listen port;
+				3、server_name NAME [...];
+					后可跟多个主机；名称还可以使用正则表达式(~)或通配符；
+					(1) 先做精确匹配检查；
+					(2) 左侧通配符匹配检查：*.ly.com
+					(3) 右侧通配符匹配检查：如mail.*
+					(4) 正则表达式匹配检查：如~^.*\.ly\.com$
+					(5) default_server;
+
+					server{
+					   server_name www.ly.com;
+					
+					}
+
+					server{
+					   server_name *.ly.com;
+					
+					}
+					server{
+					   server_name mail.*;
+					
+					}
+				4、root path;
+					设置资源路径映射，用于指明请求的URL所对应的资源所在的文件系统上的起始路径;
+				5、location [ = | ~ | ~* | ^~ ] uri {...}
+					location @name {...}
+					功能：允许根据用户请求的URI来匹配定义的各Loction；匹配到时，此请求将会被相应的location块中的配置所处理
+					比如，访问控制等
+
+					=: 精确匹配检查；
+					~：正则表达式模式匹配检查，区分字符大小写；
+					~*：正则表达式模式匹配检查，不区分字符大小写
+					^~：URI的前半部分匹配，不支持正则表达式；
+					匹配的优先级：精确匹配(=)、^~、~、~*、不带任何符号的location;
+					server {
+					   listen 80;
+					   server_name www.ly.com;
+					   location / {
+						root "/vhosts/web1";
+					   }
+					   location /images/ {
+					      root "/vhosts/images";
+					   }
+					   location ~* \.php$ {
+					      fcgipass
+					   }
+					 }
+				6、alias path;
+					用于location配置段，定义路径别名
+
+					location /images/ {
+					   root "/vhosts/web1";
+					}
+					http://www.ly.com/images/a.jpg <--- /vhosts/web1/images/a.jpg
+					
+					location /images/ {
+						alias "/www/pictures";
+					}
+					http://www.ly.com/images/a.jpg <-- /www/picture/a.jpg
+					注意：root表示指明路径为对应的Location“、”URL；
+					alias表示路径映射，即location指令后定义的URL是相对于alias所指明的路径而言；
+
+				7、index file;
+					默认主页面
+					index index.php index.html;
+				8、error_page code [...][=code]URI | @name
+					根据http响应状态码来指明特用的错误页面；
+					error_page 404 /404_customed.html
+					[=code]: 以指定的响应码进行响应，而不是默认的原来的响应：
+				
+				9、基于IP的访问控制
+					allow IP/MASK;
+					deny IP/MASK;
+
+				10、基于用户的访问控制
+					basic, digest;
+
+					auth_basic "";
+					auth_basic_user_file "/PATH/TO/PASSWORD_FILE"
+						账号密码文件建议使用htpasswd来创建
+				11、https服务
+					server {
+						listen       443 ssl;
+						server_name  localhost;
+
+						ssl_certificate      cert.pem;
+						ssl_certificate_key  cert.key;
+
+						ssl_session_cache    shared:SSL:1m;
+						ssl_session_timeout  5m;
+
+						ssl_ciphers  HIGH:!aNULL:!MD5;
+						ssl_prefer_server_ciphers  on;
+
+						location / {
+						    root   html;
+						    index  index.html index.htm;
+						}
+					}
+				12、stub_status {on|off}
+					仅能用于Location上下文；
+					location /status {
+					   stub_status on;
+					   allow 192.168.154.0/24;
+					   deny all;
+					}
+					可以访问看一下结果
+				13、rewrite regex replacement flag;
+					例如：rewrite ^/images/(.*\.jpg)$ /imgs/$1  break;
+					http://www.ly.com/images/a/b/c/1.jpg --> /imgs/a/b/c/1.jpg
+					
+					flag:
+					    last：一旦此rewrite规则重写完成后，就不再被后面其它的rewrite规则进行处理，而是由
+							User Agent重新对重写后的URL再一次发起请求，并从头开始执行类似的过程
+					    break：一旦此rewrite规则重写完成后，由Uer Agent对新的URL重新发起请求，且不再会被当前location内的任何rewrite规则所检查
+							可以避免死循环
+					    redirect：以302响应码(临时重定向)返回新的URL；
+
+					    permanent：以301响应码(永久重定向)返回新的URl；
+				14、if
+					语法：if(condition) {...}
+					应用环境：server, location
+
+					condition:
+						(1) 变量名：
+							变量值为空串，或者以"0"开始，则为false;其它的均为ture;
+						(2)以变量为操作数构成的比较表达式
+							可使用=, !=类似的比较操作符进行测试；
+						(3)正则表达式的模式匹配操作
+							~：区分大小写的模式匹配检查
+							~*：不区分大小写的模式匹配检查
+							!~和!~*：对上面两种测试取反
+						(4)测试路径为文件可能性：-f,!-f
+						(5)测试指定路径为目录的可能性：-d,!-d
+						(6)测试文件的存在性：-e,!-e
+						(7)检查文件是否有执行权限：-x, !-x
+					例如：
+						if ($http_user_agent ~* MSIE) {
+							rewrite ^(.*)$ /msie/$1 break;
+						}
+				15、防盗链
+					location ~* \.(jpg|gif|jpeg|png)${
+						valid_referer none blocked www.ly.com;
+						if ($invalid_referer){
+						   rewrite ^/ http://www.ly.com/403.html;
+						}
+
+					}
+				16、定制访问日志格式
+					log_format main	log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+							'$status $body_bytes_sent "$http_referer" '
+    
+					access_log logs/access.log main;
+					注意：此处可用变量为nginx各模块内建变量
+				
+				网络连接相关的配置：
+					1、keepalive_timeout #;
+						长连接的超时时长，默订75s
+					2、keepalive requests #;
+						在一个长连接上所能够允许请求的最大资源数；
+					3、keepalive_disable [msie6|safari|none];
+						为指定类型的User Agent 禁用长连接；
+					4、tcp_nodelay on|off;
+						是否对长连接使用TCP_NODELAY选项；
+					5、client_header_timeout #;
+						读取http请求报文首部的超时时长；
+					6、client_body_timeout #;
+						读取http请求报文主体部分的超时时长；
+					7、send_timeout #;
+						发送响应报文的超时时长；
+				fastcgi的相关配置；
+					LNMP：php启用fpm模型；
+					
+nginx反向代理：七层代理，在nginx用户空间是要拆开client报文，可以分析资源
+	ngx_http_proxy_module模块
+		server {
+		    listen
+		    server_name
+		    location / {
+			proxy_pass http://192.168.154.111:80;
+		    }
+		 }
+
+		 格式：
+		    location /uri {
+			proxy_pass http://back_server:port/newuri;
+		    }
+
+		    /uri --> /newuri
+	ngx_http_upstream_module
+
+################################# Nginx 实战 ##################################
 
 平台为：rhel 6.4 32bit
 
