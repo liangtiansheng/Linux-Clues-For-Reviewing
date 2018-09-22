@@ -1,56 +1,56 @@
-DNS: ÓòÃû½âÎö£¬BIND: Berkeley Internet Name Domain
+DNS: åŸŸåè§£æï¼ŒBIND: Berkeley Internet Name Domain
 DNS: Domain Name Service
-ÓòÃû£ºwww.magedu.com(Ö÷»úÃû£¬FQDN£ºFull Qualified Domain Name, ÍêÈ«ÏŞ¶¨ÓòÃû)
-DNS£ºÃû³Æ½âÎö£¬Name Resolving Ãû³Æ×ª»»£¨±³ºóÓĞ²éÑ¯¹ı³Ì£¬Êı¾İ¿â£©
+åŸŸåï¼šwww.magedu.com(ä¸»æœºåï¼ŒFQDNï¼šFull Qualified Domain Name, å®Œå…¨é™å®šåŸŸå)
+DNSï¼šåç§°è§£æï¼ŒName Resolving åç§°è½¬æ¢ï¼ˆèƒŒåæœ‰æŸ¥è¯¢è¿‡ç¨‹ï¼Œæ•°æ®åº“ï¼‰
 	FQDN<-->IP
 	172.16.0.1		www.magedu.com.
 	172.16.0.2		mail.magedu.com.
 
 
-stub resolver: Ãû³Æ½âÎöÆ÷	
+stub resolver: åç§°è§£æå™¨	
 TLD:(top level domain)
-	×éÖ¯Óò£º.com, .org, .net, .cc
-	¹ú¼ÒÓò: .cn, .tw, .hk, .iq, .ir, .jp
-	·´ÏòÓò: IP-->FQDN
-		·´Ïò£ºIP-->FQDN
-		ÕıÏò£ºFQDN-->IP
-²éÑ¯£ºÁ½¶ÎÊ½£ºµİ¹é£¨Ò»°ãÓÃ»§ÊÇµİ¹é£©£¬µü´ú£¨Ò»°ãnameserverÊÇµü´ú£©
+	ç»„ç»‡åŸŸï¼š.com, .org, .net, .cc
+	å›½å®¶åŸŸ: .cn, .tw, .hk, .iq, .ir, .jp
+	åå‘åŸŸ: IP-->FQDN
+		åå‘ï¼šIP-->FQDN
+		æ­£å‘ï¼šFQDN-->IP
+æŸ¥è¯¢ï¼šä¸¤æ®µå¼ï¼šé€’å½’ï¼ˆä¸€èˆ¬ç”¨æˆ·æ˜¯é€’å½’ï¼‰ï¼Œè¿­ä»£ï¼ˆä¸€èˆ¬nameserveræ˜¯è¿­ä»£ï¼‰
 
-	µİ¹é£ºÖ»·¢³öÒ»´ÎÇëÇó
-	µü´ú£º·¢³ö¶à´ÎÇëÇó
+	é€’å½’ï¼šåªå‘å‡ºä¸€æ¬¡è¯·æ±‚
+	è¿­ä»£ï¼šå‘å‡ºå¤šæ¬¡è¯·æ±‚
 	
-½âÎö£º
-	ÕıÏò£ºFQDN-->IP
-	·´Ïò£ºIP-->FQDN
+è§£æï¼š
+	æ­£å‘ï¼šFQDN-->IP
+	åå‘ï¼šIP-->FQDN
 	
 
-DNS£º·Ö²¼Ê½Êı¾İ¿â
-	ÉÏ¼¶½öÖªµÀÆäÖ±½ÓÏÂ¼¶£»
-	ÏÂ¼¶Ö»ÖªµÀ¸ùµÄÎ»ÖÃ£»
+DNSï¼šåˆ†å¸ƒå¼æ•°æ®åº“
+	ä¸Šçº§ä»…çŸ¥é“å…¶ç›´æ¥ä¸‹çº§ï¼›
+	ä¸‹çº§åªçŸ¥é“æ ¹çš„ä½ç½®ï¼›
 
-DNS·şÎñÆ÷£º
-	½ÓÊÜ±¾µØ¿Í»§²éÑ¯ÇëÇó£¨µİ¹é£©
-	Íâ²¿¿Í»§¶ËÇëÇó£ºÇëÇóÈ¨Íş´ğ°¸
-		¿Ï¶¨´ğ°¸£ºTTL£¨»º´æÊ±¼ä£©
-		·ñ¶¨´ğ°¸£ºTTL
-	Íâ²¿¿Í»§¶ËÇëÇó£º·ÇÈ¨Íş´ğ°¸
+DNSæœåŠ¡å™¨ï¼š
+	æ¥å—æœ¬åœ°å®¢æˆ·æŸ¥è¯¢è¯·æ±‚ï¼ˆé€’å½’ï¼‰
+	å¤–éƒ¨å®¢æˆ·ç«¯è¯·æ±‚ï¼šè¯·æ±‚æƒå¨ç­”æ¡ˆ
+		è‚¯å®šç­”æ¡ˆï¼šTTLï¼ˆç¼“å­˜æ—¶é—´ï¼‰
+		å¦å®šç­”æ¡ˆï¼šTTL
+	å¤–éƒ¨å®¢æˆ·ç«¯è¯·æ±‚ï¼šéæƒå¨ç­”æ¡ˆ
 		
 	
-DNS·şÎñÆ÷ÀàĞÍ
-	Ö÷DNS·şÎñÆ÷: Êı¾İĞŞ¸Ä
-	¸¨ÖúDNS·şÎñÆ÷£ºÇëÇóÊı¾İÍ¬²½
-		serial number£¨°æ±¾ºÅ£¬¸¨DNSµÄ°æ±¾ºÅÓëÖ÷DNS°æ±¾ºÅ¶Ô±È£¬²»Í¬Ôò¸üĞÂ£©
-		refresh£¨¸¨DNSÀ´¼ì²éÖÜÆÚ£©
-		retry£¨ÖØ²éÊ±¼ä£©
-		expire£¨ÈÏ¶¨¶ªÊ§Ê±¼ä£©
-		nagative answer TTL£¨·ñ¶¨»º´æÊ±¼ä£©
-	»º´æDNS·şÎñÆ÷£¨²»Ìá¹©È¨Íş´ğ°¸£¬È¨Íş´ğ°¸Ö»ÄÜÓÉ±¾×ğ¸ø£©
-	×ª·¢Æ÷£¨²»»º´æÖ»×ª·¢£©
+DNSæœåŠ¡å™¨ç±»å‹
+	ä¸»DNSæœåŠ¡å™¨: æ•°æ®ä¿®æ”¹
+	è¾…åŠ©DNSæœåŠ¡å™¨ï¼šè¯·æ±‚æ•°æ®åŒæ­¥
+		serial numberï¼ˆç‰ˆæœ¬å·ï¼Œè¾…DNSçš„ç‰ˆæœ¬å·ä¸ä¸»DNSç‰ˆæœ¬å·å¯¹æ¯”ï¼Œä¸åŒåˆ™æ›´æ–°ï¼‰
+		refreshï¼ˆè¾…DNSæ¥æ£€æŸ¥å‘¨æœŸï¼‰
+		retryï¼ˆé‡æŸ¥æ—¶é—´ï¼‰
+		expireï¼ˆè®¤å®šä¸¢å¤±æ—¶é—´ï¼‰
+		nagative answer TTLï¼ˆå¦å®šç¼“å­˜æ—¶é—´ï¼‰
+	ç¼“å­˜DNSæœåŠ¡å™¨ï¼ˆä¸æä¾›æƒå¨ç­”æ¡ˆï¼Œæƒå¨ç­”æ¡ˆåªèƒ½ç”±æœ¬å°Šç»™ï¼‰
+	è½¬å‘å™¨ï¼ˆä¸ç¼“å­˜åªè½¬å‘ï¼‰
 
-Êı¾İ¿âÖĞµÄ£¬Ã¿Ò»¸öÌõÄ¿³Æ×÷Ò»¸ö×ÊÔ´¼ÇÂ¼(Resource Record, RR)
-×ÊÔ´¼ÇÂ¼µÄ¸ñÊ½£º
+æ•°æ®åº“ä¸­çš„ï¼Œæ¯ä¸€ä¸ªæ¡ç›®ç§°ä½œä¸€ä¸ªèµ„æºè®°å½•(Resource Record, RR)
+èµ„æºè®°å½•çš„æ ¼å¼ï¼š
 
-$TTL 600;£¨È«¾ÖTTL£¬ÏÂÃæ¼ÇÂ¼¿ÉÒÔ¼Ì³Ğ£©
+$TTL 600;ï¼ˆå…¨å±€TTLï¼Œä¸‹é¢è®°å½•å¯ä»¥ç»§æ‰¿ï¼‰
 
 NAME	[TTL]   	IN			RRT		VALUE
 www.magedu.com.		IN			A		1.1.1.1
@@ -59,131 +59,131 @@ www.magedu.com.		IN			A		1.1.1.1
 1.1.1.1			IN			PTR		www.magedu.com.
 
 
-×ÊÔ´¼ÇÂ¼ÀàĞÍ£¨RRT£©£º
-SOA(Start Of Authority): ±êÃ÷Ò»¸öÇøÓòÄÚ²¿Ö÷´ÓDNS·şÎñÆ÷ÈçºÎÍ¬²½Êı¾İ£¬ÒÔ¼°ÆğÊ¼ÊÚÈ¨¶ÔÏóÊÇË­£¨FQDN, Ò»°ãÊÇÖ÷DNS·şÎñÆ÷£©
+èµ„æºè®°å½•ç±»å‹ï¼ˆRRTï¼‰ï¼š
+SOA(Start Of Authority): æ ‡æ˜ä¸€ä¸ªåŒºåŸŸå†…éƒ¨ä¸»ä»DNSæœåŠ¡å™¨å¦‚ä½•åŒæ­¥æ•°æ®ï¼Œä»¥åŠèµ·å§‹æˆæƒå¯¹è±¡æ˜¯è°ï¼ˆFQDN, ä¸€èˆ¬æ˜¯ä¸»DNSæœåŠ¡å™¨ï¼‰
 	ZONE NAME		TTL		IN		SOA		FQDN		ADMINISTRATOR_MAILBOX (
 						serial number
 						refresh
 						retry
 						expire
 						na ttl )
-	Ê±¼äµ¥Î»£ºM£¨·ÖÖÓ£©¡¢H£¨Ğ¡Ê±£©¡¢D£¨Ìì£©¡¢W£¨ÖÜ£©£¬Ä¬ÈÏµ¥Î»ÊÇÃë
-	ÓÊÏä¸ñÊ½£ºadmin@magedu.com -Ğ´Îª-> admin.magedu.com£¨@ÓĞÌØÊâÒâÒå£¬±íÊ¾ZONE NAME£©
-	***ÔÚÇøÓòÀïÃæÒ»¶¨Òª×¢Òâ×îºóµÄÒ»¸ö¸ùµã.²»ÄÜÉÙ
+	æ—¶é—´å•ä½ï¼šMï¼ˆåˆ†é’Ÿï¼‰ã€Hï¼ˆå°æ—¶ï¼‰ã€Dï¼ˆå¤©ï¼‰ã€Wï¼ˆå‘¨ï¼‰ï¼Œé»˜è®¤å•ä½æ˜¯ç§’
+	é‚®ç®±æ ¼å¼ï¼šadmin@magedu.com -å†™ä¸º-> admin.magedu.comï¼ˆ@æœ‰ç‰¹æ®Šæ„ä¹‰ï¼Œè¡¨ç¤ºZONE NAMEï¼‰
+	***åœ¨åŒºåŸŸé‡Œé¢ä¸€å®šè¦æ³¨æ„æœ€åçš„ä¸€ä¸ªæ ¹ç‚¹.ä¸èƒ½å°‘
 	magedu.com.		600		IN		SOA		ns1.magedu.com.		admin.magedu.com. (
 						2013040101
 						1H
 						5M
 						1W
 						1D )
-NS(Name Server): ZONE NAME --> FQDN£¨×Ô±¨¼ÒÃÅ£©£¨ÆäA¼ÇÂ¼Ò»°ãÔÚÉÏ¼¶¾ÍÖ¸¶¨ÁË£¬µ«ÊÇÎªÁË·´»ØIP£¬Ò²ÒªÖ¸¶¨£©
+NS(Name Server): ZONE NAME --> FQDNï¼ˆè‡ªæŠ¥å®¶é—¨ï¼‰ï¼ˆå…¶Aè®°å½•ä¸€èˆ¬åœ¨ä¸Šçº§å°±æŒ‡å®šäº†ï¼Œä½†æ˜¯ä¸ºäº†åå›IPï¼Œä¹Ÿè¦æŒ‡å®šï¼‰
 	magedu.com.		600		IN		NS		ns1.magedu.com.
 	magedu.com.		600		IN		NS		ns2.magedu.com.
 	ns1.magedu.com.		600		IN		A		1.1.1.2
 	ns2.magedu.com.		600		IN		A		1.1.1.5
 
 MX(Mail eXchanger): ZONE NAME --> FQDN
-ÓÅÏÈ¼¶£º0-99£¬Êı×ÖÔ½Ğ¡¼¶±ğÔ½¸ß
+ä¼˜å…ˆçº§ï¼š0-99ï¼Œæ•°å­—è¶Šå°çº§åˆ«è¶Šé«˜
 	ZONE NAME		TTL		IN		MX  pri		VALUE
 	
 	magedu.com.		600		IN		MX  10		mail.magedu.com.
 	mail.magedu.com.	600		IN		A		1.1.1.3
 
-A£¨address£©£º	FQDN-->IPv4	
-AAAA£ºFQDN-->IPv6
+Aï¼ˆaddressï¼‰ï¼š	FQDN-->IPv4	
+AAAAï¼šFQDN-->IPv6
 
-PTR(pointer)£ºIP-->FQDN
+PTR(pointer)ï¼šIP-->FQDN
 
 CNAME(Canonical NAME): FQDN-->FQDN
 	www2.magedu.com.		IN		CNAME		www.magedu.com.
 
-*»¹¿ÉÄÜÓĞÒÔÏÂ¼¸ÖÖ£º
+*è¿˜å¯èƒ½æœ‰ä»¥ä¸‹å‡ ç§ï¼š
 TXT
 CHAOS
 SRV
 
 
 
-***Á½ÕßÃ»ÓĞ±ØÈ»ÁªÏµ£¬±¾ÓòÔÚÉÏ¼¶ÇøÓòÖĞ¼ÇÂ¼£¬ÏÂ¼¶ÇøÓòÔÚ±¾ÓòÖĞ¼ÇÂ¼£¬ÔÚÉú²úÓ¦ÓÃÖĞ¶¼ÊÇÇøÓòÔÚ¹¤×÷£¬Õı·´ÇøÓò·Ö¿ªÁªÏµ
-Óò£ºDomain£¨Âß¼­¸ÅÄî£©
-ÇøÓò£ºZone£¨ÎïÀí¸ÅÄî£©
+***ä¸¤è€…æ²¡æœ‰å¿…ç„¶è”ç³»ï¼Œæœ¬åŸŸåœ¨ä¸Šçº§åŒºåŸŸä¸­è®°å½•ï¼Œä¸‹çº§åŒºåŸŸåœ¨æœ¬åŸŸä¸­è®°å½•ï¼Œåœ¨ç”Ÿäº§åº”ç”¨ä¸­éƒ½æ˜¯åŒºåŸŸåœ¨å·¥ä½œï¼Œæ­£ååŒºåŸŸåˆ†å¼€è”ç³»
+åŸŸï¼šDomainï¼ˆé€»è¾‘æ¦‚å¿µï¼‰
+åŒºåŸŸï¼šZoneï¼ˆç‰©ç†æ¦‚å¿µï¼‰
 
-***ÉÏ¼¶ÊÚÈ¨¼ÇÂ¼
+***ä¸Šçº§æˆæƒè®°å½•
 .com
 magedu.com.		IN		NS		ns.magedu.com.
 ns.magedu.com.		IN		A		192.168.0.10
 
-Àı1¡¢
+ä¾‹1ã€
 magedu.com.	192.168.0.0/24
 www		192.168.0.1
 mail		192.168.0.2, MX
 
-½¨Á¢Á½¸öÇøÓòÎÄ¼ş£º
-ÕıÏòÇøÓòÎÄ¼ş
+å»ºç«‹ä¸¤ä¸ªåŒºåŸŸæ–‡ä»¶ï¼š
+æ­£å‘åŒºåŸŸæ–‡ä»¶
 magedu.com.		IN		SOA	
-¼òĞ´Îª£º
-@£¨ÅäÖÆÎÄ¼ş¶¨Òå¹ı£©	IN		SOA
+ç®€å†™ä¸ºï¼š
+@ï¼ˆé…åˆ¶æ–‡ä»¶å®šä¹‰è¿‡ï¼‰	IN		SOA
 
 www.maged.com.		IN		A	192.168.0.1
-¼òĞ´Îª£º
+ç®€å†™ä¸ºï¼š
 www			IN		A	192.168.0.1
 
 	
-·´ÏòÇøÓòÎÄ¼ş£º
+åå‘åŒºåŸŸæ–‡ä»¶ï¼š
 0.168.192.in-addr.arpa.		IN	SOA	
 
 1.0.168.192.in-addr.arpa.	IN	PTR	www.magedu.com.
-¼òĞ´Îª£º
+ç®€å†™ä¸ºï¼š
 1				IN	PTR	www.magedu.com.
 
 
-ÇøÓò´«ËÍµÄÀàĞÍ£ºÖ÷¸¨¸üĞÂÀàĞÍ
-	ÍêÈ«ÇøÓò´«ËÍ: axfr 
-	ÔöÁ¿ÇøÓò´«ËÍ£ºixfr
+åŒºåŸŸä¼ é€çš„ç±»å‹ï¼šä¸»è¾…æ›´æ–°ç±»å‹
+	å®Œå…¨åŒºåŸŸä¼ é€: axfr 
+	å¢é‡åŒºåŸŸä¼ é€ï¼šixfr
 	
-ÇøÓòÀàĞÍ£º
-	Ö÷ÇøÓò£ºmaster
-	´ÓÇøÓò£ºslave
-	ÌáÊ¾ÇøÓò£ºhint
-	×ª·¢ÇøÓò£ºforward
+åŒºåŸŸç±»å‹ï¼š
+	ä¸»åŒºåŸŸï¼šmaster
+	ä»åŒºåŸŸï¼šslave
+	æç¤ºåŒºåŸŸï¼šhint
+	è½¬å‘åŒºåŸŸï¼šforward
 zone "ZONE NAME" IN {
 	type {master|slave|hint|forward};
 	
 };
 
-Ö÷ÇøÓò£º
-	file "ÇøÓòÊı¾İÎÄ¼ş";
+ä¸»åŒºåŸŸï¼š
+	file "åŒºåŸŸæ•°æ®æ–‡ä»¶";
 	
-´ÓÇøÓò£º
-	file "ÇøÓòÊı¾İÎÄ¼ş";
+ä»åŒºåŸŸï¼š
+	file "åŒºåŸŸæ•°æ®æ–‡ä»¶";
 	masters { master1_ip; };
 
 
-DNS£ºBIND
+DNSï¼šBIND
 	Berkeley Internet Name Domain
-	ISC£ººóÀ´ÓÉ´Ë×éÖ¯¹ÜÀí
+	ISCï¼šåæ¥ç”±æ­¤ç»„ç»‡ç®¡ç†
 	
-bind97£ºÅäÖÃÎÄ¼ş
+bind97ï¼šé…ç½®æ–‡ä»¶
 	/etc/named.conf
-		BIND½ø³ÌµÄ¹¤×÷ÊôĞÔ
-		ÇøÓòµÄ¶¨Òå
+		BINDè¿›ç¨‹çš„å·¥ä½œå±æ€§
+		åŒºåŸŸçš„å®šä¹‰
 	/etc/rndc.key
 		rndc: Remote Name Domain Controller
-		ÃÜÔ¿ÎÄ¼ş 
-		ÅäÖÃĞÅÏ¢£º/etc/rndc.conf
+		å¯†é’¥æ–‡ä»¶ 
+		é…ç½®ä¿¡æ¯ï¼š/etc/rndc.conf
 		
 	/var/named/
-		ÇøÓòÊı¾İÎÄ¼ş
+		åŒºåŸŸæ•°æ®æ–‡ä»¶
 
 	/etc/rc.d/init.d/named
 		{start|stop|restart|status|reload}
 		
-	¶ş½øÖÆ³ÌĞò£ºnamed
+	äºŒè¿›åˆ¶ç¨‹åºï¼šnamed
 
-bind-chroot: ½«DNSËùĞèµÄÅäÖÆÎÄ¼şÈ«²¿¹éÓÚ×Ô½¨µÄÒ»¸öĞÂ¸ùÏÂ£¬¸ü°²È«
-	Ä¬ÈÏ£ºnamed
-		ÓÃ»§£ºnamed
-		×é£ºnamed
+bind-chroot: å°†DNSæ‰€éœ€çš„é…åˆ¶æ–‡ä»¶å…¨éƒ¨å½’äºè‡ªå»ºçš„ä¸€ä¸ªæ–°æ ¹ä¸‹ï¼Œæ›´å®‰å…¨
+	é»˜è®¤ï¼šnamed
+		ç”¨æˆ·ï¼šnamed
+		ç»„ï¼šnamed
 		
 	/var/named/chroot/
 		etc/named.conf
@@ -191,27 +191,27 @@ bind-chroot: ½«DNSËùĞèµÄÅäÖÆÎÄ¼şÈ«²¿¹éÓÚ×Ô½¨µÄÒ»¸öĞÂ¸ùÏÂ£¬¸ü°²È«
 		sbin/named
 		var/named/
 
-***ÅäÖÃÖĞ³£ÓÃµÄ¼¸¸öÃüÁî	
-named-checkconfig£º¼ì²énamed.confÎÄ¼şÓĞÃ»ÓĞÓï·¨´íÎó£¬µ«²»ÄÜ²é³öÂß¼­´íÎó
-name-checkzone£º¼ì²éÇøÓòÎÄ¼şÖĞÊÇ·ñÓĞÓï·¨´íÎó
+***é…ç½®ä¸­å¸¸ç”¨çš„å‡ ä¸ªå‘½ä»¤	
+named-checkconfigï¼šæ£€æŸ¥named.confæ–‡ä»¶æœ‰æ²¡æœ‰è¯­æ³•é”™è¯¯ï¼Œä½†ä¸èƒ½æŸ¥å‡ºé€»è¾‘é”™è¯¯
+name-checkzoneï¼šæ£€æŸ¥åŒºåŸŸæ–‡ä»¶ä¸­æ˜¯å¦æœ‰è¯­æ³•é”™è¯¯
 dig: Domain Information Gropher
 dig -t RT NAME @IP
 dig -t NS mageedu.com
 dig -x IP: 
-	¸ù¾İIP²éÕÒFQDN
+	æ ¹æ®IPæŸ¥æ‰¾FQDN
 dig:
 	aa: Authority Answer
 	
-host -t RT NAME: ²éÑ¯Ãû³ÆµÄ½âÎö½á¹û
+host -t RT NAME: æŸ¥è¯¢åç§°çš„è§£æç»“æœ
 
-nslookup: ½»»¥Ê½
+nslookup: äº¤äº’å¼
 nslookup>
-		server IP£¨Éè¶¨DNS·şÎñÆ÷£©
-		set q=RT£¨Éè¶¨×ÊÔ´²éÑ¯ÀàĞÍ£©
+		server IPï¼ˆè®¾å®šDNSæœåŠ¡å™¨ï¼‰
+		set q=RTï¼ˆè®¾å®šèµ„æºæŸ¥è¯¢ç±»å‹ï¼‰
 		NAME 
 
 
-***DNS: ¼àÌıµÄĞ­Òé¼°¶Ë¿Ú£º
+***DNS: ç›‘å¬çš„åè®®åŠç«¯å£ï¼š
 		53/udp
 		53/tcp
 		953/tcp, rndc
@@ -220,27 +220,27 @@ nslookup>
 
 
 
-ÁÙÊ±ĞÔµØ¹Ø±ÕSELinux:
+ä¸´æ—¶æ€§åœ°å…³é—­SELinux:
 # getenforce
 Enforcing
 
 # setenforce 0
 # setenforce 1
 
-ÓÀ¾Ã¹Ø±Õ£º
+æ°¸ä¹…å…³é—­ï¼š
 # vim /etc/selinux/config
 
 
 DNS RT
-	$TTL ºê
+	$TTL å®
 	$ORIGIN mageedu.com.
 	$GENERATE
 	NAME	[TTL]	IN	RT		VALUE	
-SOA£º
-	@	IN	SOA		MASTER_NS_SERVER_FQDN	ADMIN_MAILBOX £¨
+SOAï¼š
+	@	IN	SOA		MASTER_NS_SERVER_FQDN	ADMIN_MAILBOX ï¼ˆ
 	
-	£©
-NS£º
+	ï¼‰
+NSï¼š
 	@	IN	NS	NS_SERVER_FQDN
 MX:
 	@	IN	MX  pri	MX_SERVER_FQDN
@@ -250,19 +250,19 @@ PTR
 CNAME
 	Alias	IN	CNAME	FQDN
 
-·ºÓò½âÎö£º
+æ³›åŸŸè§£æï¼š
 	*.mageedu.com.		IN	A	
 
-rndc: ¿ØÖÆDNS·şÎñÆ÷£¬Ô¶³Ì¿ØÖÆ
+rndc: æ§åˆ¶DNSæœåŠ¡å™¨ï¼Œè¿œç¨‹æ§åˆ¶
 
-ÕıÏòÇøÓòÊÚÈ¨£º
+æ­£å‘åŒºåŸŸæˆæƒï¼š
 SUB_ZONE_NAME	IN	NS	NSSERVER_SUB_ZONE_NAME
 NSSERVER_SUB_ZONE_NAME	IN	A	IP
 
 forward {only|first}
 forwarders {};
-only£ºÈç¹û×ª·¢·şÎñÆ÷²»½ÓÊÜ×ª·¢¾Í·ÅÆú
-first£ºÈç¹û×ª·¢·şÎñÆ÷²»½ÓÊÜ×ª·¢¾ÍÕÒ±ğµÄ
+onlyï¼šå¦‚æœè½¬å‘æœåŠ¡å™¨ä¸æ¥å—è½¬å‘å°±æ”¾å¼ƒ
+firstï¼šå¦‚æœè½¬å‘æœåŠ¡å™¨ä¸æ¥å—è½¬å‘å°±æ‰¾åˆ«çš„
 
 zone "ZONE_NAME" IN {
 	type forward;
@@ -270,14 +270,14 @@ zone "ZONE_NAME" IN {
 };
 
 
-allow-recursion {};	#ÔÊĞí¸øË­µİ¹é
-allow-query {};		#ÔÊĞíË­À´²éÑ¯
+allow-recursion {};	#å…è®¸ç»™è°é€’å½’
+allow-query {};		#å…è®¸è°æ¥æŸ¥è¯¢
 	allow-query { 172.16.0.0/16; 127.0.0.0/8; 10.0.0.0/8; }
-allow-transfer {};	#ÔÊĞíË­½øĞĞ´«ËÍ
-	axfr£ºÍêÈ«´«ËÍ
-	ixfr£ºÔöÁ¿´«ËÍ
+allow-transfer {};	#å…è®¸è°è¿›è¡Œä¼ é€
+	axfrï¼šå®Œå…¨ä¼ é€
+	ixfrï¼šå¢é‡ä¼ é€
 
-***¶¨Òå·ÃÎÊ¿ØÖÆ£¬ÀàËÆº­ÊıÒ»Ñù±»·½±ãµ÷ÓÃ
+***å®šä¹‰è®¿é—®æ§åˆ¶ï¼Œç±»ä¼¼æ¶µæ•°ä¸€æ ·è¢«æ–¹ä¾¿è°ƒç”¨
 acl ACL_NAME { 
 	172.16.0.0/16;
 	127.0.0.0/8;
@@ -292,26 +292,26 @@ allow-query { innet; };
 	      none;
 	      any;
 
-***ÖÇÄÜDNS»ù´¡£¬ÓÃÊÓÍ¼ÅĞ¶ÏDNSÀ´Ô´£¬½«DNS½âÎöµ½×î¼ÑDNS·şÎñÆ÷ÉÏ£¬±ÜÃâ·şÎñÆ÷³¬ÔØ¶ø¼Ó¿ìËÙ¶È
+***æ™ºèƒ½DNSåŸºç¡€ï¼Œç”¨è§†å›¾åˆ¤æ–­DNSæ¥æºï¼Œå°†DNSè§£æåˆ°æœ€ä½³DNSæœåŠ¡å™¨ä¸Šï¼Œé¿å…æœåŠ¡å™¨è¶…è½½è€ŒåŠ å¿«é€Ÿåº¦
 view VIEW_NAME {
 
 };
-ÊÓÍ¼Ò»µ©¶¨Òå£¬ËùÓĞµÄÇøÓò¶¼±ØĞë¶¨ÒåÔÚÊÓÍ¼ÖĞ
+è§†å›¾ä¸€æ—¦å®šä¹‰ï¼Œæ‰€æœ‰çš„åŒºåŸŸéƒ½å¿…é¡»å®šä¹‰åœ¨è§†å›¾ä¸­
 
 
-***¶¨Òåµ¯ĞÔÈÕÖ¾ÏµÍ³£¬¸ü¼ÓÏ¸ÖÂÇÒ¸ù¾İĞèÒª¼ÇÂ¼±ØÒªÈÕÖ¾£¬±ÜÃâÈÕÖ¾¹ı´óÓ°ÏìÏµÍ³ĞÔÄÜ
+***å®šä¹‰å¼¹æ€§æ—¥å¿—ç³»ç»Ÿï¼Œæ›´åŠ ç»†è‡´ä¸”æ ¹æ®éœ€è¦è®°å½•å¿…è¦æ—¥å¿—ï¼Œé¿å…æ—¥å¿—è¿‡å¤§å½±å“ç³»ç»Ÿæ€§èƒ½
 logging {
 
 };
 category  defines what should be logged
-	1¡¢All log messages are divided into one of fifteen categories.
-	2¡¢A category directive will be used to determine to which channels log messages should be directed.
-	3¡¢Messages in one category may be directed to multiple channels
-catagory: bindµÄ×ÓÏµÍ³ ÈÕÖ¾Ô´
-	²éÑ¯
-	ÇøÓò´«ËÍ
+	1ã€All log messages are divided into one of fifteen categories.
+	2ã€A category directive will be used to determine to which channels log messages should be directed.
+	3ã€Messages in one category may be directed to multiple channels
+catagory: bindçš„å­ç³»ç»Ÿ æ—¥å¿—æº
+	æŸ¥è¯¢
+	åŒºåŸŸä¼ é€
 	
-	¿ÉÒÔÍ¨¹ıcatagory×Ô¶¨ÒåÈÕÖ¾À´Ô´
+	å¯ä»¥é€šè¿‡catagoryè‡ªå®šä¹‰æ—¥å¿—æ¥æº
 Fifteen categories to choose from
 	default  Defines default channel for categories
 	general  Catch-all category for unclassified messages
@@ -331,25 +331,25 @@ Fifteen categories to choose from
 
 
 channel  defines where log information should go
-channel: ÈÕÖ¾±£´æÎ»ÖÃ
+channel: æ—¥å¿—ä¿å­˜ä½ç½®
 		syslog
-		file: ×Ô¶¨Òå±£´æÈÕÖ¾ĞÅÏ¢µÄÎÄ¼ş
+		file: è‡ªå®šä¹‰ä¿å­˜æ—¥å¿—ä¿¡æ¯çš„æ–‡ä»¶
 
-queryperf : Ñ¹Á¦²âÊÔ
+queryperf : å‹åŠ›æµ‹è¯•
 
 
 
-Àı£ºÒÔÉÏËùÓĞÖªÊ¶µã»ã¾Û³ÉÍêÕûµÄÊµÑé
-***×ÔÒÑÅäÖÃbindµÄ¹Ø¼üÅäÖÃÎÄ¼ş
+ä¾‹ï¼šä»¥ä¸Šæ‰€æœ‰çŸ¥è¯†ç‚¹æ±‡èšæˆå®Œæ•´çš„å®éªŒ
+***è‡ªå·²é…ç½®bindçš„å…³é”®é…ç½®æ–‡ä»¶
 [root@RHEL6 ~]# mv /etc/named.conf /root/named.conf.backup 
 [root@RHEL6 ~]# vim /etc/named.conf
-***×¢ÒâÓï·¨¸ñÊ½
-*optionsÊÇÈ«¾ÖÅäÖÃ
+***æ³¨æ„è¯­æ³•æ ¼å¼
+*optionsæ˜¯å…¨å±€é…ç½®
 options {
         directory       "/var/named";
 };
 
-*zone±íÊ¾ÇøÓòÅäÖÃ
+*zoneè¡¨ç¤ºåŒºåŸŸé…ç½®
 zone "." IN {
         type hint;
         file "named.ca";
@@ -367,7 +367,7 @@ zone "0.0.127.in-addr.arpa" IN {
 [root@RHEL6 ~]# chown root:named /etc/named.conf 
 [root@RHEL6 ~]# chmod 640 /etc/named.conf 
 
-*¼ì²éÅäÖÃÎÄ¼şµÄÓï·¨´íÎó
+*æ£€æŸ¥é…ç½®æ–‡ä»¶çš„è¯­æ³•é”™è¯¯
 [root@RHEL6 ~]# named-checkconf 
 [root@RHEL6 ~]# named-checkzone "localhost" /var/named/named.localhost 
 zone localhost/IN: loaded serial 0
@@ -392,11 +392,11 @@ Disabled
 [root@RHEL6 ~]# setenforce 0
 setenforce: SELinux is disabled
 
-*ÔÚÅäÖÃÎÄ¼şÀïÃæÓÀ¾Ã¹Ø±Õ
+*åœ¨é…ç½®æ–‡ä»¶é‡Œé¢æ°¸ä¹…å…³é—­
 [root@RHEL6 ~]# vim /etc/selinux/config 
 SELINUX=disabled
 
-*²âÊÔÄÜ²»ÄÜ½âÎö
+*æµ‹è¯•èƒ½ä¸èƒ½è§£æ
 [root@RHEL6 ~]# vim /etc/resolv.conf 
 nameserver 192.168.3.66
 [root@RHEL6 ~]# ping baidu.com
@@ -409,7 +409,7 @@ named          	0:off	1:off	2:off	3:off	4:off	5:off	6:off
 [root@RHEL6 ~]# chkconfig --list named
 named          	0:off	1:off	2:on	3:on	4:on	5:on	6:off
 
-***ÒÔÉÏÖ»ÊÇ»º´æ·şÎñÆ÷£¬½ÓÏÂÀ´ÊµÑéÉêÇë¹ıÒ»¸öÓòÃûmageedu.comºóµÄÅäÖÃ
+***ä»¥ä¸Šåªæ˜¯ç¼“å­˜æœåŠ¡å™¨ï¼Œæ¥ä¸‹æ¥å®éªŒç”³è¯·è¿‡ä¸€ä¸ªåŸŸåmageedu.comåçš„é…ç½®
 [root@RHEL6 ~]# vim /etc/named.conf 
 zone "mageedu.com" IN {
         type master;
@@ -428,17 +428,17 @@ _default/mageedu.com/IN: file not found
                                                            [FAILED]
 [root@RHEL6 ~]# vim /var/named/mageedu.com.zone
 $TTL 600
-#SOA ¼ÇÂ¼
+#SOA è®°å½•
 mageedu.com.    IN      SOA     ns1.mageedu.com.        admin.mageedu.com (
                                 2016041701
                                 1H
                                 5M
                                 2D
                                 6H )
-#NS ¼ÇÂ¼
+#NS è®°å½•
 mageedu.com.    IN      NS      ns1.mageedu.com.
                 
-#MX ¼ÇÂ¼£¨µ±ÓòÃûÏàÍ¬Ê±¿ÉÒÔÊ¡ÂÔ£¬Ä¬ÈÏ´ÓÉÏÃæ¼Ì³Ğ£©
+#MX è®°å½•ï¼ˆå½“åŸŸåç›¸åŒæ—¶å¯ä»¥çœç•¥ï¼Œé»˜è®¤ä»ä¸Šé¢ç»§æ‰¿ï¼‰
                 IN      MX 10   mail
 ns1             IN      A       192.168.3.66
 mail            IN      A       192.168.3.67
@@ -563,8 +563,8 @@ Address:	192.168.3.66#53
 > 
 
 
-***¹ØÓÚµİ¹é£¬Ä¬ÈÏ×´Ì¬ÏÂÊÇ¸øËùÓĞÈËµİ¹éÈçÏÂ£º
-*Õâ¾ÍÊÇÄ¬ÈÏ×´Ì¬ÏÂµÄµİ¹é£¬Ïàµ±ÓÚdig +recurse -t A www.sohu.com @192.168.3.66
+***å…³äºé€’å½’ï¼Œé»˜è®¤çŠ¶æ€ä¸‹æ˜¯ç»™æ‰€æœ‰äººé€’å½’å¦‚ä¸‹ï¼š
+*è¿™å°±æ˜¯é»˜è®¤çŠ¶æ€ä¸‹çš„é€’å½’ï¼Œç›¸å½“äºdig +recurse -t A www.sohu.com @192.168.3.66
 [root@RHEL6 ~]# dig -t A www.sohu.com @192.168.3.66
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> -t A www.sohu.com @192.16
@@ -593,7 +593,7 @@ a.sohu.com.		3600	IN	NS	w.a.sohu.com.
 ;; WHEN: Mon Apr 18 09:53:00 2016
 ;; MSG SIZE  rcvd: 163
 
-*Èç¹ûÃ÷È·Ö¸³önorecurse¾ÍÊÇ²»°ïÃ¦µİ¹é£¬ÄÇÃ´Ëü»áÏÔÊ¾ËµÈÃÄãÃÇÈ¥ÕÒ¸ù°É£¬ÎÒÎŞÄÜÎªÁ¦
+*å¦‚æœæ˜ç¡®æŒ‡å‡ºnorecurseå°±æ˜¯ä¸å¸®å¿™é€’å½’ï¼Œé‚£ä¹ˆå®ƒä¼šæ˜¾ç¤ºè¯´è®©ä½ ä»¬å»æ‰¾æ ¹å§ï¼Œæˆ‘æ— èƒ½ä¸ºåŠ›
 [root@RHEL6 ~]# dig +norecurse -t A www.sina.com @192.168.3.66
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> +norecurse -t A www.sina.
@@ -625,7 +625,7 @@ com.			172509	IN	NS	m.gtld-servers.net.
 ;; WHEN: Mon Apr 18 09:57:45 2016
 ;; MSG SIZE  rcvd: 254
 
-*µ±È»¿ÉÒÔÓÃdig +trace ×·×ÙÕû¸ö¹ı³Ì
+*å½“ç„¶å¯ä»¥ç”¨dig +trace è¿½è¸ªæ•´ä¸ªè¿‡ç¨‹
 [root@RHEL6 ~]# dig +trace -t A www.sina.com @192.168.3.66
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> +trace -t A www.sina.com 
@@ -682,7 +682,7 @@ sina.com.cn.		86400	IN	NS	ns4.sina.com.cn.
 sina.com.cn.		86400	IN	NS	ns2.sina.com.cn.
 ;; Received 301 bytes from 61.172.201.254#53(ns2.sina.com.cn) in 15196 ms
 
-*ÏÂÃæÎÒÃÇÔÚÅäÖÃÎÄ¼şÀïÃ÷È·Ö¸Ã÷µİ¹éÇé¿ö
+*ä¸‹é¢æˆ‘ä»¬åœ¨é…ç½®æ–‡ä»¶é‡Œæ˜ç¡®æŒ‡æ˜é€’å½’æƒ…å†µ
 [root@RHEL6 ~]# vim /etc/named.conf 
 options {
 
@@ -690,7 +690,7 @@ options {
         recursion yes;
 
 };
-¿ÉÒÔ¸Ä³ÉÖ»ÎªÄ³ÀàÓÃ»§µİ¹é£º
+å¯ä»¥æ”¹æˆåªä¸ºæŸç±»ç”¨æˆ·é€’å½’ï¼š
 options {
 
         directory "/var/named";
@@ -728,7 +728,7 @@ a.shifen.com.		1200	IN	NS	ns3.a.shifen.com.
 ;; WHEN: Mon Apr 18 10:14:29 2016
 ;; MSG SIZE  rcvd: 180
 
-*ÕâÖÖÇé¿öÏÂ±¾»úÒ²²»ÄÜµİ¹é£¬ÒòÎª²»ÊÇÕâ¶ÎµØÖ·
+*è¿™ç§æƒ…å†µä¸‹æœ¬æœºä¹Ÿä¸èƒ½é€’å½’ï¼Œå› ä¸ºä¸æ˜¯è¿™æ®µåœ°å€
 [root@RHEL6 ~]# dig +recurse -t A www.baidu.com @127.0.0.1
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> +recurse -t A www.baidu.com @127
@@ -747,8 +747,8 @@ a.shifen.com.		1200	IN	NS	ns3.a.shifen.com.
 ;; MSG SIZE  rcvd: 31
 
 
-***ÏÂÃæ½éÉÜÍêÈ«ÇøÓò´«ËÍºÍÔöÁ¿ÇøÓò´«ËÍ
-*axfr ÍêÈ«ÇøÓò´«ËÍ£¬¿ÉÒÔÓÃdig²âÊÔµÃµ½ÇøÓòÄÚµÄËùÓĞÊı¾İ
+***ä¸‹é¢ä»‹ç»å®Œå…¨åŒºåŸŸä¼ é€å’Œå¢é‡åŒºåŸŸä¼ é€
+*axfr å®Œå…¨åŒºåŸŸä¼ é€ï¼Œå¯ä»¥ç”¨digæµ‹è¯•å¾—åˆ°åŒºåŸŸå†…çš„æ‰€æœ‰æ•°æ®
 [root@RHEL6 ~]# dig -t axfr yuliang.com
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> -t axfr yuliang.com
@@ -766,7 +766,7 @@ com.yuliang.com. 2016041701 86400 300 604800 86400;; Query time: 1 msec
 ;; WHEN: Mon Apr 18 10:19:24 2016
 ;; XFR size: 8 records (messages 1, bytes 228)
 
-*Õı³£Çé¿öÏÂ³ıÁË´ÓDNSÖ®Íâ£¬²»ÔÊĞíÆäËûÈÎºÎDNS·şÎñÆ÷»ñµÃ´«ËÍ
+*æ­£å¸¸æƒ…å†µä¸‹é™¤äº†ä»DNSä¹‹å¤–ï¼Œä¸å…è®¸å…¶ä»–ä»»ä½•DNSæœåŠ¡å™¨è·å¾—ä¼ é€
 [root@RHEL6 ~]# vim /etc/named.conf 
 options {
         directory "/var/named";
@@ -810,8 +810,8 @@ Reloading named:                                           [  OK  ]
 ; Transfer failed.
 [root@RHEL6 ~]# 
 
-****°´ÕÕÉÏÃæµÄË¼Â·ĞÂ½¨Ò»Ì¨Ö÷»ú£¬ipÎª192.168.3.99£¬Ä£Äâ¸¨DNS·şÎñÆ÷
-*¸ù¾İ½á¹ûÏÔÊ¾£¬ÔÚÖ÷DNSÅäÖÃÎÄ¼şÖĞ¶¨Òå¹ıÔÊĞí192.168.3.99Ö÷»ú´«ËÍ£¬ËùÒÔÖ»ÓĞ´ËÖ÷»ú¿ÉÒÔ´«ËÍ
+****æŒ‰ç…§ä¸Šé¢çš„æ€è·¯æ–°å»ºä¸€å°ä¸»æœºï¼Œipä¸º192.168.3.99ï¼Œæ¨¡æ‹Ÿè¾…DNSæœåŠ¡å™¨
+*æ ¹æ®ç»“æœæ˜¾ç¤ºï¼Œåœ¨ä¸»DNSé…ç½®æ–‡ä»¶ä¸­å®šä¹‰è¿‡å…è®¸192.168.3.99ä¸»æœºä¼ é€ï¼Œæ‰€ä»¥åªæœ‰æ­¤ä¸»æœºå¯ä»¥ä¼ é€
 [root@localhost ~]# dig -t axfr yuliang.com @192.168.3.66
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> -t axfr yuliang.com @192.168.3.
@@ -833,9 +833,9 @@ root@192.168.3.66's password:
 named.conf                                  100%  519     0.5KB/s   00:00    
 [root@localhost ~]# vim /etc/named.conf 
 zone "yuliang.com" IN {
-        type slave; #´Ó·şÎñÆ÷µÄÀàĞÍ
-        file "slaves/yu.com"; #slaveÄ¿Â¼named×é¶¨ÒåÁËĞ´µÄÈ¨ÏŞ£¬ÕıºÃ¿ÉÒÔ´ÓÖ÷·şÎñÆ÷Í¬²½
-        masters { 192.168.3.66; }; #Ö¸¶¨Ë­ÊÇÖ÷·şÎñÆ÷
+        type slave; #ä»æœåŠ¡å™¨çš„ç±»å‹
+        file "slaves/yu.com"; #slaveç›®å½•namedç»„å®šä¹‰äº†å†™çš„æƒé™ï¼Œæ­£å¥½å¯ä»¥ä»ä¸»æœåŠ¡å™¨åŒæ­¥
+        masters { 192.168.3.66; }; #æŒ‡å®šè°æ˜¯ä¸»æœåŠ¡å™¨
         allow-transfer { none; }; 
 };
 
@@ -848,7 +848,7 @@ zone "3.168.192.in-addr.arpa" IN {
 [root@localhost ~]# named-checkconf 
 [root@localhost ~]# service named start
 Starting named:                                            [FAILED]
-*³öÏÖ¹ÊÕÏ×¢Òâ¿´ÈÕÖ¾£¬ËÑ¼¯ĞÅÏ¢
+*å‡ºç°æ•…éšœæ³¨æ„çœ‹æ—¥å¿—ï¼Œæœé›†ä¿¡æ¯
 [root@localhost ~]# tail -5 /var/log/messages 
 Apr 19 16:21:38 localhost named[22366]: using up to 4096 sockets
 Apr 19 16:21:38 localhost named[22366]: loading configuration from '/etc/named.conf'
@@ -880,11 +880,11 @@ total 8
 -rw-r--r-- 1 named named 424 Apr 19 16:23 yu.arpa.com
 -rw-r--r-- 1 named named 417 Apr 19 16:23 yu.com
 
-Èç¹ûÖ÷´Ó²»Í¬²½³¥ÊÔ£º
-1¡¢¹Ø±Õselinux,firewall
-2¡¢Ö÷DNS·şÎñÆ÷ÖĞÒ»¶¨Òª¸ø¸¨DNSÊÚÈ¨£¬Ò²¾ÍÊÇÖ÷DNSÀïÃæÒªÓĞ¸¨DNSµÄNS¼ÇÂ¼
-3¡¢Í¬²½µÄÇ°ÌáÌõ¼şÒ»¶¨ÊÇÖ÷DNSµÄserial±È¸¨DNSµÄserial°æ±¾¸ß(ÊÖ¶¯¼Ó1)
-4¡¢ÒÔÇ°µÄÄÚºËÔÚÖ÷DNS·şÎñÆ÷ÖĞÒª¼ÓÉÏnotify yes;
+å¦‚æœä¸»ä»ä¸åŒæ­¥å¿è¯•ï¼š
+1ã€å…³é—­selinux,firewall
+2ã€ä¸»DNSæœåŠ¡å™¨ä¸­ä¸€å®šè¦ç»™è¾…DNSæˆæƒï¼Œä¹Ÿå°±æ˜¯ä¸»DNSé‡Œé¢è¦æœ‰è¾…DNSçš„NSè®°å½•
+3ã€åŒæ­¥çš„å‰ææ¡ä»¶ä¸€å®šæ˜¯ä¸»DNSçš„serialæ¯”è¾…DNSçš„serialç‰ˆæœ¬é«˜(æ‰‹åŠ¨åŠ 1)
+4ã€ä»¥å‰çš„å†…æ ¸åœ¨ä¸»DNSæœåŠ¡å™¨ä¸­è¦åŠ ä¸Šnotify yes;
 [root@RHEL6 ~]# vim /var/named/yu.com 
 yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com (
                                 2016041702
@@ -941,19 +941,19 @@ ns2			A	192.168.3.99
 www			A	192.168.3.68
 
 
-***rndc¿ØÖÆDNS·şÎñÆ÷£¬Ô¶³Ì¿ØÖÆºÜ·½±ã
-*ÓĞ¿ÉÄÜìØ³ØÓÃÍêÁË£¬ÒªÊÖ¶¯Ö¸
-*rndc.keyÉ¾³ı£¬ÓÃrndc.confÅäÖÃÎÄ¼şÑéÖ¤
-*S/CÁ½¶Ë¶¼ÒªÆô¶¯DNS·şÎñ
-*named.conf×îºóµÄincludeÎÄ¼ş²»ÄÜÊ¡ÂÔ
+***rndcæ§åˆ¶DNSæœåŠ¡å™¨ï¼Œè¿œç¨‹æ§åˆ¶å¾ˆæ–¹ä¾¿
+*æœ‰å¯èƒ½ç†µæ± ç”¨å®Œäº†ï¼Œè¦æ‰‹åŠ¨æŒ‡
+*rndc.keyåˆ é™¤ï¼Œç”¨rndc.confé…ç½®æ–‡ä»¶éªŒè¯
+*S/Cä¸¤ç«¯éƒ½è¦å¯åŠ¨DNSæœåŠ¡
+*named.confæœ€åçš„includeæ–‡ä»¶ä¸èƒ½çœç•¥
 [root@RHEL6 ~]# rndc-confgen -r /dev/urandom > /etc/rndc.conf
 [root@RHEL6 ~]# vim /etc/rndc.conf 
-Ê¹ÓÃÄ©ĞĞÄ£Ê½
+ä½¿ç”¨æœ«è¡Œæ¨¡å¼
 :.,$w >> /etc/named.conf
 
-*ĞŞ¸Äinet 0.0.0.0 allow { NEEDED; }
+*ä¿®æ”¹inet 0.0.0.0 allow { NEEDED; }
 [root@RHEL6 ~]# vim /etc/named.conf 
-Ê¹ÓÃÄ©ĞĞÄ£Ê½
+ä½¿ç”¨æœ«è¡Œæ¨¡å¼
 :.,$s/^# //g
 [root@RHEL6 ~]# rndc -c /etc/rndc.conf status
 rndc: connection to remote host closed
@@ -964,7 +964,7 @@ This may indicate that
 * the key is invalid.
 [root@RHEL6 ~]# service named reload
 Reloading named:                                           [  OK  ]
-*rndc -c Ö¸¶¨ÎÄ¼ş¼Ó×ÓÃüÁîÖ¸¶¨×´Ì¬
+*rndc -c æŒ‡å®šæ–‡ä»¶åŠ å­å‘½ä»¤æŒ‡å®šçŠ¶æ€
 [root@RHEL6 ~]# rndc -c /etc/rndc.conf status
 version: 9.7.0-P2-RedHat-9.7.0-5.P2.el6
 CPUs found: 2
@@ -978,7 +978,7 @@ query logging is OFF
 recursive clients: 0/0/1000
 tcp clients: 0/100
 server is up and running
-*×ÓÃüÁînotifyÍ¨ÖªDNS·şÎñÆ÷
+*å­å‘½ä»¤notifyé€šçŸ¥DNSæœåŠ¡å™¨
 [root@RHEL6 ~]# rndc -c /etc/rndc.conf notify "yuliang.com"
 zone notify queued
 [root@RHEL6 ~]# tail /var/log/messages
@@ -989,9 +989,9 @@ Apr 20 08:48:08 RHEL6 named[2152]: the working directory is not writable
 Apr 20 08:48:08 RHEL6 named[2152]: reloading configuration succeeded
 Apr 20 08:48:08 RHEL6 named[2152]: reloading zones succeeded
 Apr 20 08:48:48 RHEL6 named[2152]: received control channel command 'notify yuliang.com'Apr 20 08:48:48 RHEL6 named[2152]: zone yuliang.com/IN: sending notifies (serial 2016041702)
-*Çå³ı»º´æ
+*æ¸…é™¤ç¼“å­˜
 [root@RHEL6 ~]# rndc -c /etc/rndc.conf flush
-*Í£Ö¹DNS·şÎñ
+*åœæ­¢DNSæœåŠ¡
 [root@RHEL6 ~]# rndc -c /etc/rndc.conf stop
 [root@RHEL6 ~]# netstat -tuln | grep ":53"
 udp        0      0 0.0.0.0:53637               0.0.0.0:*                 
@@ -999,11 +999,11 @@ udp        0      0 0.0.0.0:53637               0.0.0.0:*
 Starting named:                                            [  OK  ]
 [root@RHEL6 ~]# service named start
 Starting named: named: already running                     [  OK  ]
-*¿ÉÒÔÖ±½ÓÍ£Ö¹
+*å¯ä»¥ç›´æ¥åœæ­¢
 [root@RHEL6 ~]# rndc stop
 [root@RHEL6 ~]# service named start
 Starting named:                                            [  OK  ]
-*Ô¶³Ì192.168.3.99£¬µ«ÊÇÒª¸ÄÒ»ÏÂ±¾»úÅäÖÆÎÄ¼ş£¬¼àÌıµÄport
+*è¿œç¨‹192.168.3.99ï¼Œä½†æ˜¯è¦æ”¹ä¸€ä¸‹æœ¬æœºé…åˆ¶æ–‡ä»¶ï¼Œç›‘å¬çš„port
 [root@RHEL6 ~]# vim /etc/named.conf 
 key "rndc-key" {
         algorithm hmac-md5;
@@ -1023,10 +1023,10 @@ tcp        0      0 127.0.0.1:53                0.0.0.0:*                   LIST
 udp        0      0 0.0.0.0:53637               0.0.0.0:*                               
 udp        0      0 192.168.3.66:53             0.0.0.0:*                               
 udp        0      0 127.0.0.1:53                0.0.0.0:*                               
-*Ô¶³ÌÖ÷»úÉÏÃ»ÓĞrndcµÄkeyÎÄ¼ş£¬¸´ÖÆÒ»·İ¹ıÈ¥µ½Æä¼ÒÄ¿Â¼Ò²¿ÉÒÔ
+*è¿œç¨‹ä¸»æœºä¸Šæ²¡æœ‰rndcçš„keyæ–‡ä»¶ï¼Œå¤åˆ¶ä¸€ä»½è¿‡å»åˆ°å…¶å®¶ç›®å½•ä¹Ÿå¯ä»¥
 [root@RHEL6 ~]# scp /etc/rndc.conf 192.168.3.99:/root
 default-server 127.0.0.1;
-¸Ä³É
+æ”¹æˆ
 default-server 192.168.3.66;
 [root@localhost ~]# rndc -c rndc.conf status
 rndc: connection to remote host closed
@@ -1050,13 +1050,13 @@ query logging is OFF
 recursive clients: 0/0/1000
 tcp clients: 0/100
 server is up and running
-*rndc Ô¶³Ì¿ØÖÆ²»°²È«£¬Ò»°ã¾ÍÔÚ±¾µØ·şÎñÆ÷ÉÏÓÃ
+*rndc è¿œç¨‹æ§åˆ¶ä¸å®‰å…¨ï¼Œä¸€èˆ¬å°±åœ¨æœ¬åœ°æœåŠ¡å™¨ä¸Šç”¨
 
 
-***×ÓÓòÊÚÈ¨
+***å­åŸŸæˆæƒ
 [root@RHEL6 ~]# vim /var/named/yu.com 
-*Ç¿µ÷Ò»ÏÂ£º1¡¢¸ÄĞòÁĞºÅÈÃ¸¨DNSÍ¬²½£»2¡¢±¾ÓòÄÚÍ¬ÑùÒªÉùÃ÷±¾Óò¹ÜÀíÕßNSÊÇË­£»3¡¢×ÓÓòµØÖ·Ò»°ãÓëÊÚÈ¨¸¸ÓòµØÖ·ÊÇ²»Ò»ÑùµÄ£¨ÕâÀïÎªÊµÑéÒ»Ñù£©£»
-4¡¢¸¸ÓòÊÚÈ¨¶à¸ö×ÓÓòÊ±£¬×ÓÓò¶ÀÁ¢£¬¿ÉÒÔÔÚ²»Í¬µÄÍø¶ÎÄÚ
+*å¼ºè°ƒä¸€ä¸‹ï¼š1ã€æ”¹åºåˆ—å·è®©è¾…DNSåŒæ­¥ï¼›2ã€æœ¬åŸŸå†…åŒæ ·è¦å£°æ˜æœ¬åŸŸç®¡ç†è€…NSæ˜¯è°ï¼›3ã€å­åŸŸåœ°å€ä¸€èˆ¬ä¸æˆæƒçˆ¶åŸŸåœ°å€æ˜¯ä¸ä¸€æ ·çš„ï¼ˆè¿™é‡Œä¸ºå®éªŒä¸€æ ·ï¼‰ï¼›
+4ã€çˆ¶åŸŸæˆæƒå¤šä¸ªå­åŸŸæ—¶ï¼Œå­åŸŸç‹¬ç«‹ï¼Œå¯ä»¥åœ¨ä¸åŒçš„ç½‘æ®µå†…
 $TTL 600
 yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com (
                                 2016041703
@@ -1123,7 +1123,7 @@ ns1			A	192.168.3.66
 ns2			A	192.168.3.99
 www			A	192.168.3.68
 
-*ĞÂ½¨Ò»Ì¨Ö÷»ú192.168.3.101ÅäÖÃ×ÓÓò·şÎñÆ÷
+*æ–°å»ºä¸€å°ä¸»æœº192.168.3.101é…ç½®å­åŸŸæœåŠ¡å™¨
 [root@localhost ~]# vim /etc/named.conf
 options {
         directory "/var/named";
@@ -1231,8 +1231,8 @@ ns1.fin.yuliang.com.	600	IN	A	192.168.3.101
 ;; SERVER: 192.168.3.101#53(192.168.3.101)
 ;; WHEN: Wed Apr 20 11:29:49 2016
 ;; MSG SIZE  rcvd: 67
-*ÕâÊÇÔÚ×ÓÓò·şÎñÆ÷ÉÏ×öµÄ²âÊÔ£¬Ã»ÎÊÌâ£¬ÔÙµ½¸¸ÓòÉÏ×öÒ»´Î²âÊÔ
-*×¢Òâ£¬ÊÚÈ¨ÊÇÔÚ¸¸·şÎñÆ÷ÉÏµÄÇøÓòÖĞÊÚµÄÈ¨
+*è¿™æ˜¯åœ¨å­åŸŸæœåŠ¡å™¨ä¸Šåšçš„æµ‹è¯•ï¼Œæ²¡é—®é¢˜ï¼Œå†åˆ°çˆ¶åŸŸä¸Šåšä¸€æ¬¡æµ‹è¯•
+*æ³¨æ„ï¼Œæˆæƒæ˜¯åœ¨çˆ¶æœåŠ¡å™¨ä¸Šçš„åŒºåŸŸä¸­æˆçš„æƒ
 [root@RHEL6 ~]# dig -t NS fin.yuliang.com @192.168.3.66
 
 ; <<>> DiG 9.7.0-P2-RedHat-9.7.0-5.P2.el6 <<>> -t NS fin.yuliang.com @192.168
@@ -1256,17 +1256,17 @@ ns1.fin.yuliang.com.	577	IN	A	192.168.3.101
 ;; MSG SIZE  rcvd: 67
 
 
-***Ò»°ãÇé¿öÏÂ×ÓÓòÊÇ²»ÖªµÀ¸¸ÓòËùÔÚµØµÄ£¬Èç¹ûÃ÷È·Ö¸³öÒª¸¸Óò°ïÃ¦×ª·¢£¬ÅäÖÃÈçÏÂ£º
+***ä¸€èˆ¬æƒ…å†µä¸‹å­åŸŸæ˜¯ä¸çŸ¥é“çˆ¶åŸŸæ‰€åœ¨åœ°çš„ï¼Œå¦‚æœæ˜ç¡®æŒ‡å‡ºè¦çˆ¶åŸŸå¸®å¿™è½¬å‘ï¼Œé…ç½®å¦‚ä¸‹ï¼š
 [root@localhost named]# vim /etc/named.conf
-*ÕâÊÇÔÚÈ«¾ÖÅäÖÃÀïÃæÒªÇó³ı½âÎö±¾µØ¶¨Òå¹ıµÄÓòÖ®Íâ£¬È«²¿¶¼ÈÃ´Ë´¦¶¨ÒåµÄ¸¸ÓòÈ¥²é£¬µ«ÊÇ¸¸ÓòÒª°ïÃ¦µİ¹é²ÅĞĞ
-*¸¸ÓòÖĞÒ²²»¼ûµÃ¶¨Òå¹ıÏñbaidu.comÕâÑùµÄÓò£¬ËùÒÔËü»¹ÊÇ»áÈ¥ÕÒ¸ù. £¬¹Ê´Ë²¢Ã»ÓĞÊ²Ã´Ì«´óÒâÒå
+*è¿™æ˜¯åœ¨å…¨å±€é…ç½®é‡Œé¢è¦æ±‚é™¤è§£ææœ¬åœ°å®šä¹‰è¿‡çš„åŸŸä¹‹å¤–ï¼Œå…¨éƒ¨éƒ½è®©æ­¤å¤„å®šä¹‰çš„çˆ¶åŸŸå»æŸ¥ï¼Œä½†æ˜¯çˆ¶åŸŸè¦å¸®å¿™é€’å½’æ‰è¡Œ
+*çˆ¶åŸŸä¸­ä¹Ÿä¸è§å¾—å®šä¹‰è¿‡åƒbaidu.comè¿™æ ·çš„åŸŸï¼Œæ‰€ä»¥å®ƒè¿˜æ˜¯ä¼šå»æ‰¾æ ¹. ï¼Œæ•…æ­¤å¹¶æ²¡æœ‰ä»€ä¹ˆå¤ªå¤§æ„ä¹‰
 options {
         directory "/var/named";
         forward first;
         forwarders { 192.168.3.66; };
 };
-*µ±È»Èç¹ûÎÒÃÇ¾ÍÊÇÕÒ¸¸Óò»ò¸¸Óò¶¨ÒåµÄÓòÄÇ×îºÃÈçÏÂ´´½¨£º
-*ÕâÊÇ×¨ÃÅµÄ×ª·¢Óò£¬Ò²¾ÍÊÇÇëÇóyuliang.comµÄÊ±ºò£¬²»ÓÃÕÒÇøÓòÎÄ¼ş£¬Ö±½ÓÈ¥ÕÒ¸¸Óò
+*å½“ç„¶å¦‚æœæˆ‘ä»¬å°±æ˜¯æ‰¾çˆ¶åŸŸæˆ–çˆ¶åŸŸå®šä¹‰çš„åŸŸé‚£æœ€å¥½å¦‚ä¸‹åˆ›å»ºï¼š
+*è¿™æ˜¯ä¸“é—¨çš„è½¬å‘åŸŸï¼Œä¹Ÿå°±æ˜¯è¯·æ±‚yuliang.comçš„æ—¶å€™ï¼Œä¸ç”¨æ‰¾åŒºåŸŸæ–‡ä»¶ï¼Œç›´æ¥å»æ‰¾çˆ¶åŸŸ
 zone "yuliang.com" IN {
         type forward;
         forward first;
@@ -1278,7 +1278,7 @@ Stopping named:                                            [  OK  ]
 Starting named:                                            [  OK  ]
 [root@localhost named]# 
 
-***aclµÄÓÃ·¨£¬¸úº­ÊıÏàËÆ£¬ÔÚ/etc/named.conf ÀïÃæ¶¨Òå
+***aclçš„ç”¨æ³•ï¼Œè·Ÿæ¶µæ•°ç›¸ä¼¼ï¼Œåœ¨/etc/named.conf é‡Œé¢å®šä¹‰
 [root@RHEL6 ~]# vim /etc/named.conf 
 acl innet {
         192.168.3.0/24;
@@ -1294,8 +1294,8 @@ Stopping named:                                            [  OK  ]
 Starting named:                                            [  OK  ]
 
 
-***µ±Ê¹ÓÃÖÇÄÜDNS½âÎö£¨Ò²¾ÍÊÇ¸ù¾İIPÖÇÄÜÑ¡Ôñ×î¼Ñ·şÎñÆ÷£©Ê±£¬ÒªÓÃCDN»úÖÆ£¬±È½Ï¸´ÔÓ£¬ÆäÖĞ¾ÍÓĞÒ»¸ö¹Ø¼üÇÒ»ù´¡µÄÓ¦
-   ÓÃ£¬Ò²¾ÍÊÇviewÊÓÍ¼£¬ĞèÒª×¢ÒâµÄÊÇÒ»µ«Ó¦ÓÃÁËÊÓÍ¼£¬ÇøÓò¶¼µÃ¶¨ÒåÔÚÊÓÍ¼ÇøÓòÄÚ
+***å½“ä½¿ç”¨æ™ºèƒ½DNSè§£æï¼ˆä¹Ÿå°±æ˜¯æ ¹æ®IPæ™ºèƒ½é€‰æ‹©æœ€ä½³æœåŠ¡å™¨ï¼‰æ—¶ï¼Œè¦ç”¨CDNæœºåˆ¶ï¼Œæ¯”è¾ƒå¤æ‚ï¼Œå…¶ä¸­å°±æœ‰ä¸€ä¸ªå…³é”®ä¸”åŸºç¡€çš„åº”
+   ç”¨ï¼Œä¹Ÿå°±æ˜¯viewè§†å›¾ï¼Œéœ€è¦æ³¨æ„çš„æ˜¯ä¸€ä½†åº”ç”¨äº†è§†å›¾ï¼ŒåŒºåŸŸéƒ½å¾—å®šä¹‰åœ¨è§†å›¾åŒºåŸŸå†…
 [root@RHEL6 ~]# vim /etc/named.conf 
 acl innet {
         192.168.3.0/24;
@@ -1357,8 +1357,8 @@ Starting named:                                            [  OK  ]
 [root@RHEL6 named]# 
 
 
-***¼ÇÂ¼ÈÕÖ¾µÄ¹¦ÄÜ£¬µ«ÔÚ»¥ÁªÍøÉÏÃæ²»±ã´ò¿ªÈÕÖ¾¹¦ÄÜ£¬ÒòÎªDNSÇëÇóÊıÁ¿ºÜ¶à£¬ÈÕÖ¾¹ı¶àÓ°ÏìËÙ¶È
-   µ«ÊÇ¿ÉÒÔ¿ª·ÅÒ»²¿·ÖÈÕÖ¾¹¦ÄÜ£¬Îª°²È«ºÍĞ§ÂÊÉè¼Æ
+***è®°å½•æ—¥å¿—çš„åŠŸèƒ½ï¼Œä½†åœ¨äº’è”ç½‘ä¸Šé¢ä¸ä¾¿æ‰“å¼€æ—¥å¿—åŠŸèƒ½ï¼Œå› ä¸ºDNSè¯·æ±‚æ•°é‡å¾ˆå¤šï¼Œæ—¥å¿—è¿‡å¤šå½±å“é€Ÿåº¦
+   ä½†æ˜¯å¯ä»¥å¼€æ”¾ä¸€éƒ¨åˆ†æ—¥å¿—åŠŸèƒ½ï¼Œä¸ºå®‰å…¨å’Œæ•ˆç‡è®¾è®¡
 [root@RHEL6 named]# vim /etc/named.conf 
 logging {
         channel query_log {
@@ -1428,13 +1428,13 @@ yuliang.com.		43200	IN	SOA	ns1.yuliang.com. admin.yuliang.com
 [root@RHEL6 named]# 
 
 
-***ÏÂÃæÓÃµ½Ò»¸ö¹¤¾ßqueryperf£¬¿ÉÒÔ²âÊÔDNSµÄ½âÎöËÙ¶È£¬¼´Ñ¹Á¦²âÊÔ
-*ÔÚbind-9.7.4Èí¼ş°üÀïÓĞÒ»¸öcontrib/Ä¿Â¼ÀïÃæÓĞqueryperf£¬ÔÚ±àÒïbindµÄÊ±ºòÃ»ÓĞ½«queryperf±à½øÈ¥£¬ÕâÀïÊÖ¶¯±àÒï
+***ä¸‹é¢ç”¨åˆ°ä¸€ä¸ªå·¥å…·queryperfï¼Œå¯ä»¥æµ‹è¯•DNSçš„è§£æé€Ÿåº¦ï¼Œå³å‹åŠ›æµ‹è¯•
+*åœ¨bind-9.7.4è½¯ä»¶åŒ…é‡Œæœ‰ä¸€ä¸ªcontrib/ç›®å½•é‡Œé¢æœ‰queryperfï¼Œåœ¨ç¼–ç»bindçš„æ—¶å€™æ²¡æœ‰å°†queryperfç¼–è¿›å»ï¼Œè¿™é‡Œæ‰‹åŠ¨ç¼–ç»
 [root@RHEL6 ~]# vim test
 www.yuliang.com A
 yuliang.com NS
 yuliang.com MX
-*ÔÚtest½¨µÄ¼ÇÂ¼ºÜÉÙ£¬ËùÒÔ²âÊÔËÙ¶È²»¼ûµÃÕæÊµ
+*åœ¨testå»ºçš„è®°å½•å¾ˆå°‘ï¼Œæ‰€ä»¥æµ‹è¯•é€Ÿåº¦ä¸è§å¾—çœŸå®
 [root@RHEL6 ~]# queryperf -d test -s 192.168.3.66
 
 DNS Query Performance Testing Tool
@@ -1468,7 +1468,7 @@ Statistics:
   Ran for:              0.000461 seconds
 
   Queries per second:   6507.592191 qps
-  *ÏÂÃæÔÚtestÎÄ¼şÀï½¨20ÍòÌõ¼ÇÂ¼²âÊÔ
+  *ä¸‹é¢åœ¨testæ–‡ä»¶é‡Œå»º20ä¸‡æ¡è®°å½•æµ‹è¯•
 [root@RHEL6 ~]# queryperf -d test -s 192.168.3.66
 
 DNS Query Performance Testing Tool
@@ -1502,12 +1502,12 @@ Statistics:
   Ran for:              52.267444 seconds
 
   Queries per second:   16870.731234 qps
-*´ËÊ±ÓĞ80ÍòÌõ¼ÇÂ¼£¬ÔÚ²âÊÔÊ±²»½ö×ÔÉíÒª´¦Àí´óÁ¿Êı¾İ£¬Í¬Ê±ÓĞ´óÁ¿Êı¾İ½øĞĞI/O´æ´¢£¬ËùÒÔ·Ç³£Âı
+*æ­¤æ—¶æœ‰80ä¸‡æ¡è®°å½•ï¼Œåœ¨æµ‹è¯•æ—¶ä¸ä»…è‡ªèº«è¦å¤„ç†å¤§é‡æ•°æ®ï¼ŒåŒæ—¶æœ‰å¤§é‡æ•°æ®è¿›è¡ŒI/Oå­˜å‚¨ï¼Œæ‰€ä»¥éå¸¸æ…¢
 
 
 DHCP: Dynamic Host Configuration Protocol <-- bootp
 
-DHCPµÄËÄ¸ö±¨ÎÄ¶¼ÊÇ¹ã²¥¸ñÊ½
+DHCPçš„å››ä¸ªæŠ¥æ–‡éƒ½æ˜¯å¹¿æ’­æ ¼å¼
 Client--> DHCPDISCOVER 
 		DHCPOFFER <-- Server
 Client--> DCHPREQUEST 
@@ -1515,39 +1515,39 @@ Client--> DCHPREQUEST
 		  
 Client--> DHCPREQUEST
 		  DHCPACK <-- Server
-DHCP_RELAY£ºDHCPÖĞ¼Ì£¬¿ÉÓÉÂ·ÓÉÆ÷ÇÅ½Ó£¬µ¥²¥¸øÖ¸¶¨·şÎñÆ÷ºÍÓÃ»§		  
+DHCP_RELAYï¼šDHCPä¸­ç»§ï¼Œå¯ç”±è·¯ç”±å™¨æ¡¥æ¥ï¼Œå•æ’­ç»™æŒ‡å®šæœåŠ¡å™¨å’Œç”¨æˆ·		  
 UDP:
 	67/udp
 	68/udp
-***DHCP·şÎñÆ÷£¬°²×°ºó£¬ÆäÅäÖÃÎÄ¼ş/etc/dhcpd.confÀïÃ»ÓĞÄÚÈİ£¬Ä£°åÔÚ/usr/share/doc/dhcpd*/dhcpd.conf.example
+***DHCPæœåŠ¡å™¨ï¼Œå®‰è£…åï¼Œå…¶é…ç½®æ–‡ä»¶/etc/dhcpd.confé‡Œæ²¡æœ‰å†…å®¹ï¼Œæ¨¡æ¿åœ¨/usr/share/doc/dhcpd*/dhcpd.conf.example
 [root@RHEL5 ~]# cp /usr/share/doc/dhcp-3.0.5/dhcpd.conf.sample /etc/dhcpd.conf
 cp: overwrite `/etc/dhcpd.conf'? y
 [root@RHEL5 ~]# vim /etc/dhcpd.conf 
-# 1. ÕûówµÄ­h¾³ÔO¶¨
-ddns-update-style            none;			<==²»Òª¸üĞÂ DDNS µÄÔO¶¨
-ignore client-updates;					<==ºöÂÔÓÃ‘ô¶ËµÄ DNS ¸üĞÂ¹¦ÄÜ
+# 1. æ•´é«”çš„ç’°å¢ƒè¨­å®š
+ddns-update-style            none;			<==ä¸è¦æ›´æ–° DDNS çš„è¨­å®š
+ignore client-updates;					<==å¿½ç•¥ç”¨æˆ¶ç«¯çš„ DNS æ›´æ–°åŠŸèƒ½
 
 subnet 192.168.100.0 netmask 255.255.255.0 {
-	default-lease-time           259200;		<==îAÔO×â¼sé 3 Ìì
-	max-lease-time               518400;		<==×î´ó×â¼sé 6 Ìì
-	option routers               192.168.3.1;	<==ß@¾ÍÊÇîAÔOÂ·ÓÉ
-	option domain-name           "yuliang.com";	<==½oÓèÒ»‚€îIÓòÃû·Q
+	default-lease-time           259200;		<==é è¨­ç§Ÿç´„ç‚º 3 å¤©
+	max-lease-time               518400;		<==æœ€å¤§ç§Ÿç´„ç‚º 6 å¤©
+	option routers               192.168.3.1;	<==é€™å°±æ˜¯é è¨­è·¯ç”±
+	option domain-name           "yuliang.com";	<==çµ¦äºˆä¸€å€‹é ˜åŸŸåç¨±
 	option domain-name-servers   192.168.3.66;
-# ÉÏÃæÊÇ DNS µÄ IP ÔO¶¨£¬ß@‚€ÔO¶¨Öµ•şĞŞ¸ÄÓÃ‘ô¶ËµÄ /etc/resolv.conf ™n°¸ƒÈÈİ
+# ä¸Šé¢æ˜¯ DNS çš„ IP è¨­å®šï¼Œé€™å€‹è¨­å®šå€¼æœƒä¿®æ”¹ç”¨æˆ¶ç«¯çš„ /etc/resolv.conf æª”æ¡ˆå…§å®¹
 
-# 2. êPì¶„Ó‘B·ÖÅäµÄ IP
+# 2. é—œæ–¼å‹•æ…‹åˆ†é…çš„ IP
 
-    range 192.168.100.101 192.168.100.200;  <==·ÖÅäµÄ IP ¹ ‡ú
+    range 192.168.100.101 192.168.100.200;  <==åˆ†é…çš„ IP ç¯„åœ
 
-# 3. êPì¶¹Ì¶¨µÄ IP °¡£¡
+# 3. é—œæ–¼å›ºå®šçš„ IP å•Šï¼
     host IP66 {
-        hardware ethernet    00:0C:29:0E:7D:A1; <==ÓÃ‘ô¶Ë¾W¿¨ MAC
-        fixed-address        192.168.3.254;     <==½oÓè¹Ì¶¨µÄ IP£¬´ËIPÒ»¶¨ÒªÔÚµØÖ·³ØÍâ£¬²»³åÍ»
+        hardware ethernet    00:0C:29:0E:7D:A1; <==ç”¨æˆ¶ç«¯ç¶²å¡ MAC
+        fixed-address        192.168.3.254;     <==çµ¦äºˆå›ºå®šçš„ IPï¼Œæ­¤IPä¸€å®šè¦åœ¨åœ°å€æ± å¤–ï¼Œä¸å†²çª
     }
 }
 [root@RHEL5 ~]# service dhcpd start
 Starting dhcpd:                                            [  OK  ]
-*µ±¸øÁËÖ¸¶¨µÄÖ÷»ú¹Ì¶¨IPµØÖ·Ê±£¬Ã¿´Î¾Í»á½«´ËIPµØÖ··¢¸øÖ¸¶¨Ö÷»ú£¬¶øÇÒ¶à¸ödhcp·şÎñÆ÷¶¼´æÔÚÊ±£¬¹Ì¶¨µØÖ·ÓÅÏÈ
+*å½“ç»™äº†æŒ‡å®šçš„ä¸»æœºå›ºå®šIPåœ°å€æ—¶ï¼Œæ¯æ¬¡å°±ä¼šå°†æ­¤IPåœ°å€å‘ç»™æŒ‡å®šä¸»æœºï¼Œè€Œä¸”å¤šä¸ªdhcpæœåŠ¡å™¨éƒ½å­˜åœ¨æ—¶ï¼Œå›ºå®šåœ°å€ä¼˜å…ˆ
 [root@RHEL6 dhcp]# service network restart
 Shutting down interface eth0:                              [  OK  ]
 Shutting down loopback interface:                          [  OK  ]
@@ -1563,7 +1563,7 @@ eth0      Link encap:Ethernet  HWaddr 00:0C:29:0E:7D:A1
           collisions:0 txqueuelen:1000 
           RX bytes:18841244 (17.9 MiB)  TX bytes:13258313 (12.6 MiB)
           Interrupt:18 Base address:0x2000 
-*Èç¹ûË­¶¯Ì¬´ÓÕâ¸ödhcp·şÎñÆ÷ÉÏµÃµ½¹ıipµØÖ·¾Í»áÓĞµØÖ·×âÆÚ
+*å¦‚æœè°åŠ¨æ€ä»è¿™ä¸ªdhcpæœåŠ¡å™¨ä¸Šå¾—åˆ°è¿‡ipåœ°å€å°±ä¼šæœ‰åœ°å€ç§ŸæœŸ
 [root@RHEL5 ~]# cat /var/lib/dhcpd/dhcpd.leases
 # All times in this file are in UTC (GMT), not your local timezone.   This is
 # not a bug, so please don't ask about it.   There is no portable way to
