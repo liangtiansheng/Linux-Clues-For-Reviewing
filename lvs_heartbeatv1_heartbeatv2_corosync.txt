@@ -1714,50 +1714,6 @@ rsc_defaults $id="rsc-options" \
     resource-stickiness="100"
 
 
-
-
-
-
-
-DRBD：分布式复制块设备
-	两主机通过tcp按位对应
-	drdb属于内核模块，在用户空间有对应的命令行工具
-
-RAID 1：两磁盘在同一台主机上 
-	mirror两磁盘间按位对应，所以两磁盘大小必须一样
-
-DRBD: 主从
-	primary: 可执行读、写操作
-	secondary: 文件系统不能挂载
-
-	A: primay <--> B: secondary
-	主从可切换
-
-DRBD: dual primay, 双主就必须配成高可用集群
-	DLM：Distributed Lock Manager
-
-
-磁盘调度器：
-	优化先将同磁道完成，再到别的磁道完成
-	合并读请求，合并写请求；
-
-Procotol: 三种数据同步协义
-	A: Async, 异步（数据交给自己的tcp栈即返回 ）
-	B：semi sync, 半同步（数据交给对方tcp栈即返回）
-	C：sync, 同步（数据一直到达对方硬盘）
-
-
-
-DRBD Source: DRBD资源
-	资源名称：可以是除了空白字符外的任意ACSII码字符；
-	DRBD设备：在双方节点上，此DRBD设备的设备文件；一般为/dev/drbdN，其主设备号147
-	磁盘：在双方节点上，各自提供的存储设备；
-	网络配置：双方数据同步时所使用的网络属性；
-
-drbd: 2.6.33起，整合进内核
-
-
-
 1、所有realserver都down，如何处理？
 2、自写监测脚本，完成维护模式切换？
 3、如何在vrrp事务发生时，发送警告邮件给指定的管理员？
