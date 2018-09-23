@@ -1,0 +1,4 @@
+Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Failed to get system container stats for "/system.slice/kubelet.service": failed to get cgroup stats for "/system.slice/kubelet.service": failed to get container info for "/system.slice/kubelet.service": unknown container "/system.slice/kubelet.service"
+安装完成后就报这种错误
+解决办法：在/etc/sysconfig/kubelet中传递如下参数：
+    KUBELET_EXTRA_ARGS="--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"

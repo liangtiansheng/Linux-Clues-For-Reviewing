@@ -702,13 +702,13 @@ k8s安装：
 			- name: NGINX_SERVER_PORT
 			  valueFrom:
 			    configMapKeyRef:
-				  name: nginx-config
-				  key: nginx_port
+				    name: nginx-config
+				    key: nginx_port
 			- name: NGINX_SERVER_NAME
 			  valueFrom:
 			    configMapKRef:
-				  name: nginx-config
-				  key: nginx_name
+				    name: nginx-config
+				    key: nginx_name
 			例2：
 			apiVersion: v1
 			kind: Pod
