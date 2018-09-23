@@ -570,33 +570,34 @@ k8s安装：
 					apiVersion: v1
 					kind: Pod
 					metadata:
-					  name: pod-demo
-					  namespace: default
-					  labels:
-					    app: myapp
-						tier: frontend
-					  annotations:
-					    ly.com/created-by: "cluster admin"
+						name: pod-demo
+						namespace: default
+						labels:
+							app: myapp
+							tier: frontend
+						annotations:
+							ly.com/created-by: "cluster admin"
 					spec:
-					  containers:
-					  - name: consumer
-					    image: busybox
-						imagePullPolicy: IfNotPresent
-						command: ['while true; do cat /data/index.html; sleep 2;done']
-						volumeMounts:
-						- name: consume_path
-						  mountPath: /data/web/html
-					  - name: producer
-					    image: busybox
-						imagePullPolicy: IfNotPresent
-						volumeMounts:
-						- name: html
-						  mountPath: /data/
-						command: ['/bin/sh','-c','while true; do echo `date` >> /data/index.html; sleep2;done']
-					  volumes:
-					  - name: html
-					    emptyDir: {}
-				hostPath：
+						containers:
+						- name: consumer
+							image: busybox
+							imagePullPolicy: IfNotPresent
+							command: ['/bin/sh','-c','mkdir -p /data/web/html;while true;do cat /data/web/html/index.html; sleep 1;done']
+							volumeMounts:
+							- name: testvolume
+								mountPath: /data/web/html
+						- name: producer
+							image: busybox
+							imagePullPolicy: IfNotPresent
+							volumeMounts:
+							- name: testvolume
+								mountPath: /data/web/html
+							command: ['/bin/sh','-c','while true; do echo `date` >> /data/web/html/index.html; sleep 2;done']
+						volumes:
+						- name: testvolume
+							emptyDir: {}
+		
+		
 				network storage:
 					SAN: iSCSI
 					NAS: nfs,cifs
