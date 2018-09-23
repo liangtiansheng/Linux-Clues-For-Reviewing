@@ -688,16 +688,16 @@ k8s安装：
 		  namespace: default
 		  labels:
 		    app: myapp
-			tier: frontend
+			  tier: frontend
 		  annotations:
 		    ly.com/created-by: "cluster admin"
 		spec:
 		  container:
 		  - name: myapp
 		    image: ikubernetes/myapp:v1
-			ports:
-			- name: http
-			  containerPort: 80
+			  ports:
+		  	- name: http
+			    containerPort: 80
 			env:
 			- name: NGINX_SERVER_PORT
 			  valueFrom:
@@ -723,18 +723,18 @@ k8s安装：
 			spec:
 			  container:
 			  - name: myapp
-				image: ikubernetes/myapp:v1
-				ports:
-				- name: http
-				  containerPort: 80
-				volumeMounts:
-				- name: nginxconf
-				  mountPath: /etc/nginx/config.d/
-				  readOnly: true
+				  image: ikubernetes/myapp:v1
+				  ports:
+				  - name: http
+				    containerPort: 80
+				  volumeMounts:
+			  	- name: nginxconf
+				    mountPath: /etc/nginx/config.d/
+				    readOnly: true
 			  volumes:
 			  - name: nginxconf
-				configMap:
-				  name: nginx-config
+			  	configMap:
+				    name: nginx-config
 			#Note: 如果是环镜变量这种方式，改了configmap后，pod中的env不会立即改变，但是volume的方式会立即改变
 	secret:
 		有三种：
