@@ -618,7 +618,7 @@ k8s安装：
 					spec:
 					  nfs:
 					    path: /data/volumes/v1
-						server: 192.168.1.41
+						  server: 192.168.1.41
 					  accessModes: ["ReadWriteMany","ReadWriteOnce"]
 					  capacity:
 					    storage: 5Gi
@@ -632,7 +632,7 @@ k8s安装：
 					spec:
 					  nfs:
 					    path: /data/volumes/v2
-						server: 192.168.1.41
+						  server: 192.168.1.41
 					  accessModes: ["ReadWriteMany","ReadWriteOnce"]
 					  capacity:
 					    storage: 10Gi
@@ -646,7 +646,7 @@ k8s安装：
 					  accessModes: ["ReadWriteMany"]
 					  resources:
 					    requests:
-						  storage: 6Gi
+						    storage: 6Gi
 					---
 					apiVersion: v1
 					kind: Pod
@@ -663,7 +663,7 @@ k8s安装：
 					  volumes:
 					  - name: html
 					    persistentVolumeClaim:
-						  claimName: mypvc
+						    claimName: mypvc
 					
 					生产最多用的是动态
 						关键是定义好存储类
