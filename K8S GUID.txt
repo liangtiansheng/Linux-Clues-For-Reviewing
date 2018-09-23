@@ -786,14 +786,14 @@ StatefulSet:
 认证、授权、准入控制(级联资源是否允许操作): 都是以插件方式
 	认证：
 		客户端-->API server
-		user: username,uid
-		group:
-		extra:
+		user: 基于用户username,uid
+		group: 基于用户组
+		extra: 附加额外信息
 		
 		API是各种资源组，都是RestFul风格，所以以uri方式来认证
 			Request path: 获取方式(用到的kubectl、kubeadm之类的都要转化成http格式)
 				/apis/apps/v1/namespaces/default/deployments/myapp-deploy/
-				k8s要求双向证书认证，安装完了k8s后，要配置的admin.conf环境变量就是客户端的证书信息，所以kubectl没有再要求认证
+				k8s api监听在6443端口，这是https协议，所以要求双向证书认证，安装完了k8s后，要配置的admin.conf环境变量就是客户端的证书信息，所以kubectl没有再要求认证
 				但如果用curl那就会要求证书认证，可以配置一个kubectl proxy监听在本地的某个端口8080
 				#kubectl proxy --port=8080
 				#curl http://localhost:8080/api/v1/namespace 返回所有namespace资源json格式
@@ -810,8 +810,10 @@ StatefulSet:
 			k8s维护两种用户：
 				客户端向apiserver认证的userAccount
 				pod向apiserver认证用的serviceAccount(serviceAccountName)
+					
 					pod跟apiServer通信是要专门用这个service转换的，service关联pod是要有一个中间层endpoints，这个可以手动创建关联service和pods
-					默认kubernetes service为k8s组件pod提供apiserver访问
+					
+					***默认kubernetes service为k8s组件pod提供apiserver访问，显然内部组件用的是pod网络，这个service解决的是网络问题
 					[root@node1 ~]# kubectl describe svc kubernetes 
 					Name:              kubernetes
 					Namespace:         default
@@ -826,10 +828,23 @@ StatefulSet:
 					Endpoints:         192.168.1.41:6443
 					Session Affinity:  None
 					Events:            <none>
-				默认的account和创建account
+
+				***这个默认的serviceaccount就是为k8s 组件pod提供向apiserver认证的，权限很小，只用来获取k8s组件自身的信息，这个serviceaccount解决的是认证的问题
 				[root@node1 ~]# kubectl get sa
 				NAME      SECRETS   AGE
 				default   1         11d
+				[root@master ~]# kubectl describe serviceaccounts default 
+				Name:                default
+				Namespace:           default
+				Labels:              <none>
+				Annotations:         <none>
+				Image pull secrets:  <none>
+				Mountable secrets:   default-token-xn62h
+				Tokens:              default-token-xn62h
+				Events:              <none>
+
+
+				***如果想让pod有很大的权限，可以自定义serviceaccount，当然需要用到rbac来定义授权，注意认证不代表授权，能认证进去但是干不了别的事
 				[root@node1 ~]# kubectl create serviceaccount admin
 				serviceaccount/admin created
 				[root@node1 ~]# kubectl describe sa admin 
@@ -837,7 +852,7 @@ StatefulSet:
 				Namespace:           default
 				Labels:              <none>
 				Annotations:         <none>
-				Image pull secrets:  <none> ###下载私有仓库时有两种一种:在pod中定义imagePullSecret,或者定义serviceAccountName中间也有image pull secrets字段，建议后者
+				Image pull secrets:  <none> ###下载私有仓库时有两种:在pod中定义imagePullSecret,或者定义serviceAccountName中间也有image pull secrets字段，建议后者
 				Mountable secrets:   admin-token-tn4qv
 				Tokens:              admin-token-tn4qv
 				Events:              <none>
@@ -869,7 +884,7 @@ StatefulSet:
 				#kubectl apply -f pod-sa-demo
 				#kubectl describe pod-sa-demo
 			
-			客户端认证要用到的config文件解析
+			***客户端认证要用到的KUBECONFIG文件解析，注意这一个配置文件可以定义多个集群多个用户的交叉访问
 			[root@node1 ~]# kubectl config view 
 			apiVersion: v1
 			clusters: ###集群列表
