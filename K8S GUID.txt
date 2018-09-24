@@ -98,9 +98,9 @@ k8s安装：
             apiVersion: v1
             kind: Pod
             metadata:
-                name: pod-demo
-                namespace: default
-                labels:
+              name: pod-demo
+              namespace: default
+              labels:
                 app: myapp 基于应用类别打标签
                 tier: frontend 基于应用的逻辑层次
             spec:
