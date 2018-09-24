@@ -320,9 +320,9 @@ k8s安装：
                         app: myapp
                         release: canary
                     spec: ###这是pod的spec
-                        containers:
-                        - name: myapp-container
-                          image: ikubernetes/myapp:v1
+                      containers:
+                      - name: myapp-container
+                        image: ikubernetes/myapp:v1
                         ports:
                         - name: http
                           containerPort: 80
