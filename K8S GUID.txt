@@ -67,74 +67,70 @@ k8s安装：
 			apiserver仅接收JSON格式的资源定义：
 			yaml格式提供配置清单，apiserver可自动将其转为json格式，而后提交
 		大部分资源的配置清单
-				apiVersion: group/version(group省略就是core，像v1就是核心群)
-					#kubectl api-versions
-						alpha内测-->beta公测-->稳定版
-				kind: 资源类别
-					Pod, ReplicaSet, Deployment, StatefulSet, DaemonSet, Job, CronJob...
-				metadata: 元数据
-					name：什么名字
-					namespace：是k8s定义的域
-					labels：标签
-					annotations：
-					每个资源的引用PATH
-						/api/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAMESPACE/TYPE/NAMESPACE
-				spec: 用户期望的状态
-					spec.containers<[]object>
-					- name: <string>
-					  image: <string>
-					  imagePullPolicy: <string>
-					    标签为latest就是always，否则是IfNotPresent
-						这个字段是cannot be updated，即不允许更改，之前遇到的ClusterIP改动就不允许
-						Always 总是到仓库下载
-						Never 本地有就用，没有也不下载
-						IfNotPresent 有就用，没有就下载
-				status: 当前状态，本字段由k8s集群自维护
-					当两种状态不一致时，当前状态会无限接近期望状态
+			apiVersion: group/version(group省略就是core，像v1就是核心群)
+				#kubectl api-versions
+					alpha内测-->beta公测-->稳定版
+			kind: 资源类别
+				Pod, ReplicaSet, Deployment, StatefulSet, DaemonSet, Job, CronJob...
+			metadata: 元数据
+				name：什么名字
+				namespace：是k8s定义的域
+				labels：标签
+				annotations：
+				每个资源的引用PATH
+					/api/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAMESPACE/TYPE/NAMESPACE
+			spec: 用户期望的状态
+				spec.containers<[]object>
+				- name: <string>
+					image: <string>
+					imagePullPolicy: <string> ###签为latest就是always，否则是IfNotPresent,这个字段是cannot be updated，即不允许更改，之前遇到的ClusterIP改动就不允许
+					
+			status: 当前状态，本字段由k8s集群自维护
+				当两种状态不一致时，当前状态会无限接近期望状态
 					
 				#kubectl explain pod 可以查看资源定义格式
-					#kubectl explain pod.metadata 查看子格式
+				#kubectl explain pod.metadata 查看子格式
 					
-					#kubectl explain pod.spec.container 查看container定义格式
-						#kubectl explain pod.spec.containers.livenessProbe
+				#kubectl explain pod.spec.container 查看container定义格式
+				#kubectl explain pod.spec.containers.livenessProbe
 		
-		例1：
-		apiVersion: v1
-		kind: Pod
-		metadata:
-		  name: pod-demo
-		  namespace: default
-		  labels:
-		    app: myapp 基于应用类别打标签
-			tier: frontend 基于应用的逻辑层次
-		spec:
-		  containers：
-		  - name: myapp
-		    image: ikubernetes/myapp:v1
-			ports:
-			- name: http
-			  containerPort: 80
-			- name: https
-			  containerPort: 443
-		  - name: busybox
-		    image: busybox:latest
+例1：
+apiVersion: v1
+kind: Pod
+metadata:
+	name: pod-demo
+	namespace: default
+	labels:
+		app: myapp 基于应用类别打标签
+		tier: frontend 基于应用的逻辑层次
+spec:
+	containers：
+	- name: myapp
+		image: ikubernetes/myapp:v1
+		ports:
+		- name: http
+			containerPort: 80
+		- name: https
+			containerPort: 443
+		- name: busybox
+		  image: busybox:latest
 			imagePullPolicy: IfNotPresent
 			#注意下面是两种格式任选一种，所有的列表可以直接用中括号表示，所有的映射可以用花括号表示
-			command: ["/bin/sh","-c","sleep 3600"]
-			- "/bin/sh"
-			- "-c"
-			- "sleep 3600"
-		#kubectl apply -f myapp.yml
-			Run a command in a shell
-				command: ["/bin/sh"]
-				args: ["-c", "while true; do echo hello; sleep 10;done"]
+		command: ["/bin/sh","-c","sleep 3600"]
+		- "/bin/sh"
+		- "-c"
+		- "sleep 3600"
+#kubectl apply -f myapp.yml
+Run a command in a shell
+command: ["/bin/sh"]
+	args: ["-c", "while true; do echo hello; sleep 10;done"]
 				
-				Image Entrypoint	Image Cmd	Container command	Container args	Command run
-				[/ep-1]				[foo bar]	<not set>			<not set>		[ep-1 foo bar]
-				[/ep-1]				[foo bar]	[/ep-2]				<not set>		[ep-2]
-				[/ep-1]				[foo bar]	<not set>			[zoo boo]		[ep-1 zoo boo]
-				[/ep-1]				[foo bar]	[/ep-2]				[zoo boo]		[ep-2 zoo boo]
-			详情：https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell
+	Image Entrypoint	Image Cmd	Container command	Container args	Command run
+	[/ep-1]				[foo bar]	<not set>			<not set>		[ep-1 foo bar]
+	[/ep-1]				[foo bar]	[/ep-2]				<not set>		[ep-2]
+	[/ep-1]				[foo bar]	<not set>			[zoo boo]		[ep-1 zoo boo]
+	[/ep-1]				[foo bar]	[/ep-2]				[zoo boo]		[ep-2 zoo boo]
+	详情：https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#run-a-command-in-a-shell
 
 			标签：
 				Key=value
@@ -180,76 +176,76 @@ k8s安装：
 				Always(default), OnFailure, Never
 				
 
-			liveness和readiness的探针类型三种：ExecAction、TCPSocketAction、HTTPGetAction
-				例1：liveness	
-				apiVersion: v1
-				kind: Pod
-				metadata:
-				  name: liveness-httpget-pod
-				  namespace: default
-				spec:
-				  containers:
-				  - name: liveness-httpget-container
-					image: ikubernetes/myapp:v2
-					ports:
-					- name: http
-					  containerPort: 80
-					livenessProbe:
-					  httpGet:
-						port: http
-						path: /index.html
-					  initialDelaySeconds: 1
-					  periodSeconds: 3
+liveness和readiness的探针类型三种：ExecAction、TCPSocketAction、HTTPGetAction
+例1：liveness	
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-httpget-pod
+	namespace: default
+spec:
+	containers:
+	- name: liveness-httpget-container
+		image: ikubernetes/myapp:v2
+		ports:
+		- name: http
+			containerPort: 80
+		livenessProbe:
+			httpGet:
+				port: http
+				path: /index.html
+		initialDelaySeconds: 1
+		periodSeconds: 3
 					
-					#探针格式如下：
-					[root@node1 ~]# kubectl explain pod.spec.containers.livenessProbe.httpGet
-					KIND:     Pod
-					VERSION:  v1
+#探针格式如下：
+[root@node1 ~]# kubectl explain pod.spec.containers.livenessProbe.httpGet
+KIND:     Pod
+VERSION:  v1
 
-					RESOURCE: httpGet <Object>
+RESOURCE: httpGet <Object>
 
-					DESCRIPTION:
-						 HTTPGet specifies the http request to perform.
+DESCRIPTION:
+	HTTPGet specifies the http request to perform.
 
-						 HTTPGetAction describes an action based on HTTP Get requests.
+	HTTPGetAction describes an action based on HTTP Get requests.
 
-					FIELDS:
-					   host	<string>
-						 Host name to connect to, defaults to the pod IP. You probably want to set
-						 "Host" in httpHeaders instead.
+FIELDS:
+	host	<string>
+	Host name to connect to, defaults to the pod IP. You probably want to set
+	"Host" in httpHeaders instead.
 
-					   httpHeaders	<[]Object>
-						 Custom headers to set in the request. HTTP allows repeated headers.
+	httpHeaders	<[]Object>
+	Custom headers to set in the request. HTTP allows repeated headers.
 
-					   path	<string>
-						 Path to access on the HTTP server.
+	path	<string>
+	Path to access on the HTTP server.
 
-					   port	<string> -required-
-						 Name or number of the port to access on the container. Number must be in
-						 the range 1 to 65535. Name must be an IANA_SVC_NAME.
+	port	<string> -required-
+	Name or number of the port to access on the container. Number must be in
+	the range 1 to 65535. Name must be an IANA_SVC_NAME.
 
-					   scheme	<string>
-						 Scheme to use for connecting to the host. Defaults to HTTP.	
+	scheme	<string>
+	Scheme to use for connecting to the host. Defaults to HTTP.	
 						
-					例2：readiness
-					apiVersion: v1
-					kind: Pod
-					metadata:
-					  name: readiness-httpget-pod
-					  namespace: default
-					spec:
-					  containers:
-					  - name: readiness-httpget-container
-						image: ikubernetes/myapp:v2
-						ports:
-						- name: http
-						  containerPort: 80
-						readinessProbe:
-						  httpGet:
-							port: http
-							path: /index.html
-						  initialDelaySeconds: 1
-						  periodSeconds: 3
+例2：readiness
+apiVersion: v1
+kind: Pod
+metadata:
+	name: readiness-httpget-pod
+	namespace: default
+spec:
+	containers:
+	- name: readiness-httpget-container
+		image: ikubernetes/myapp:v2
+		ports:
+		- name: http
+			containerPort: 80
+	readinessProbe:
+		httpGet:
+			port: http
+			path: /index.html
+	initialDelaySeconds: 1
+	periodSeconds: 3
 					
 					还有一种叫lifecycle的pod启动前后可以执行的动作
 					[root@node1 ~]# kubectl explain pod.spec.containers.lifecycle
