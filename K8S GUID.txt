@@ -230,21 +230,21 @@ k8s安装：
                 apiVersion: v1
                 kind: Pod
                 metadata:
-                    name: readiness-httpget-pod
-                    namespace: default
+                  name: readiness-httpget-pod
+                  namespace: default
                 spec:
-                    containers:
-                    - name: readiness-httpget-container
+                  containers:
+                  - name: readiness-httpget-container
                     image: ikubernetes/myapp:v2
                     ports:
                     - name: http
-                        containerPort: 80
-                    readinessProbe:
-                        httpGet:
-                            port: http
-                            path: /index.html
-                    initialDelaySeconds: 1
-                        periodSeconds: 3
+                      containerPort: 80
+                  readinessProbe:
+                    httpGet:
+                      port: http
+                      path: /index.html
+                  initialDelaySeconds: 1
+                  periodSeconds: 3
 
             还有一种叫lifecycle的pod启动前后可以执行的动作
             [root@node1 ~]# kubectl explain pod.spec.containers.lifecycle
