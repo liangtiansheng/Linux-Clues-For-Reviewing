@@ -338,26 +338,26 @@ k8s安装：
                     apiVersion: apps/v1
                     kind: Deployment
                     metadata:
-                        name: myapp-deploy
-                        namespace: default
+                      name: myapp-deploy
+                      namespace: default
                     spec:
-                        replicas: 2
-                        selector:
-                            matchLabels:
+                      replicas: 2
+                      selector:
+                        matchLabels:
+                          app: myapp
+                          release: canary
+                      template:
+                        metadata:
+                          labels:
                             app: myapp
                             release: canary
-                        template:
-                                metadata:
-                            labels:
-                                app: myapp
-                            release: canary
                         spec:
-                            containers:
-                            - name: myapp
-                                image: ikubernetes/myapp:v1
+                          containers:
+                          - name: myapp
+                            image: ikubernetes/myapp:v1
                             ports:
                             - name: http
-                                containerPort: 80
+                              containerPort: 80
                         #kubectl apply -f xxx --record=true 记录历史以便更新
                         #kubectl rollup history deployment xxx
                         #kubeclt rollup undo deployment ###
@@ -378,51 +378,51 @@ k8s安装：
                     apiVersion：apps/v1
                     kind: Deployment
                     metadata:
-                        name: redis
-                        namespace: default
+                      name: redis
+                      namespace: default
                     spec:
-                        replicas: 1
-                        selector:
-                            matchLabels:
+                      replicas: 1
+                      selector:
+                        matchLabels:
+                          app: redis
+                          role: logstor
+                      template:
+                        metadata:
+                          labels:
                             app: redis
                             role: logstor
-                            template:
-                            metadata:
-                            labels:
-                                app: redis
-                            role: logstor
                         spec:
-                            containers:
-                            - name: redis
-                                image: redis:4.0-alpine
+                          containers:
+                          - name: redis
+                            image: redis:4.0-alpine
                             ports:
                             - name: redis
-                                containerPort: 6379
+                              containerPort: 6379
                     ---
                     apiVersion: apps/v1
                     kind: DaemonSet
                     metadata:
-                        name: filebeat-ds
-                        namespace: default
+                      name: filebeat-ds
+                      namespace: default
                     spec:
-                        selector:
-                            matchlabels:
+                      selector:
+                        matchlabels:
+                          app: filebeat
+                          release: stable
+                      templates:
+                        metadata:
+                          labels:
                             app: filebeat
                             release: stable
-                        templates:
-                                metadata:
-                            labels:
-                                app: filebeat
-                            release: stable
                         spec:
-                            containers:
-                            - name: filebeat
-                                image: ikubernetes/filebeat:5.6.5-alpine
+                          containers:
+                          - name: filebeat
+                            image: ikubernetes/filebeat:5.6.5-alpine
                             env: ###这两个环境变量是filebeat要求的,通过这些变量让pod间进行通信,协同工作
                             - name: REDIS_HOST
-                                value: redis.default.svc.cluster.local
+                              value: redis.default.svc.cluster.local
                             - name: REDIS_LOG_LEVEL
-                                value: info
+                              value: info
                 Job：执行一次性作业
                 CronJob: 周期性执行作业
                 StatefulSet：有状态，需要持久存储的应用
@@ -451,17 +451,17 @@ k8s安装：
                 apiVersion: v1
                 kind: Service
                 metadata:
-                    name: redis
-                    namespace: default
+                  name: redis
+                  namespace: default
                 spec:
                     selector:
-                        app: redis
-                    role: logstor #这两个标签是在之前的pod中指定的
+                      app: redis
+                      role: logstor #这两个标签是在之前的pod中指定的
                     clusterIP: 10.97.7.7 ###最好不要自己指，有可能冲突
                     type: ClusterIP
                     ports:
                     - port: 6379 #service ip port
-                        targetPort: 6379 #pod ip port
+                      targetPort: 6379 #pod ip port
                 ###实际上service是通过一个endpoint再到pod，这个endpoint也可以手动指定
                 资源记录格式：
                     SVC_NAME.NS_NAME.DOMAIN.LTD(域名后缀).
@@ -474,17 +474,17 @@ k8s安装：
                 apiVersion: v1
                 kind: Service
                 metadata:
-                    name: myapp
-                    namespace: default
+                  name: myapp
+                  namespace: default
                 spec:
-                    selector:
-                        app: myapp
+                  selector:
+                    app: myapp
                     release: canary #这两个标签是在之前的pod中指定的
-                    clusterIP: 10.97.7.8 ###最好不要自己指，有可能冲突
-                    type: nodePort
-                    ports:
-                    - port: 80 #service ip port
-                        targetPort: 80 #pod ip port
+                  clusterIP: 10.97.7.8 ###最好不要自己指，有可能冲突
+                  type: nodePort
+                  ports:
+                  - port: 80 #service ip port
+                    targetPort: 80 #pod ip port
                     nodePort: 30080	#不指就动态分配
                 LoadBalancer:
                     云服务的LBaas-->NodePort-->pods
@@ -495,11 +495,11 @@ k8s安装：
                     kind: Service
                     apiVersion: v1
                     metadata:
-                        name: my-service
-                        namespace: prod
+                      name: my-service
+                      namespace: prod
                     spec:
-                        type: ExternalName
-                        externalName: my.database.example.com
+                      type: ExternalName
+                      externalName: my.database.example.com
 
                 sessionAffinity：
                     把来自同一客户的请求调到同一个Pod上
@@ -521,7 +521,7 @@ k8s安装：
                     clusterIP: None ###None就是无头
                     ports:
                     - port: 80 #service ip port
-                        targetPort: 80 #pod ip port
+                      targetPort: 80 #pod ip port
 
 
             Ingress: 也是标准的k8s资源
@@ -546,10 +546,10 @@ k8s安装：
                 spec:
                     rules:
                     - host: myapp.ly.com
-                        http:
+                      http:
                         paths:
                         - path:
-                            backend:
+                          backend:
                             serviceName: myapp
                             servicePort: 80
                 3、执行完ingress后，应该就能看到ingress controller(nginx)中的配置改成了这里定义的
@@ -641,7 +641,7 @@ k8s安装：
                         accessModes: ["ReadWriteMany"]
                         resources:
                             requests:
-                            storage: 6Gi
+                                storage: 6Gi
                     ---
                     apiVersion: v1
                     kind: Pod
@@ -651,13 +651,13 @@ k8s安装：
                     spec:
                         containers:
                         - name: myapp
-                            image: ikubernetes/myapp:v1
-                        volumeMounts:
-                        - name: html
+                          image: ikubernetes/myapp:v1
+                          volumeMounts:
+                          - name: html
                             mountPath: /usr/share/nginx/html/
                         volumes:
                         - name: html
-                            persistentVolumeClaim:
+                          persistentVolumeClaim:
                             claimName: mypvc
 
                     生产最多用的是动态
@@ -683,25 +683,25 @@ k8s安装：
             namespace: default
             labels:
                 app: myapp
-            tier: frontend
+                tier: frontend
             annotations:
                 ly.com/created-by: "cluster admin"
         spec:
             container:
             - name: myapp
-                image: ikubernetes/myapp:v1
-            ports:
-                - name: http
-                containerPort: 80
+              image: ikubernetes/myapp:v1
+              ports:
+              - name: http
+              containerPort: 80
             env:
             - name: NGINX_SERVER_PORT
                 valueFrom:
-                    configMapKeyRef:
+                  configMapKeyRef:
                     name: nginx-config
                     key: nginx_port
             - name: NGINX_SERVER_NAME
                 valueFrom:
-                    configMapKRef:
+                  configMapKRef:
                     name: nginx-config
                     key: nginx_name
             例2：
@@ -711,25 +711,25 @@ k8s安装：
                 name: pod-cm-1
                 namespace: default
                 labels:
-                app: myapp
-                tier: frontend
+                    app: myapp
+                    tier: frontend
                 annotations:
-                ly.com/created-by: "cluster admin"
+                    ly.com/created-by: "cluster admin"
             spec:
                 container:
                 - name: myapp
-                    image: ikubernetes/myapp:v1
-                    ports:
-                    - name: http
-                        containerPort: 80
-                    volumeMounts:
-                    - name: nginxconf
-                        mountPath: /etc/nginx/config.d/
-                        readOnly: true
+                  image: ikubernetes/myapp:v1
+                  ports:
+                  - name: http
+                    containerPort: 80
+                  volumeMounts:
+                  - name: nginxconf
+                    mountPath: /etc/nginx/config.d/
+                    readOnly: true
                 volumes:
                 - name: nginxconf
                     configMap:
-                    name: nginx-config
+                      name: nginx-config
             #Note: 如果是环镜变量这种方式，改了configmap后，pod中的env不会立即改变，但是volume的方式会立即改变
     secret:
         有三种：
@@ -748,20 +748,20 @@ k8s安装：
             namespace: default
             labels:
                 app: myapp
-            tier: frontend
+                tier: frontend
             annotations:
                 ly.com/created-by: "cluster admin"
         spec:
             container:
             - name: myapp
-                image: ikubernetes/myapp:v1
+              image: ikubernetes/myapp:v1
             ports:
             - name: http
-                containerPort: 80
-            env:
-            - name: MYSQL_ROOT_PASSWORD
+              containerPort: 80
+              env:
+              - name: MYSQL_ROOT_PASSWORD
                 valueFrom:
-                    secrectKeyRef:
+                  secrectKeyRef:
                     name: mysql-root-password
                     key: password
 StatefulSet:
@@ -774,7 +774,7 @@ StatefulSet:
     三个组件：headless service、StatufulSet、volumeClaimTemplate(statufulSet每个pod必须要有自己独立的存储卷,每个都独自申请一个pvc)
     ***要解析Pod的名称，要在pod前加上无头服务的名称
         pod_name.service_name.ns_name.svc.cluster.local
-            myapp-0.myapp.default.svc.cluster.local
+        myapp-0.myapp.default.svc.cluster.local
     升级，扩容，缩容跟前面的controller一样
     *这种有状态的应用比较复杂，生产环境不太好用，关键有状态应用也不建义用在k8s上，网上有很多模板，经过大量学习后再偿试
 
@@ -864,16 +864,16 @@ StatefulSet:
                     name: pod-sa-demo
                     namespace: default
                     labels:
-                    app: myapp
-                    tier: frontend
+                        app: myapp
+                        tier: frontend
                     annotations:
-                    ly.com/created-by: "cluster admin"
+                        ly.com/created-by: "cluster admin"
                 spec:
                     container:
                     - name: myapp
-                    image: ikubernetes/myapp:v1
-                    ports:
-                        - name: http
+                      image: ikubernetes/myapp:v1
+                      ports:
+                      - name: http
                         containerPort: 80
                     serviceAccountName: admin
                 #kubectl apply -f pod-sa-demo
@@ -886,18 +886,18 @@ StatefulSet:
             - cluster:
                 certificate-authority-data: REDACTED
                 server: https://192.168.1.41:6443
-                name: kubernetes
+              name: kubernetes
             contexts: ###上下文列表，保证可以控制多个集群，用哪个账号访问哪个集群
             - context:
                 cluster: kubernetes
                 user: kubernetes-admin
-                name: kubernetes-admin@kubernetes
+              name: kubernetes-admin@kubernetes
             current-context: kubernetes-admin@kubernetes ###当前用哪个集群上的哪个用户去访问
             kind: Config
             preferences: {}
             users: ###用户列表
             - name: kubernetes-admin
-                user:
+              user:
                 client-certificate-data: REDACTED
                 client-key-data: REDACTED
 
@@ -921,26 +921,26 @@ StatefulSet:
             - cluster:
                 certificate-authority-data: REDACTED
                 server: https://192.168.2.11:6443
-                name: kubernetes
+              name: kubernetes
             contexts:
             - context:
                 cluster: kubernetes
                 user: kubernetes-admin
-                name: kubernetes-admin@kubernetes
+              name: kubernetes-admin@kubernetes
             - context:
                 cluster: kubernetes
                 user: ly
-                name: ly@kubernetes
+              name: ly@kubernetes
             current-context: ly@kubernetes
             kind: Config
             preferences: {}
             users:
             - name: cluster-ly
-                user:
+              user:
                 client-certificate: pki/ly.crt
                 client-key: pki/ly.key
             - name: kubernetes-admin
-                user:
+              user:
                 client-certificate-data: REDACTED
                 client-key-data: REDACTED
             [root@master ~]#
@@ -1188,13 +1188,13 @@ Schedular:
                 name: pod-demo
                 labels:
                     app: myapp
-                tier: frontend
+                    tier: frontend
             spec:
                 container:
                 - name: myapp
-                    image: ikubernetes/myapp:v1
+                  image: ikubernetes/myapp:v1
                 nodeSelector:
-                    disk: ssd ###如果节点没有这个标签pod就会pending,表示调度失败
+                  disk: ssd ###如果节点没有这个标签pod就会pending,表示调度失败
 
         节点亲和调度： nodeAffinity
             例1：
@@ -1204,16 +1204,16 @@ Schedular:
                 name: pod-node-affinity-demo
                 labels:
                     app: myapp
-                tier: frontend
+                    tier: frontend
             spec:
                 containers:
                 - name: myapp
-                    image: ikubernetes/myapp:v1
+                  image: ikubernetes/myapp:v1
                 affinity:
-                    nodeAffinity:
+                  nodeAffinity:
                     requiredDuringSchedulingIgnoredDuringExecution:
-                        nodeSelectorTerms:
-                    - matchExpressions:
+                      nodeSelectorTerms:
+                      - matchExpressions:
                         - key: zone
                             operator: In
                             values:
@@ -1251,11 +1251,11 @@ Schedular:
                 name: pod-affinity-1
                 labels:
                     app: myapp
-                tier: frontend
+                    tier: frontend
             spec:
                 containers:
                 - name: myapp
-                    image: ikubernetes/myapp:v1
+                  image: ikubernetes/myapp:v1
             ---
             apiVersion: v1
             kind: Pod
@@ -1263,16 +1263,16 @@ Schedular:
                 name: pod-affinity-2
                 labels:
                     app: db
-                tier: db
+                    tier: db
             spec:
                 containers:
                 - name: busybox
-                    image: busybox:latest
+                  image: busybox:latest
                 imagePullPolicy: IfNotPresent
                 command: ["sh","-c","sleep 3600"]
                 affinity:
                     podAffinity: (podAtiAffinity则相反，不亲和某pod)
-                    requiredDuringSchedulingIgnoredDuringExecution:
+                        requiredDuringSchedulingIgnoredDuringExecution:
                     - labelSelector:
                             matchExpressions:
                         - {key: app, operator: In, values: ["myapp"]} (亲和于某一pod)
