@@ -7,33 +7,33 @@
 	
 k8s即集群：
 	有中心的系统(master-node)
-		ha: 3 master+ # node
-			master/node:
-				master: API Server、Schedular、controller-manager
-				node: kubelet、容器引擎(docker....)
-			Pod:
-				Label: key=value
-				Label Selector: 
-			Pod:
-				自主式Pod
-					kind: Pod
-				控制器Pod
-					kind: ReplicationController(最早只有这一个)
-						滚动更新
-					kind: ReplecaSet
-						不直接使用，一般是被Deployment调用
-					kind: Deployment
-						无状态
-					kind: StatefulSet
-						有状态
-					kind: DaemonSet
-						只运行一个副本
-					kind: Job/CronJob
-						计划任务，执行完任务即可退出
-				HPA控制器(HorizontalPodAutoscaler)
-					监控pod,如果pod承受不了，则由定义的自动生成多个pod
-			AddOns: 附件
-			网络：有三层网络，节点网络，service网络，pod网络,后两者都是cluster网络，默认不能被外网访问
+	ha: 3 master+ # node
+	master/node:
+		master: API Server、Schedular、controller-manager
+		node: kubelet、容器引擎(docker....)
+	Pod:
+		Label: key=value
+		Label Selector: 
+	Pod:
+		自主式Pod
+			kind: Pod
+		控制器Pod
+			kind: ReplicationController(最早只有这一个)
+				滚动更新
+			kind: ReplecaSet
+				不直接使用，一般是被Deployment调用
+			kind: Deployment
+				无状态
+			kind: StatefulSet
+				有状态
+			kind: DaemonSet
+				只运行一个副本
+			kind: Job/CronJob
+				计划任务，执行完任务即可退出
+		HPA控制器(HorizontalPodAutoscaler)
+			监控pod,如果pod承受不了，则由定义的自动生成多个pod
+	AddOns: 附件
+	网络：有三层网络，节点网络，service网络，pod网络,后两者都是cluster网络，默认不能被外网访问
 k8s安装：
 	安装时注意指定pod网络，service网络，版本，忽略Swap错误(在/etc/sysconfig/kubelet中指定--fail-swap-on=false)
 	命令行初始化：
