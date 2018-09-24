@@ -104,21 +104,21 @@ k8s安装：
                 app: myapp 基于应用类别打标签
                 tier: frontend 基于应用的逻辑层次
             spec:
-                containers：
-                - name: myapp
-                image: ikubernetes/myapp:v1
-                ports:
-                - name: http
-                    containerPort: 80
-                - name: https
-                    containerPort: 443
-                - name: busybox
-                image: busybox:latest
-                imagePullPolicy: IfNotPresent ###注意下面是两种格式任选一种，所有的列表可以直接用中括号表示，所有的映射可以用花括号表示
-                command: ["/bin/sh","-c","sleep 3600"]
-                - "/bin/sh"
-                - "-c"
-                - "sleep 3600"
+              containers：
+              - name: myapp
+              image: ikubernetes/myapp:v1
+              ports:
+              - name: http
+                containerPort: 80
+              - name: https
+                containerPort: 443
+              - name: busybox
+              image: busybox:latest
+              imagePullPolicy: IfNotPresent ###注意下面是两种格式任选一种，所有的列表可以直接用中括号表示，所有的映射可以用花括号表示
+              command: ["/bin/sh","-c","sleep 3600"]
+              - "/bin/sh"
+              - "-c"
+              - "sleep 3600"
             #kubectl apply -f myapp.yml
             Run a command in a shell
             command: ["/bin/sh"]
