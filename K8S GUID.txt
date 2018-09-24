@@ -869,22 +869,22 @@ StatefulSet:
 				  name: pod-sa-demo
 				  namespace: default
 				  labels:
-					app: myapp
-					tier: frontend
+					  app: myapp
+					  tier: frontend
 				  annotations:
-					ly.com/created-by: "cluster admin"
+					  ly.com/created-by: "cluster admin"
 				spec:
 				  container:
 				  - name: myapp
-					image: ikubernetes/myapp:v1
-					ports:
-					- name: http
-					  containerPort: 80
+					  image: ikubernetes/myapp:v1
+					  ports:
+				  	- name: http
+					    containerPort: 80
 				  serviceAccountName: admin
 				#kubectl apply -f pod-sa-demo
 				#kubectl describe pod-sa-demo
 			
-			***客户端认证要用到的KUBECONFIG文件解析，注意这一个配置文件可以定义多个集群多个用户的交叉访问
+			***客户端认证要用到的KUBECONFIG文件，注意这一个配置文件可以定义多个集群多个用户的交叉访问
 			[root@node1 ~]# kubectl config view 
 			apiVersion: v1
 			clusters: ###集群列表
