@@ -1043,7 +1043,7 @@ dashboard:
 			#kubectl describe secrets -n kube-system dashboard-admin-token-prfwf 拿着这里面的token就可以进入dashboard并拥有上面授权的权限
         
 		
-		kubeconfig: 把servcieAccount的token封装为kubeconfig文件
+		kubeconfig: 不用专门生成证书，直接把servcieAccount的token封装为kubeconfig文件，而后用这个文件去登陆
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
             # kubectl create serviceaccount def-ns-admin -n default
 			# kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
@@ -1058,8 +1058,8 @@ dashboard:
             # KUBE_TOKEN=$(kubectl get secret $SERVICEACCOUNT_SECRET_NAME -o jsonpath={.data.token} | base64 -d)
             # kubectl config set-credentials def-ns-admin --token=$KUBE_TOKEN --kubeconfig=/root/def-ns-admin.conf
 			
-            # kubectl set-context def-ns-admin@kubernetes --cluster=kubernetes --user=def-ns-admin --kubeconfig=/root/def-ns-admin.conf
-			# kubectl use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
+            # kubectl config set-context def-ns-admin@kubernetes --cluster=kubernetes --user=def-ns-admin --kubeconfig=/root/def-ns-admin.conf
+			# kubectl config use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
 			
 		
 
