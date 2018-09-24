@@ -1054,7 +1054,7 @@ dashboard:
             # kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.1.41:6443" --embed-certs=true --kubeconfig=/root/def-ns-admin.conf
 			
             ***注意创建的serviceaccount生成的secret中的token是用base64编码过的，要先解码
-            # SERVICEACCOUNT_SECRET_NAME=`kubectl get secret -n default | awk '/^ServiceAccount/{print $1}'`
+            # SERVICEACCOUNT_SECRET_NAME=`kubectl get secret -n default | awk '/^def-ns-admin/{print $1}'`
             # KUBE_TOKEN=$(kubectl get secret $SERVICEACCOUNT_SECRET_NAME -o jsonpath={.data.token} | base64 -d)
             # kubectl config set-credentials def-ns-admin --token=$KUBE_TOKEN --kubeconfig=/root/def-ns-admin.conf
 			
