@@ -310,7 +310,7 @@ k8s安装：
 				spec: ###这是控制器的spec
 				  replicas: 2
 				  selector:
-					matchLabels:
+				    matchLabels:
 					  app: myapp
 					  release: canary
 				  template:
@@ -330,7 +330,7 @@ k8s安装：
 						灰度发布：手动edit replicaset升级image版本-->手动杀一个pod v1版, replicaset起动一个pod v2版
 						canary发布：手动起一个replicaset v2版,与v1版的replicaset同时提供服务,再干掉v1版replicaset
 						蓝绿发布：Deployment控制多个replicaset自动控制最大突增pod数和最少存活副本数间的平衡进行滚动更新，自动化但业务不中断，注意readiness的使有，不然有可能滚动更新完没有一个可以提供服务
-						
+			    			
 					
 				Deployment: 通过控制ReplicaSet来控制Pod
 					无状态的守护进程
