@@ -284,16 +284,16 @@ k8s安装：
             apiVersion: v1
             kind: Pod
             metadata:
-                name: poststart-pod
+              name: poststart-pod
             spec:
-                containers:
-                - name: busybox-httpd
+              containers:
+              - name: busybox-httpd
                 image: busybox
                 imagePullPolicy: IfNotPresent
                 lifecycle:
-                    postStart:
+                  postStart:
                     exec:
-                        command: ["/bin/sh","-c","mkdir -p /data/web/html;echo hello >> /data/web/html/index.html"]
+                      command: ["/bin/sh","-c","mkdir -p /data/web/html;echo hello >> /data/web/html/index.html"]
                 commnad: ["/bin/httpd"]
                 args: ["-f","-h /data/web/html"]
                 #特别注意：后面的这个command先执行，很显然这个先后顺序导致文件不存在出错
@@ -305,27 +305,27 @@ k8s安装：
                 apiVersion: apps/v1
                 kind: ReplicaSet
                 metadata:
-                    name: myapp
-                    namespace: default
+                  name: myapp
+                  namespace: default
                 spec: ###这是控制器的spec
-                    replicas: 2
-                    selector:
-                        matchLabels:
-                        app: myapp
-                        release: canary
-                    template:
+                  replicas: 2
+                  selector:
+                    matchLabels:
+                      app: myapp
+                      release: canary
+                  template:
                     metadata:
-                        name: myapp-pod ###这个名字没太大意义，pod的名字k8s用"控制器名+随机字串"
-                        labels: ###注意这里的标签一定要对应上面控制器中的标签选择器，否则此pod没有意义
+                      name: myapp-pod ###这个名字没太大意义，pod的名字k8s用"控制器名+随机字串"
+                      labels: ###注意这里的标签一定要对应上面控制器中的标签选择器，否则此pod没有意义
                         app: myapp
                         release: canary
                     spec: ###这是pod的spec
                         containers:
                         - name: myapp-container
-                        image: ikubernetes/myapp:v1
+                          image: ikubernetes/myapp:v1
                         ports:
                         - name: http
-                            containerPort: 80
+                          containerPort: 80
                     灰度发布-->canary发布-->蓝绿发布
                         灰度发布：手动edit replicaset升级image版本-->手动杀一个pod v1版, replicaset起动一个pod v2版
                         canary发布：手动起一个replicaset v2版,与v1版的replicaset同时提供服务,再干掉v1版replicaset
