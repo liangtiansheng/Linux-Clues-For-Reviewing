@@ -180,21 +180,21 @@ k8s安装：
             apiVersion: v1
             kind: Pod
             metadata:
-                name: liveness-httpget-pod
-                namespace: default
+              name: liveness-httpget-pod
+              namespace: default
             spec:
-                containers:
-                - name: liveness-httpget-container
+              containers:
+              - name: liveness-httpget-container
                 image: ikubernetes/myapp:v2
                 ports:
                 - name: http
-                    containerPort: 80
-                livenessProbe:
+                  containerPort: 80
+              livenessProbe:
                 httpGet:
-                    port: http
-                    path: /index.html
-                initialDelaySeconds: 1
-                periodSeconds: 3
+                  port: http
+                  path: /index.html
+              initialDelaySeconds: 1
+              periodSeconds: 3
 
             #探针格式如下：
             [root@node1 ~]# kubectl explain pod.spec.containers.livenessProbe.httpGet
