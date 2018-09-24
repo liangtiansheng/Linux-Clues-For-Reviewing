@@ -67,7 +67,7 @@ k8s安装：
 			apiserver仅接收JSON格式的资源定义：
 			yaml格式提供配置清单，apiserver可自动将其转为json格式，而后提交
 		大部分资源的配置清单
-			apiVersion: group/version(group省略就是core，像v1就是核心群)
+		    apiVersion: group/version(group省略就是core，像v1就是核心群)
 				#kubectl api-versions
 					alpha内测-->beta公测-->稳定版
 			kind: 资源类别
