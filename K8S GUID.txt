@@ -918,6 +918,43 @@ StatefulSet:
 			
 			#kubectl config set-cluster mycluster --kubeconfig=/tmp/test.conf --server="https://192.168.1.41:6443" --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
 			#kubectl config view --kubeconfig=/tmp/test.conf
+
+			***经过上述一系列操作后再看这个KUBECONFIG，里面加入了ly这个用户的信息，并且当前context切换成了ly，所以kubectl get pod报了下面错误，因为没授权
+			[root@master ~]# kubectl config view
+			apiVersion: v1
+			clusters:
+			- cluster:
+					certificate-authority-data: REDACTED
+					server: https://192.168.2.11:6443
+				name: kubernetes
+			contexts:
+			- context:
+					cluster: kubernetes
+					user: kubernetes-admin
+				name: kubernetes-admin@kubernetes
+			- context:
+					cluster: kubernetes
+					user: ly
+				name: ly@kubernetes
+			current-context: ly@kubernetes
+			kind: Config
+			preferences: {}
+			users:
+			- name: cluster-ly
+				user:
+					client-certificate: pki/ly.crt
+					client-key: pki/ly.key
+			- name: kubernetes-admin
+				user:
+					client-certificate-data: REDACTED
+					client-key-data: REDACTED
+			[root@master ~]#
+			[root@master ~]# kubectl get pods --all-namespaces 
+			No resources found.
+			Error from server (Forbidden): pods is forbidden: User "system:anonymous" cannot list pods at the cluster scope
+			[root@master ~]# 
+
+
 	授权插件：Node, ABAC-->RBAC, Webhook(http的回调机制)
 		RBAC: Role-based Access Control
 		角色：Role
@@ -930,6 +967,7 @@ StatefulSet:
 				
 				3、namespace A、cluster A 中：定义clusterrole-->rolebinding 授权给jimmy,则jimmy只能在namespace A中用clusterrole定义的权限
 				***第三种的好处在于一般10个用户要定义10个独自名称空间role-->rolebinding,但用第三种只需定义一个clusterrole,10个用户再用rolebinding到clusterrole上就限定10个用户在自己名称空间用clusterrole定义的权限
+			
 			#kubectl create role pods-reader --verb=get,list,watch --resource=pods --dry-run -o yaml 输出框架，用这个定义即可
 			apiVersion: rbac.authorization.k8s.io/v1
 			kind: Role
