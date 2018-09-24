@@ -82,8 +82,8 @@ k8s安装：
             spec: 用户期望的状态
                 spec.containers<[]object>
                 - name: <string>
-                    image: <string>
-                    imagePullPolicy: <string> ###签为latest就是always，否则是IfNotPresent,这个字段是cannot be updated，即不允许更改，之前遇到的ClusterIP改动就不允许
+                  image: <string>
+                  imagePullPolicy: <string> ###签为latest就是always，否则是IfNotPresent,这个字段是cannot be updated，即不允许更改，之前遇到的ClusterIP改动就不允许
 
             status: 当前状态，本字段由k8s集群自维护
                 当两种状态不一致时，当前状态会无限接近期望状态
