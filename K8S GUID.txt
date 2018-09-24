@@ -1035,23 +1035,11 @@ dashboard:
         认证时的账号必须为ServiceAccount: 被dashboard pod拿来由kubernetes进行认证
         token:
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
-            #kubectl create serviceaccount dashboard-admin -n kube-system
-			#kubectl create clusterrolebinding dashboard-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
-			(2) 获取到此ServiceAccount的secret，查看secret的详细信息，其中就有token
-			***注意当创建serviceaccount dashboard-admin时就有dashboard-admin-token-prfwf，拿着里面的token是可以进入dashboard，只不过没有做上面的授权是没有操作权限的
-			#kubectl describe secrets -n kube-system dashboard-admin-token-prfwf 拿着这里面的token就可以进入dashboard并拥有上面授权的权限
+            (2) 获取到此ServiceAccount的secret，查看secret的详细信息，其中就有token
         
-		
-		kubeconfig: 把servcieAccount的token封装为kubeconfig文件
+        kubeconfig: 把servcieAccount的token封装为kubeconfig文件
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
-            #kubectl create serviceaccount def-ns-admin -n default
-			#kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
-			#kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.1.41:6443" --embed-certs=true --kubeconfig=/root/def-ns-admin.conf
-			#kubectl config set-credentials def-ns-admin --token=$KUBE_TOKEN --kubeconfig=/root/def-ns-admin.conf
-			#kubectl set-context def-ns-admin@kubernetes --cluster=kubernetes --user=def-ns-admin --kubeconfig=/root/def-ns-admin.conf
-			#kubectl use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
-			
-			(2) SERVICEACCOUNT_SECRET_NAME=`kubectl get secret | awk '/^ServiceAccount/{print $1}'`
+            (2) SERVICEACCOUNT_SECRET_NAME=`kubectl get secret | awk '/^ServiceAccount/{print $1}'`
                 KUBE_TOKEN=$(kubectl get secret $SERVICEACCOUNT_SECRET_NAME -o jsonpath={.data.token} | base64 -d)
             (3) 生成kubeconfig文件
                 kubectl config set-cluster --kubeconfig=/PATH/TO/SOMEFILE
@@ -1069,7 +1057,9 @@ dashboard:
     #kubectl create secret generic dashboard-crt -n kube-system --from-file=dashboard.crt=./dashboard.crt --from-file=dashboard.key=./dashboard.key
 
     kubeconfig认证：这个只能管理default名称空间
-        
+        #kubectl create serviceaccount def-ns-admin -n default
+        #kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
+        #kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.1.41:6443" --embed-certs=true
         ......
         未完成，待续
 
