@@ -1302,21 +1302,21 @@ Schedular:
                     name: pod-app
                     namespace: default
                     labels:
-                    app: myapp
-                    release: cannery
+                        app: myapp
+                        release: cannery
                 spec:
                     containers:
                     - name: container-app
-                    image: ikubernetes/myapp:v1
-                    imagePullPolicy: IfNotPresent
-                    ports:
-                    - name: web-port
+                      image: ikubernetes/myapp:v1
+                      imagePullPolicy: IfNotPresent
+                      ports:
+                      - name: web-port
                         containerPort: 80
                     tolerations:
                     - key: "node-type"
-                    operator: "Equal"
-                    value: "production"
-                    effect: "NoSchedule"
+                      operator: "Equal"
+                      value: "production"
+                      effect: "NoSchedule"
 
 容器的资源需求，资源限制
     requests: 需求，最低保障
@@ -1343,25 +1343,25 @@ Schedular:
         name: pod-demo
         namespace: default
         labels:
-        app: myapp
-        tier: frontend
+            app: myapp
+            tier: frontend
     spec:
         containers:
         - name: myapp
-        image: ikubernetes/stress-ng
+          image: ikubernetes/stress-ng
         command: ["/usr/bin/stress-ng","-m 1","-c 1","--metrics-brief"]
         ports:
         - name: http
-            containerPort: 80
+          containerPort: 80
         - name: https
-            containerPort: 443
+          containerPort: 443
         resources:
             requests:
-            cpu: "200m"
-            memory: "128Mi"
+                cpu: "200m"
+                memory: "128Mi"
             limits:
-            cpu: "500m"
-            memory: "200Mi"
+                cpu: "500m"
+                memory: "200Mi"
 
 
 资源指标新一代架构：
