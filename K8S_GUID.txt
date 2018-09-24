@@ -1048,9 +1048,7 @@ dashboard:
             # kubectl create serviceaccount def-ns-admin -n default
 			# kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
 			
-            (2)为
-
-            (3) 创建KUBECONFIG，把serviceaccount的token注入进KUBECONFIG
+            (2) 创建KUBECONFIG，把serviceaccount的token注入进KUBECONFIG
             # kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.1.41:6443" --embed-certs=true --kubeconfig=/root/def-ns-admin.conf
 			
             ***注意创建的serviceaccount生成的secret中的token是用base64编码过的，要先解码
