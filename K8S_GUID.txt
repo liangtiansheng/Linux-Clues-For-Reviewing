@@ -1027,7 +1027,7 @@ StatefulSet:
                 kind: User
                 name: ly
 
-dashboard:
+dashboard: 用k8s的KUBECONFIG登陆出错不是因为非k8s CA签署出错，实际上这个地方即便是别的CA签署，点信任也是可以的，刚才用k8s的kubeconfig文件之所以不能通过认证是用户主体错了，我们用的k8s kubeconfig是kubernetes-admin用户，这里需要的是serviceAccount类型的用户
     1、部署：$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
     2、将service改为NodePort
         # kubectl patch svc kubernetes-dashboard -p '{"spec":{"type":"NodePort"}}' -n kube-system
@@ -1059,30 +1059,7 @@ dashboard:
             # kubectl config set-context def-ns-admin@kubernetes --cluster=kubernetes --user=def-ns-admin --kubeconfig=/root/def-ns-admin.conf
 			# kubectl config use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
 			
-		
-
-    实战：
-        注意：实际上这个地方即便是别的CA签署，点信任也是可以的，刚才用k8s的kubeconfig文件之所以不能通过认证是用户主体错了，我们用的k8s kubeconfig是kubernetes-admin用户，这里需要的是serviceAccount类型的用户
-    #cd /etc/kubernetes/pki/
-    #(umask 077; openssl genrsa  -out dashboard.key 2048)
-    #openssl req -new -key dashboard.key -out dashboard.csr -subj "/O=ly/CN=dashboard"
-    #openssl x509 -req -in dashboard.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out dashboard.crt -days 360
-    把证书和私钥创建成secret
-    #kubectl create secret generic dashboard-crt -n kube-system --from-file=dashboard.crt=./dashboard.crt --from-file=dashboard.key=./dashboard.key
-
-    kubeconfig认证：这个只能管理default名称空间
-        
-        ......
-        未完成，待续
-
-
-    token认证：这个认证可以管理整个集群
-        #kubectl create serviceaccount dashboard-admin -n kube-system
-        注意dashboard是pod,要通过它操控资源必须要通过rbac的授权
-        #kubectl create clusterrolebinding dashboard-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
-        找dashboard默认的secrect，里面有token，复制到dashboard面板就可以认证通过
-        #kubectl describe secret -n kube-system dashboard-xxxxxxxxxxxxxx
-
+		*****kubeconfig基于secret认证或者证书认证实践都失败，目前还不确定这种方式行不行
 
 kubernetes网络通信：
     1、容器间通信：同一个pod内的多个容器间的通信，通过lo就可以实现
