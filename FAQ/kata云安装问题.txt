@@ -1,8 +1,8 @@
 FAQ
-1銆佸畨瑁呰繃绋嬩腑鍑虹幇鐨勯棶棰?
----->缂栬瘧鐜鍑虹幇鐨勪緷璧栭棶棰?
-	---->libdevmapper-dev 鍜?automake渚濊禆鍖呴渶瑕佸畨瑁?
-		---->apt install automake 鍜?https://launchpad.net/ubuntu/xenial/arm64/libdevmapper-dev/2:1.02.110-1ubuntu10 涓嬭浇鐨刣eb鍖呭強鍏朵緷璧?
+1、安装过程中出现的问题
+---->编译环境出现的依赖问题
+	---->libdevmapper-dev 和 automake依赖包需要安装
+		---->apt install automake 和 https://launchpad.net/ubuntu/xenial/arm64/libdevmapper-dev/2:1.02.110-1ubuntu10 下载的deb包及其依赖
 
 ---->root@node3:~# ceph -s
     cluster 4a4c83b0-5722-4cd8-815a-f7785deafaa2
@@ -17,11 +17,11 @@ FAQ
             flags sortbitwise,require_jewel_osds
       pgmap v472: 64 pgs, 1 pools, 75148 kB data, 41 objects
             60839 MB used, 4965 GB / 5024 GB avail
-	---->ceph鐨刼sd鏁版嵁鐩綍鍏辩敤浜唙espace鐨勭洰褰曪紝 vespace鍋滄帀涔嬪悗锛宻db琚玼nmount
-		---->閲嶅惎ceph-osd鏈嶅姟锛屽湪姣忎釜node涓婃墽琛宻ystemctl restart ceph.target
+	---->ceph的osd数据目录共用了vespace的目录， vespace停掉之后，sdb被unmount
+		---->重启ceph-osd服务，在每个node上执行systemctl restart ceph.target
 
----->鏃犳硶map ceph鍧楄澶?鎵цrbd map hyper/test 鏃朵竴鐩村崱浣?
-	---->systemd-udevd鏈嶅姟鏈惎鍔?
+---->无法map ceph块设备,执行rbd map hyper/test 时一直卡住
+	---->systemd-udevd服务未启动
 		---->systemctl start systemd-udevd
 			---->$ rbd map hyper/test
 				 /dev/rbd0
@@ -29,7 +29,7 @@ FAQ
 				 id pool  image snap device
 				 0  hyper test  -    /dev/rbd0
 		
-2銆佽繍缁磋繃绋嬩腑鍑虹幇鐨勯棶棰?浠ヤ笅ceph鍑虹幇pgs涓嶄竴鑷寸殑鎯呭喌
+2、运维过程中出现的问题,以下ceph出现pgs不一致的情况
 ---->root@node1:~# ceph -s
 	cluster 31fd5a3d-00ba-443e-95ad-5392d1a593a7
 		health HEALTH_ERR
@@ -43,22 +43,22 @@ FAQ
 			60989 MB used, 4965 GB / 5024 GB avail
 			63 active+clean
 			1 active+clean+inconsistent
-	---->閫氳繃鏌ョ湅ceph闆嗙兢鍋ュ悍璇︽儏鏄?.14pg鏈夐棶棰?
+	---->通过查看ceph集群健康详情是1.14pg有问题
 		root@node1:~# ceph health detail
 		HEALTH_ERR 1 pgs inconsistent; 3 scrub errors
 		pg 1.14 is active+clean+inconsistent, acting [2,3,1]
 		3 scrub errors
-		---->鎵嬪姩淇
+		---->手动修复
 			root@node1:~# ceph pg repair 1.14
 			instructing pg 1.14 on osd.2 to repair
-			杩囦竴浼氬氨濂戒簡
-	---->鍐嶆鍑虹幇ceph pg repair宸蹭笉鑳戒慨澶?
+			过一会就好了
+	---->再次出现ceph pg repair已不能修复
 	    root@node1:~# ceph health detail 
 		HEALTH_ERR 1 pgs inconsistent; 4 scrub errors
 		pg 1.26 is active+clean+inconsistent, acting [1,2,3]
 		4 scrub errors
 		root@node1:~# 
-		---->鎵嬪姩淇涓嶈兘鍏夐潬pg repair瑕佹繁鍏ユ寲锛屽弬鑰僪ttps://ceph.com/geen-categorie/ceph-manually-repair-object/
+		---->手动修复不能光靠pg repair要深入挖，参考https://ceph.com/geen-categorie/ceph-manually-repair-object/
 		bash
 		$ sudo ceph health detail
 		HEALTH_ERR 1 pgs inconsistent; 2 scrub errors
@@ -101,7 +101,7 @@ FAQ
 		Then compare all of them to find the bad object.	
 		
 		Fix the problem
-		Just move the object away 馃檪 with the following:
+		Just move the object away 🙂 with the following:
 
 		stop the OSD that has the wrong object responsible for that PG
 		flush the journal (ceph-osd -i <id> --flush-journal)
@@ -109,13 +109,13 @@ FAQ
 		start the OSD again
 		call ceph pg repair 17.1c1
 		
-		It might look a bit rough to delete an object but in the end it鈥檚 job Ceph鈥檚 job to do that.
+		It might look a bit rough to delete an object but in the end it’s job Ceph’s job to do that.
 		Of course the above works well when you have 3 replicas when it is easier for Ceph to compare two versions against another one.
 		A situation with 2 replicas can be a bit different, Ceph might not be able to solve this conflict and the problem could persist.
 		So a simple trick could be to chose the latest version of the object, set the noout flag on the cluster, stop the OSD that has a wrong version.
 		Wait a bit, start the OSD again and unset the noout flag.
 		The cluster should sync up the good version of the object to OSD that had a wrong version.
-	---->杩樻湁涓€绉嶆病鏈夊お澶氭牴鎹絾鏄噾鏁堢殑鏂规
+	---->还有一种没有太多根据但是凑效的方案
 		ceph osd pool set hyper size 1
 		ceph osd pool set hyper min_size 1
 		ceph pg repaire 1.26
@@ -123,19 +123,19 @@ FAQ
 		ceph osd pool set hyper min_size 2
 		ceph pg repaire 1.26
 		
----->鍑虹幇瀛ゅ効pod鐨勬儏鍐?
-	 kubelet锛?
+---->出现孤儿pod的情况
+	 kubelet：
 	 Orphaned pod "4db449f0-4eaf-11e8-94ab-90b8d042b91a" found, but volume paths are still present on disk : There were a total of 3 errors similar to this. Turn up verbosity to see them.
 	---->rm -rf /var/lib/kubelet/pods/4db449f0-4eaf-11e8-94ab-90b8d042b91a/volumes/rook.io~rook/pvc-4d3b9c2c-4eaf-11e8-b497-90b8d0abcd2b/
-		 浠巈tcd涓垹闄od
+		 从etcd中删除pod
 		 export ETCDCTL_API=3
 		 alias etcdctl="etcdctl --endpoints=https://109.105.30.155:2379 --cacert=/etc/etcd/ssl/etcd-ca.pem --cert=/etc/etcd/ssl/etcd.pem --key=/etc/etcd/ssl/etcd-key.pem"
 		 etcdctl del /registry/pods/default/wordpress-consul-5b88f4868-4ss8x
 		 
----->kubelet鏃ュ織涓粡甯稿嚭鐜癐mageFsInfo from image service failed
-	---->杩欑閿欒鏄ImageFS API is not supported in frakti,鍙傝€冨畼鏂硅鏄?https://github.com/kubernetes/frakti/issues/304
+---->kubelet日志中经常出现ImageFsInfo from image service failed
+	---->这种错误是说ImageFS API is not supported in frakti,参考官方说明 https://github.com/kubernetes/frakti/issues/304
 	
----->mysql闀滃儚鐩墠鏀寔鐨勫钩鍙版湁闄愶紝mariadb鏀寔鐨勫钩鍙板涓€浜涳紝鍖呮嫭arm64
+---->mysql镜像目前支持的平台有限，mariadb支持的平台多一些，包括arm64
 	---->root@node3:~# docker run --rm mplatform/mquery mariadb
 		Unable to find image 'mplatform/mquery:latest' locally
 		latest: Pulling from mplatform/mquery
@@ -160,9 +160,9 @@ FAQ
 		 * Supported platforms:
 		   - linux/amd64
 
----->mysql鍚姩涓€鐩存湁闂锛宲od鍙互璧锋潵锛屼絾鏄痯od閲岄潰鐨刢ontainer寮傚父閫€鍑猴紝鏌ョ湅pod涓殑/var/log/mysql/error.log锛屽彲浠ョ湅鍒癷nnodb鍒濆鍖栧け璐ユ垨鑰呮槸鎸囧嚭memory鐩婂嚭
-	---->鍐冲畾pod鍐呭瓨鐨勮繘绋嬫湁浠ヤ笅鍑犱釜
-		---->frakti榛樿鍐呭瓨64M锛宧yperd榛樿128M锛屾墍浠ョ幇鍦ㄥ疄闄呮渶灏弍od 鏄?28M锛屼互涓嬪弬鏁颁腑鍙互鑷畾涔夊唴瀛樺ぇ灏忥紝鍦?lib/systemd/system/xxx.service涓彲娣诲姞
+---->mysql启动一直有问题，pod可以起来，但是pod里面的container异常退出，查看pod中的/var/log/mysql/error.log，可以看到innodb初始化失败或者是指出memory益出
+	---->决定pod内存的进程有以下几个
+		---->frakti默认内存64M，hyperd默认128M，所以现在实际最小pod 是128M，以下参数中可以自定义内存大小，在/lib/systemd/system/xxx.service中可添加
 			root@node3:~# ps aux | grep qemu
 			root      4388  0.0  0.0   9368   576 pts/0    S+   19:42   0:00 grep qemu
 			root     24451  5.5  0.5 3121012 340504 ?      Sl   18:05   5:26 /usr/bin/qemu-system-aarch64 -machine virt,accel=kvm,gic-version=host,usb=off -global kvm-pit.lost_tick_policy=discard -cpu host -kernel /var/lib/hyper/kernel -initrd /var/lib/hyper/hyper-initrd.img -append console=ttyAMA0 panic=1 iommu=no -realtime mlock=off -no-user-config -nodefaults -rtc base=utc,clock=host,driftfix=slew -no-reboot -display none -boot strict=on -m size=1024,slots=1,maxmem=32768M -smp cpus=1,maxcpus=8 -device pci-bridge,chassis_nr=1,id=pci.0 -qmp unix:/var/run/hyper/vm-lwVFDlibDh/qmp.sock,server,nowait -serial unix:/var/run/hyper/vm-lwVFDlibDh/console.sock,server,nowait -device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x2 -device virtio-scsi-pci,id=scsi0,bus=pci.0,addr=0x3 -chardev socket,id=charch0,path=/var/run/hyper/vm-lwVFDlibDh/hyper.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charch0,id=channel0,name=sh.hyper.channel.0 -chardev socket,id=charch1,path=/var/run/hyper/vm-lwVFDlibDh/tty.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charch1,id=channel1,name=sh.hyper.channel.1 -fsdev local,id=virtio9p,path=/var/run/hyper/vm-lwVFDlibDh/share_dir,security_model=none -device virtio-9p-pci,fsdev=virtio9p,mount_tag=share_dir -daemonize -pidfile /var/run/hyper/vm-lwVFDlibDh/pidfile -D /var/log/hyper/qemu/vm-lwVFDlibD.log
@@ -173,18 +173,18 @@ FAQ
 
 			root@node3:~# ps aux | grep hyperd
 			root      1662  0.9  0.1 1764860 113268 ?      Ssl  10:01   5:31 /usr/bin/hyperd --log_dir=/var/log/hyper
-			---->鍏充簬杩愯mariadb瀹瑰櫒鐨勯棶棰橈紝鎴戜滑杩欒竟鏈夌偣澶寸华浜嗐€?
-				鏈変袱鏂归潰鐨勫師鍥狅細
-				1. 鍚姩鏈嶅姟鏃讹紝鍒涘缓/var/run/mysqld/ld/mysqld.sock鏂囦欢澶辫触鏂囦欢澶辫触銆傝В鍐冲姙娉曟槸淇敼鏄慨鏀筸y.cnf, 鎶奻, 鎶?var/run/mysqld鏀规垚/var/lib/mysql锛?/var/lib/mysql浣跨敤rdb鍋歷olume
-				2. 鍒濆鍖栨暟鎹簱鏃讹紝閬囧埌Can't init tc log銆傝В鍐冲姙娉曟槸鍔炴硶鏄痬y.cnf涓坊鍔爁涓坊鍔爈og_bin=ON
-				涓轰簡瑙ｅ喅涓婅堪涓や釜闂锛岄渶瑕佷慨鏀筸y.cnf,鍥犳鎴戦噸鏂癰uild浜唌ariadb鐨凞ockerfile
-				闇€瑕侀噸鏂癰uild mariadb鐨勫畼鏂笵ockerfile锛岃繖鏄褰曠殑鏂囨。
+			---->关于运行mariadb容器的问题，我们这边有点头绪了。
+				有两方面的原因：
+				1. 启动服务时，创建/var/run/mysqld/ld/mysqld.sock文件失败文件失败。解决办法是修改是修改my.cnf, 把f, 把/var/run/mysqld改成/var/lib/mysql， /var/lib/mysql使用rdb做volume
+				2. 初始化数据库时，遇到Can't init tc log。解决办法是办法是my.cnf中添加f中添加log_bin=ON
+				为了解决上述两个问题，需要修改my.cnf,因此我重新build了mariadb的Dockerfile
+				需要重新build mariadb的官方Dockerfile，这是记录的文档
 
 				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/1
 				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/2
-				闀滃儚宸叉帹鍒癲ockerhub,鍙?hyperhq/mariadb-arm64v8:10.3
+				镜像已推到dockerhub,叫 hyperhq/mariadb-arm64v8:10.3
 			
----->鍩轰簬k8s+kata+ceph+mysql鍋氱殑鍩哄噯娴嬭瘯
+---->基于k8s+kata+ceph+mysql做的基准测试
 ---->root@node1:~# mysqlslap -a -c 50,100,150 --auto-generate-sql-load-type=mixed --create-schema=hellodb --iterations=3 --engine=innodb -
 	h 172.16.4.101 -P 30006 -u root -pEnter password: 
 	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
@@ -227,7 +227,7 @@ FAQ
 		Maximum number of seconds to run all queries: 2.127 seconds
 		Number of clients running queries: 150
 		Average number of queries per client: 0
-	濡傛灉鏄涓猰ysql pod鍋氬帇鍔涙祴璇曠殑鏃跺€欏嚭鐜扮殑璐熻浇鍧囨í鏁版嵁搴撲細涓嶄竴鑷寸殑鎯呭喌
+	如果是多个mysql pod做压力测试的时候出现的负载均横数据库会不一致的情况
 			
 			
 			
