@@ -1447,7 +1447,7 @@ Helm:
     程序架构：
         helm：客户端，管理本地的Chart仓库，管理Chart, 与Tiller服务器交互，发送Chart,实例安装、查询、卸载等操作
         Tiller：服务端，接收helm发来的Chart与Config，合并生成release
-            https://github.com/helm/helm/blob/master/docs/rbac.md
+            https://github.com/helm/helm/blob/master/docs/rbac.md 
             RBAC配置文件
             apiVersion: v1
             kind: ServiceAccount
