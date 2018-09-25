@@ -1031,42 +1031,42 @@ dashboard: 用k8s的KUBECONFIG登陆出错不是因为非k8s CA签署出错，�
     1、部署：$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
     2、将service改为NodePort
         # kubectl patch svc kubernetes-dashboard -p '{"spec":{"type":"NodePort"}}' -n kube-system
-    3、认证：
+    3、认证：有两种方式，一种是token，一种是username(password); kubeconfig也是要封装token或者username(password)才能通过认证
         认证时的账号必须为ServiceAccount: 被dashboard pod拿来由kubernetes进行认证
         token:
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
             # kubectl create serviceaccount dashboard-admin -n kube-system
-			# kubectl create clusterrolebinding dashboard-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
-			
+            # kubectl create clusterrolebinding dashboard-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+            
             (2) 获取到此ServiceAccount的secret，查看secret的详细信息，其中就有token
-			***注意当创建serviceaccount dashboard-admin时就有dashboard-admin-token-prfwf，拿着里面的token是可以进入dashboard，只不过没有做上面的授权是没有操作权限的
-			#kubectl describe secrets -n kube-system dashboard-admin-token-prfwf 拿着这里面的token就可以进入dashboard并拥有上面授权的权限
+            ***注意当创建serviceaccount dashboard-admin时就有dashboard-admin-token-prfwf，拿着里面的token是可以进入dashboard，只不过没有做上面的授权是没有操作权限的
+            #kubectl describe secrets -n kube-system dashboard-admin-token-prfwf 拿着这里面的token就可以进入dashboard并拥有上面授权的权限
         
-		
-		kubeconfig: 不用专门生成证书，直接把servcieAccount的token封装为kubeconfig文件，而后用这个文件去登陆
+        
+        kubeconfig: 不用专门生成证书，直接把servcieAccount的token封装为kubeconfig文件，而后用这个文件去登陆
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
             # kubectl create serviceaccount def-ns-admin -n default
-			# kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
-			
+            # kubectl create rolebinding def-ns-admin --clusterrole=admin --serviceaccount=default:def-ns-admin
+            
             (2) 创建KUBECONFIG，把serviceaccount的token注入进KUBECONFIG
             # kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.1.41:6443" --embed-certs=true --kubeconfig=/root/def-ns-admin.conf
-			
+            
             ***注意创建的serviceaccount生成的secret中的token是用base64编码过的，要先解码
             # SERVICEACCOUNT_SECRET_NAME=`kubectl get secret -n default | awk '/^def-ns-admin/{print $1}'`
             # KUBE_TOKEN=$(kubectl get secret $SERVICEACCOUNT_SECRET_NAME -o jsonpath={.data.token} | base64 -d)
             # kubectl config set-credentials def-ns-admin --token=$KUBE_TOKEN --kubeconfig=/root/def-ns-admin.conf
-			
+            
             # kubectl config set-context def-ns-admin@kubernetes --cluster=kubernetes --user=def-ns-admin --kubeconfig=/root/def-ns-admin.conf
-			# kubectl config use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
-			
-		*****kubeconfig基于secret认证或者证书认证实践都失败，目前还不确定这种方式行不行
+            # kubectl config use-context def-ns-admin@kubernetes --kubeconfig=/root/def-ns-admin.conf
+            
+        *****kubeconfig基于secret认证或者证书认证实践都失败，目前还不确定这种方式行不行
 
 kubernetes网络通信：
     1、容器间通信：同一个pod内的多个容器间的通信，通过lo就可以实现
     2、pod通信：Pod IP <--> Pod IP 直接通信，不能通过地址转换
     3、pod与serivce通信：PodIP <--> ClusterIP
     4、service与集群外部客户端的通信
-    #kubectl edit configmaps -n kube-system kube-proxy 改kube-proxy的mode模式，注意改成ipvs也不是替代iptables，只能负载均横
+    #kubectl edit configmaps -n kube-system kube-proxy 改kube-proxy的mode模式，注意改成ipvs也不能替代iptables，只能负载均横
 CNI：k8s不提供集群网络解决方案，但可以用此插件借用第三方网络架构，flannel,calico,canel......
     解决方案：
         虚拟网桥：叠加的方式，借用Vxlan隧道封装flannel.1接口，创建pod后就出现cin0接口
@@ -1098,7 +1098,7 @@ CNI：k8s不提供集群网络解决方案，但可以用此插件借用第三�
         支持多种后端：
             Vxlan: 有很多开销"数据帧-->vxlan首部-->udp首部--ip首部-->以太网首部"
             host-gw: 借用路由表(所以大规模会很大),这个只能在同一网络当中，如果大规模时有路由就不适用了
-            ***二都可以结合，如果在同一网络用host-gw，如果要跨网段则降级为vxlan
+            ***二者可以结合，如果在同一网络用host-gw，如果要跨网段则降级为vxlan
                 Note: 直接用kubectl edit原文件不能生效，所以下载kube-flannel.yaml后修改
                 #wget https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
                     将cni-conf.json字段中的Backend Type下加一句"Directrouting": true
@@ -1447,7 +1447,7 @@ Helm:
     程序架构：
         helm：客户端，管理本地的Chart仓库，管理Chart, 与Tiller服务器交互，发送Chart,实例安装、查询、卸载等操作
         Tiller：服务端，接收helm发来的Chart与Config，合并生成release
-            https://github.com/helm/helm/blob/master/docs/rbac.md
+            https://github.com/helm/helm/blob/master/docs/rbac.md 
             RBAC配置文件
             apiVersion: v1
             kind: ServiceAccount
