@@ -1031,7 +1031,7 @@ dashboard: 用k8s的KUBECONFIG登陆出错不是因为非k8s CA签署出错，�
     1、部署：$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
     2、将service改为NodePort
         # kubectl patch svc kubernetes-dashboard -p '{"spec":{"type":"NodePort"}}' -n kube-system
-    3、认证：
+    3、认证：有两种方式，一种是token，一种是username(password); kubeconfig也是要封装token或者username(password)才能通过认证
         认证时的账号必须为ServiceAccount: 被dashboard pod拿来由kubernetes进行认证
         token:
             (1) 创建ServiceAccount，根据其管理目标，使用rolebinding或clusterrolebinding绑定至合理role或clusterrole;
