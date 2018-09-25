@@ -1066,7 +1066,7 @@ kubernetes网络通信：
     2、pod通信：Pod IP <--> Pod IP 直接通信，不能通过地址转换
     3、pod与serivce通信：PodIP <--> ClusterIP
     4、service与集群外部客户端的通信
-    #kubectl edit configmaps -n kube-system kube-proxy 改kube-proxy的mode模式，注意改成ipvs也不是替代iptables，只能负载均横
+    #kubectl edit configmaps -n kube-system kube-proxy 改kube-proxy的mode模式，注意改成ipvs也不能替代iptables，只能负载均横
 CNI：k8s不提供集群网络解决方案，但可以用此插件借用第三方网络架构，flannel,calico,canel......
     解决方案：
         虚拟网桥：叠加的方式，借用Vxlan隧道封装flannel.1接口，创建pod后就出现cin0接口
