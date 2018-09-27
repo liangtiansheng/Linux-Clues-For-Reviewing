@@ -21,5 +21,3 @@
    Makefile:114: recipe for target 'render/detailed/detailed.codecgen.go' failed
    make: *** [render/detailed/detailed.codecgen.go] Error 2
    解决办法：将源码scope/probe/endpoint/dns_snooper_others.go中的编译器开关// +build darwin arm改成// +build !amd64
-
-   123
