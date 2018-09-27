@@ -1,0 +1,7 @@
+1、按照官网给的步骤一步步手动安装，一会sudo一会不sudo，其中有两个步骤
+    [root@mon1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-mon1
+    [root@mon1 ~]# sudo -u ceph ceph-mon --mkfs -i mon1 --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+    2018-09-25 22:17:13.081119 7f7948887ec0 -1 mon.mon1@-1(probing) e0 unable to find a keyring file on /tmp/ceph.mon.keyring: (13) Permission denied
+    2018-09-25 22:17:13.081170 7f7948887ec0 -1 ceph-mon: error creating monfs: (2) No such file or directory
+    问题：严格按照操作还是有这个错，这是因为ceph-authtool生成的/tmp/ceph.mon.keyring权限是600，这里切换成ceph执行命令当然没权限了
+    方法：chmod 644 /tmp/ceph.mon.keyring
