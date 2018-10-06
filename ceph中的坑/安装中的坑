@@ -21,6 +21,8 @@
             caps osd = "allow *"
         [root@mon1 ~]# vim admin.secret
         ###粘贴key###
+
+        ***这里要注意一下，挂载用的是mon的ip和port
         [root@mon1 ~]# mount -t ceph 192.168.2.81:6789:/ /cephfs_test/ -o name=admin,secretfile=/root/admin.secret
         [root@mon1 ~]# df -hP
         Filesystem           Size  Used Avail Use% Mounted on
