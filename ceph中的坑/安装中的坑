@@ -12,6 +12,8 @@
     错误日志：
         Oct  6 16:40:54 mon1 kernel: libceph: no secret set (for auth_x protocol)
         Oct  6 16:40:54 mon1 kernel: libceph: error -22 on auth protocol 2 init
+    分析原因：
+        原因如日志所说很明显，必须指定用户和其密钥
     解决办法：
         [root@mon1 ~]# cat /etc/ceph/ceph.client.admin.keyring 
         [client.admin]
@@ -35,3 +37,37 @@
         tmpfs                199M     0  199M   0% /run/user/0
         192.168.2.81:6789:/  360G  328M  360G   1% /cephfs_test
         [root@mon1 ~]#
+
+3、创建好rbd块后，进行映射时出现错误
+    root@ceph-1:~# rbd map test_image
+    rbd: sysfs write failed
+    RBD image feature set mismatch. You can disable features unsupported by the kernel with "rbd feature disable".
+    In some cases useful info is found in syslog - try "dmesg | tail" or so.
+    rbd: map failed: (6) No such device or address
+    错误日志：
+        Oct  6 19:18:51 mon1 kernel: libceph: mon0 192.168.2.81:6789 session established
+        Oct  6 19:18:51 mon1 kernel: libceph: client24188 fsid 532d1fb6-f5bf-4127-a6e8-7d5f27746557
+        Oct  6 19:18:51 mon1 kernel: rbd: image test_image: image uses unsupported features: 0x38
+    分析原因：
+        [root@mon1 ~]# rbd info test_image
+        rbd image 'test_image':
+            size 10240 MB in 2560 objects
+            order 22 (4096 kB objects)
+            block_name_prefix: rbd_data.5e786b8b4567
+            format: 2
+            features: layering, exclusive-lock, object-map, fast-diff, deep-flatten
+            flags:
+            
+            ### features 的意义 ###
+            layering: 支持分层
+            striping: 支持条带化 v2
+            exclusive-lock: 支持独占锁
+            object-map: 支持对象映射（依赖 exclusive-lock ）
+            fast-diff: 快速计算差异（依赖 object-map ）
+            deep-flatten: 支持快照扁平化操作
+            journaling: 支持记录 IO 操作（依赖独占锁）
+            ### 遗憾的是CentOS的3.10内核仅支持其中的layering feature，其他feature概不支持。我们需要手动disable这些features ###
+    解决办法：
+        [root@mon1 ~]# rbd feature disable test_image exclusive-lock, object-map, fast-diff, deep-flatten
+        [root@mon1 ~]# rbd map test_image
+        /dev/rbd0
