@@ -5,3 +5,31 @@
     2018-09-25 22:17:13.081170 7f7948887ec0 -1 ceph-mon: error creating monfs: (2) No such file or directory
     问题：严格按照操作还是有这个错，这是因为ceph-authtool生成的/tmp/ceph.mon.keyring权限是600，这里切换成ceph执行命令当然没权限了
     方法：chmod 644 /tmp/ceph.mon.keyring
+
+2、cephfs用kernel driver挂载时出现错误 
+    [root@mon1 ~]# mount -t ceph 192.168.2.81:6789:/ /cephfs_test
+    mount error 22 = Invalid argument
+    错误日志：
+        Oct  6 16:40:54 mon1 kernel: libceph: no secret set (for auth_x protocol)
+        Oct  6 16:40:54 mon1 kernel: libceph: error -22 on auth protocol 2 init
+    解决办法：
+        [root@mon1 ~]# cat /etc/ceph/ceph.client.admin.keyring 
+        [client.admin]
+            key = AQATiLdba1USDhAA62+phX8TXrQCiSUEcnmUHw==
+            caps mds = "allow *"
+            caps mon = "allow *"
+            caps osd = "allow *"
+        [root@mon1 ~]# vim admin.secret
+        ###粘贴key###
+        [root@mon1 ~]# mount -t ceph 192.168.2.81:6789:/ /cephfs_test/ -o name=admin,secretfile=/root/admin.secret
+        [root@mon1 ~]# df -hP
+        Filesystem           Size  Used Avail Use% Mounted on
+        /dev/sda2            116G  1.4G  115G   2% /
+        devtmpfs             981M     0  981M   0% /dev
+        tmpfs                992M     0  992M   0% /dev/shm
+        tmpfs                992M  9.4M  982M   1% /run
+        tmpfs                992M     0  992M   0% /sys/fs/cgroup
+        /dev/sda1            297M  107M  191M  36% /boot
+        tmpfs                199M     0  199M   0% /run/user/0
+        192.168.2.81:6789:/  360G  328M  360G   1% /cephfs_test
+        [root@mon1 ~]#
