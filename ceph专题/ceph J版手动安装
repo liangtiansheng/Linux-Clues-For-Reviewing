@@ -283,13 +283,13 @@
         read -p "Select the disk: " DISK
         read -p "Select the host: " HOST
 
-        ##### Cleanup OSD ID #####
-        for i in $(ceph osd dump | grep new | awk '{print $1}' | awk -F"." '{print $2}')
+        ##### Cleanup DOWN OSD ID #####
+        for i in $(ceph osd dump | grep down | awk '{print $1}' | awk -F"." '{print $2}')
                     do
                     ceph osd rm $i
                     ceph auth del osd.$i
         done
-        echo -e "\033[40;32mCleanup OSD ID is done.\033[0m"
+        echo -e "\033[40;32mCleanup DOWN OSD ID is done.\033[0m"
         ID=$(ceph osd create)
         DIRECTORY=/var/lib/ceph/osd/ceph-$ID
 
@@ -310,7 +310,8 @@
                     ceph-disk zap /dev/$DISK &> /dev/zero
                     ceph-disk prepare /dev/$DISK &> /dev/zero
         else
-                    continue
+                    echo -e "\033[40;32m$DISK has already configured into osd.\033[0m"
+                    exit 7
         fi
         PARTITION=/dev/${DISK}1
         mkfs.xfs -f $PARTITION &> /dev/zero
