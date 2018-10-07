@@ -1,3 +1,4 @@
+########################## 实验的版本为ceph version 10.2.11 ##########################
 一、配置阿里源
     1、配置阿里的base源和epel源
         [root@mon1 ~]# wget -qO /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
@@ -131,7 +132,7 @@
     4、新增mon节点osd2
         4.1、把mon1上生成的配置文件和密钥文件拷贝到osd2
             [root@mon1 ~]# scp /etc/ceph/* root@osd2:/etc/ceph/ 
-            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd2:/var/lib/
+            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd2:/var/lib/ceph/bootstrap-osd/
             [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring
         4.2、在osd2上创建一个默认的数据目录
             [root@osd2 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd2
