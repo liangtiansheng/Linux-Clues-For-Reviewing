@@ -100,15 +100,15 @@
         3.1、把mon1上生成的配置文件和密钥文件拷贝到osd1
             [root@mon1 ~]# scp /etc/ceph/* root@osd1:/etc/ceph/
             [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd1:/var/lib/ceph/bootstrap-osd/
-            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring //这个可以不用复制，因为3.4这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
         3.2、在osd1上创建一个默认的数据目录
             [root@osd1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd1
         3.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
             [root@osd1 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
         3.4、获取密钥和monmap信息
-            [root@osd1 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring
+            [root@osd1 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring //可以通过这个命令获取第一次创建的ceph.mon.keyring，然后改成ceph属主属组，不然会报没有权限，官方没有改权限这一步，是个坑
             exported keyring for mon.
-            [root@osd1 ~]# ceph mon getmap -o /tmp/ceph.mon.map
+            [root@osd1 ~]# ceph mon getmap -o /tmp/ceph.mon.map //这个是root属主属组，其它有读的权限即可，所以不用改成ceph属主属组
             got monmap epoch 1
         3.5、初始化mon
             [root@osd1 ~]# sudo -u ceph ceph-mon --mkfs -i osd1 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
@@ -120,7 +120,7 @@
             [root@osd1 ~]# ceph mon add osd1 192.168.1.11:6789
             adding mon.osd1 at 192.168.1.11:6789/0
         3.8、启动新添加的mon
-            [root@osd1 ~]# systemctl start ceph-mon@osd1
+            [root@osd1 ~]# systemctl start ceph-mon@osd1 //启动mon服务会自动生成bootstarp-mds及bootstrap-rgw的密钥
             [root@osd1 ~]# systemctl status ceph-mon@osd1
             ● ceph-mon@osd1.service - Ceph cluster monitor daemon
             Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
@@ -133,15 +133,15 @@
         4.1、把mon1上生成的配置文件和密钥文件拷贝到osd2
             [root@mon1 ~]# scp /etc/ceph/* root@osd2:/etc/ceph/ 
             [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd2:/var/lib/ceph/bootstrap-osd/
-            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring //这个可以不用复制，因为4.4这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
         4.2、在osd2上创建一个默认的数据目录
             [root@osd2 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd2
         4.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
             [root@osd2 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
         4.4、获取密钥和monmap信息
-            [root@osd2 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring
+            [root@osd2 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring //可以通过这个命令获取第一次创建的ceph.mon.keyring，然后改成ceph属主属组，不然会报没有权限，官方没有改权限这一步，是个坑
             exported keyring for mon.
-            [root@osd2 ~]# ceph mon getmap -o /tmp/ceph.mon.map
+            [root@osd2 ~]# ceph mon getmap -o /tmp/ceph.mon.map //这个是root属主属组，其它有读的权限即可，所以不用改成ceph属主属组
             got monmap epoch 1
         4.5、初始化mon
             [root@osd2 ~]# sudo -u ceph ceph-mon --mkfs -i osd2 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
@@ -153,7 +153,7 @@
             [root@osd2 ~]# ceph mon add osd2 192.168.1.12:6789
             adding mon.osd2 at 192.168.1.12:6789/0
         4.8、启动新添加的mon
-            [root@osd2 ~]# systemctl start ceph-mon@osd2
+            [root@osd2 ~]# systemctl start ceph-mon@osd2 //启动mon服务会自动生成bootstarp-mds及bootstrap-rgw的密钥
             [root@osd2 ~]# systemctl status ceph-mon@osd2
             ● ceph-mon@osd2.service - Ceph cluster monitor daemon
             Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
@@ -180,8 +180,8 @@
             注：当前状态中的error是由于还没有添加osd
 
 三、部署osd节点
-    1、添加osd之前现在crush图中创建3个名称分别为mon1，osd1，osd2的桶
-        [root@mon1 ~]# ceph osd crush add-bucket mon1 host
+    1、添加osd之前先在crush图中创建3个名称分别为mon1，osd1，osd2的桶
+        [root@mon1 ~]# ceph osd crush add-bucket mon1 host //桶的类型type 0 osd、type 1 host、type 2 chassis、type 3 rack、type 4 row、type 5 pdu、type 6 pod、type 7 room、type 8 datacenter、type 9 region、type 10 root
         added bucket mon1 type host to crush map
         [root@mon1 ~]# ceph osd crush add-bucket osd1 host
         added bucket osd1 type host to crush map
@@ -230,9 +230,9 @@
             [root@mon1 ~]# mkdir -p /var/lib/ceph/osd/ceph-0
             注：目录格式为ceph-$ID，第一步创建出的osd的ID为0，所以目录为ceph-0
         3.5、对分区进行挂载
-            [root@mon1 ~]# mount /dev/sdc1 /var/lib/ceph/osd/ceph-0/
+            [root@mon1 ~]# mount /dev/sdb1 /var/lib/ceph/osd/ceph-0/
         3.6、添加自动挂载信息
-            [root@mon1 ~]# echo "/dev/sdb1 /var/lib/ceph/osd/ceph-1 xfs defaults 0 0" >> /etc/fstab
+            [root@mon1 ~]# echo "/dev/sdb1 /var/lib/ceph/osd/ceph-0/ xfs defaults 0 0" >> /etc/fstab
         3.7、初始化 OSD 数据目录
             [root@mon1 ~]# ceph-osd -i 0 --mkfs --mkkey
             2018-06-30 11:31:19.791042 7f7cbd911880 -1 journal FileJournal::_open: disabling aio for non-block journal.  Use journal_force_aio to force use of aio anyway
@@ -254,8 +254,8 @@
             [root@mon1 ~]# systemctl status ceph-osd@0
             ● ceph-osd@0.service - Ceph object storage daemon
             Loaded: loaded (/usr/lib/systemd/system/ceph-osd@.service; disabled; vendor preset: disabled)
-            Active: active (running) since Sat 2018-06-30 11:32:58 CST; 4s ago
-            Process: 3408 ExecStartPre=/usr/lib/ceph/ceph-osd-prestart.sh --cluster ${CLUSTER} --id %i (code=exited, status=0/SUCCESS)
+                Active: active (running) since Sat 2018-06-30 11:32:58 CST; 4s ago
+                Process: 3408 ExecStartPre=/usr/lib/ceph/ceph-osd-prestart.sh --cluster ${CLUSTER} --id %i (code=exited, status=0/SUCCESS)
             Main PID: 3459 (ceph-osd)
         3.12、设置osd开机自动启动
             [root@mon1 ~]# systemctl enable ceph-osd@0
