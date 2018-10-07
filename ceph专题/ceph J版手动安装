@@ -411,7 +411,7 @@
                         256 active+clean
         注：生产环境中可以通过配置时间同步解决此状况
 
-四、部署mds
+四、部署mds节点
     1、创建第一个mds
         1.1、为mds元数据服务器创建一个目录
             [root@mon1 ~]# mkdir -p /var/lib/ceph/mds/ceph-mon1
@@ -473,3 +473,321 @@
         3.5、设置mds开机自动启动
             [root@osd2 ~]# systemctl enable ceph-mds@osd2
             Created symlink from /etc/systemd/system/ceph-mds.target.wants/ceph-mds@osd2.service to /usr/lib/systemd/system/ceph-mds@.service.
+
+五、部署radosgw节点
+    1、设备列表
+        注：以上的环境现在是这个样子的
+        mon,osd,mds,rgw mon1 192.168.1.10
+        mon,osd,mds,rgw osd1 192.168.1.11
+        mon,osd,mds,rgw osd2 192.168.1.12
+
+    2、Ceph RGW 部署
+        Ceph RGW的FastCGI支持多种Web服务器作为前端，例如Nginx、Apache2等。 从Ceph Hammer版本开始，使用ceph-deploy部署时将会默认使用内置的civetweb作为前端。本文分别采用civeweb和nginx进行一下部署。
+
+    3、使用civetweb配置
+        3.1、安装radosgw
+            注：如果之前已经进行过安装，可以跳过此步骤
+            [root@mon1 ~]# yum -y install radosgw
+            [root@osd1 ~]# yum -y install radosgw
+            [root@osd2 ~]# yum -y install radosgw
+        3.2、创建资源池
+            注：需要创建的资源池列表如下
+            [root@mon1 ~]# cat pool
+            .rgw
+            .rgw.root
+            .rgw.control
+            .rgw.gc
+            .rgw.buckets
+            .rgw.buckets.index
+            .rgw.buckets.extra
+            .log
+            .intent-log
+            .usage
+            .users
+            .users.email
+            .users.swift
+            .users.uid
+            注：这里通过脚本快速创建这些资源池，脚本内容如下
+
+            #!/bin/bash
+            PG_NUM=64
+            PGP_NUM=64
+            SIZE=3
+            for i in `cat /root/pool`
+                    do
+                    ceph osd pool create $i $PG_NUM
+                    ceph osd pool set $i size $SIZE
+                    done
+            for i in `cat /root/pool`
+                    do
+                    ceph osd pool set $i pgp_num $PGP_NUM
+                    done
+        3.3、创建keyring
+            [root@mon1 ~]# sudo ceph-authtool --create-keyring /etc/ceph/ceph.client.radosgw.keyring
+            creating /etc/ceph/ceph.client.radosgw.keyring
+        3.4、修改文件权限
+            [root@mon1 ~]# sudo chown ceph:ceph /etc/ceph/ceph.client.radosgw.keyring
+        3.5、生成ceph-radosgw服务对应的用户和key
+            [root@mon1 ~]# sudo ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.rgw.mon1 --gen-key
+        3.6、为用户添加访问权限
+            [root@mon1 ~]# sudo ceph-authtool -n client.rgw.mon1 --cap osd 'allow rwx' --cap mon 'allow rwx' /etc/ceph/ceph.client.radosgw.keyring
+        3.7、导入keyring到集群中
+            [root@mon1 ~]# sudo ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.rgw.mon1 -i /etc/ceph/ceph.client.radosgw.keyring
+            added key for client.rgw.mon1
+        3.8、配置ceph.conf
+            [client.rgw.mon1]
+            host=mon1
+            keyring=/etc/ceph/ceph.client.radosgw.keyring
+            log file=/var/log/radosgw/client.radosgw.gateway.log
+            rgw_s3_auth_use_keystone = False
+            rgw_frontends = civetweb port=8080
+        3.9、创建日志目录并修改权限
+            [root@mon1 ~]# mkdir /var/log/radosgw
+            [root@mon1 ~]# chown ceph:ceph /var/log/radosgw
+        3.10、启动rgw
+            [root@mon1 ~]# systemctl start ceph-radosgw@rgw.mon1
+            [root@mon1 ~]# systemctl status ceph-radosgw@rgw.mon1
+            ● ceph-radosgw@rgw.mon1.service - Ceph rados gateway
+                Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; disabled; vendor preset: disabled)
+                Active: active (running) since Tue 2018-07-03 12:53:42 CST; 5s ago
+            Main PID: 13660 (radosgw)
+            CGroup: /system.slice/system-ceph\x2dradosgw.slice/ceph-radosgw@rgw.mon1.service
+                    └─13660 /usr/bin/radosgw -f --cluster ceph --name client.rgw.mon1 --setuser ceph --setgr...
+            Jul 03 12:53:42 mon1 systemd[1]: Started Ceph rados gateway.
+            Jul 03 12:53:42 mon1 systemd[1]: Starting Ceph rados gateway...
+        3.11、查看端口监听状态
+            [root@mon1 ~]# netstat -antpu | grep 8080
+            tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      13660/radosgw
+        3.12、设置rgw开机自动启动
+            [root@mon1 ~]# systemctl enable ceph-radosgw@rgw.mon1
+            Created symlink from /etc/systemd/system/ceph-radosgw.target.wants/ceph-radosgw@rgw.mon1.service to /usr/lib/systemd/system/ceph-radosgw@.service.
+        3.13、在osd1、osd2上部署rgw
+            注：以下命令在mon1上执行即可
+            a、创建对应的client.rgw.osd1、client.rgw.osd2用户并进行授权
+                [root@mon1 ~]# sudo ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.rgw.osd1 --gen-key
+                [root@mon1 ~]# sudo ceph-authtool -n client.rgw.osd1 --cap osd 'allow rwx' --cap mon 'allow rwx' /etc/ceph/ceph.client.radosgw.keyring
+                [root@mon1 ~]# sudo ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.rgw.osd1 -i /etc/ceph/ceph.client.radosgw.keyring
+                added key for client.rgw.osd1
+                [root@mon1 ~]# sudo ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.rgw.osd2 --gen-key
+                [root@mon1 ~]# sudo ceph-authtool -n client.rgw.osd2 --cap osd 'allow rwx' --cap mon 'allow rwx' /etc/ceph/ceph.client.radosgw.keyring
+                [root@mon1 ~]# sudo ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.rgw.osd2 -i /etc/ceph/ceph.client.radosgw.keyring
+                added key for client.rgw.osd2
+
+            b、在ceph.conf文件中添加如下内容
+                [client.rgw.osd1]
+                host=osd1
+                keyring=/etc/ceph/ceph.client.radosgw.keyring
+                log file=/var/log/radosgw/client.radosgw.gateway.log
+                rgw_s3_auth_use_keystone = False
+                rgw_frontends = civetweb port=8080
+                [client.rgw.osd2]
+                host=osd2
+                keyring=/etc/ceph/ceph.client.radosgw.keyring
+                log file=/var/log/radosgw/client.radosgw.gateway.log
+                rgw_s3_auth_use_keystone = False
+                rgw_frontends = civetweb port=8080
+            c、 把创建好的ceph.client.radosgw.keyring和ceph.conf传到osd1和osd2上
+                [root@mon1 ~]# scp /etc/ceph/ceph.client.radosgw.keyring osd1:/etc/ceph/ceph.client.radosgw.keyring
+                [root@mon1 ~]# scp /etc/ceph/ceph.client.radosgw.keyring osd2:/etc/ceph/ceph.client.radosgw.keyring
+                [root@mon1 ~]# scp /etc/ceph/ceph.conf osd1:/etc/ceph/ceph.conf
+                [root@mon1 ~]# scp /etc/ceph/ceph.conf osd2:/etc/ceph/ceph.conf
+            d、 在osd1和osd2上分别创建日志目录并修改权限
+                [root@osd1 ~]# mkdir /var/log/radosgw
+                [root@osd1 ~]# chown ceph:ceph /var/log/radosgw
+                [root@osd2 ~]# mkdir /var/log/radosgw
+                [root@osd2 ~]# chown ceph:ceph /var/log/radosgw
+            e、 启动osd1和osd2上的rgw服务
+                [root@osd1 ~]# systemctl restart ceph-radosgw@rgw.mon1
+                [root@osd1 ~]# systemctl status ceph-radosgw@rgw.mon1
+                ● ceph-radosgw@rgw.mon1.service - Ceph rados gateway
+                    Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; disabled; vendor preset: disabled)
+                    Active: active (running) since Tue 2018-07-03 13:19:51 CST; 5s ago
+                Main PID: 12016 (radosgw)
+               
+                [root@osd2 ~]# systemctl start ceph-radosgw@rgw.osd2
+                [root@osd2 ~]# systemctl status ceph-radosgw@rgw.osd2
+                ● ceph-radosgw@rgw.osd2.service - Ceph rados gateway
+                    Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; disabled; vendor preset: disabled)
+                    Active: active (running) since Tue 2018-07-03 13:21:51 CST; 6s ago
+                Main PID: 2435 (radosgw)
+            f、 设置rgw开机自动启动
+                [root@osd1 ~]# systemctl enable ceph-radosgw@rgw.osd1
+                Created symlink from /etc/systemd/system/ceph-radosgw.target.wants/ceph-radosgw@rgw.osd1.service to /usr/lib/systemd/system/ceph-radosgw@.service.
+                [root@osd2 ~]# systemctl enable ceph-radosgw@rgw.osd2
+                Created symlink from /etc/systemd/system/ceph-radosgw.target.wants/ceph-radosgw@rgw.osd2.service to /usr/lib/systemd/system/ceph-radosgw@.service.
+
+
+    4、使用nginx配置
+        4.1、在mon1上安装nginx
+            [root@mon1 ~]# yum -y install nginx
+        4.2、在/etc/nginx/conf.d/目录下生成rgw.conf并添加如下配置
+            server {
+                listen   80;
+                server_name mon1;
+                location / {
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    if ($request_method = PUT) {
+                            rewrite ^ /PUT$request_uri;
+                    }
+                    include fastcgi_params;
+                    fastcgi_pass 192.168.1.10:9000;
+                }
+                location /PUT/ {
+                    internal;
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    include fastcgi_params;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param  CONTENT_TYPE $content_type;
+                    fastcgi_pass 192.168.1.10:9000;
+                }
+            }
+            server {
+                listen   80;
+                server_name osd1;
+                location / {
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    if ($request_method = PUT) {
+                            rewrite ^ /PUT$request_uri;
+                    }
+                    include fastcgi_params;
+                    fastcgi_pass 192.168.1.11:9000;
+                }
+                location /PUT/ {
+                    internal;
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    include fastcgi_params;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param  CONTENT_TYPE $content_type;
+                    fastcgi_pass 192.168.1.11:9000;
+                }
+            }
+            server {
+                listen   80;
+                server_name osd2;
+                location / {
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    if ($request_method = PUT) {
+                            rewrite ^ /PUT$request_uri;
+                    }
+                    include fastcgi_params;
+                    fastcgi_pass 192.168.1.12:9000;
+                }
+                location /PUT/ {
+                    internal;
+                    fastcgi_pass_header Authorization;
+                    fastcgi_pass_request_headers on;
+                    include fastcgi_params;
+                    fastcgi_param QUERY_STRING  $query_string;
+                    fastcgi_param REQUEST_METHOD $request_method;
+                    fastcgi_param CONTENT_LENGTH $content_length;
+                    fastcgi_param  CONTENT_TYPE $content_type;
+                    fastcgi_pass 192.168.1.12:9000;
+                }
+            }
+            注：由于是使用nginx端口使用是80端口，需要删掉或注释nginx.conf中的默认端口80的站点配置，否则nginx无法启动
+
+        4.3、启动nginx并设置为开机自动启动
+            [root@mon1 ~]# systemctl start nginx
+            [root@mon1 ~]# systemctl enable nginx
+        4.4、修改ceph.conf内容如下
+            [client.rgw.mon1]
+            rgw frontends=fastcgi socket_port=9000 socket_host=0.0.0.0
+            host=mon1
+            keyring=/etc/ceph/ceph.client.radosgw.keyring
+            log file=/var/log/radosgw/client.radosgw.gateway.log
+            rgw print continue=false
+            rgw content length compat = true
+            [client.rgw.osd1]
+            rgw frontends=fastcgi socket_port=9000 socket_host=0.0.0.0
+            host=osd1
+            keyring=/etc/ceph/ceph.client.radosgw.keyring
+            log file=/var/log/radosgw/client.radosgw.gateway.log
+            rgw print continue=false
+            rgw content length compat = true
+            [client.rgw.osd2]
+            rgw frontends=fastcgi socket_port=9000 socket_host=0.0.0.0
+            host=osd2
+            keyring=/etc/ceph/ceph.client.radosgw.keyring
+            log file=/var/log/radosgw/client.radosgw.gateway.log
+            rgw print continue=false
+            rgw content length compat = true
+        4.5、把修改好的/etc/ceph.conf 文件传到osd1和osd2上
+            [root@mon1 ~]# scp  /etc/ceph/ceph.conf osd1:/etc/ceph/ceph.conf
+            [root@mon1 ~]# scp  /etc/ceph/ceph.conf osd2:/etc/ceph/ceph.conf
+        4.6、在3个节点上分别重启rgw并观察端口是否修改为了9000
+            [root@mon1 ~]# systemctl restart ceph-radosgw@rgw.mon1
+            [root@mon1 ~]# systemctl status ceph-radosgw@rgw.mon1                                                                                                       
+            ● ceph-radosgw@rgw.mon1.service - Ceph rados gateway
+                Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; enabled; vendor preset: disabled)
+                Active: active (running) since Tue 2018-07-03 15:00:44 CST; 5s ago
+            Main PID: 16087 (radosgw)
+            
+            [root@mon1 ~]# netstat -antpu | grep 9000
+            tcp        0      0 0.0.0.0:9000            0.0.0.0:*               LISTEN      16087/radosgw 
+            [root@osd1 ~]# systemctl restart ceph-radosgw@rgw.osd1
+            [root@osd1 ~]# systemctl status ceph-radosgw@rgw.osd1                                                                                                        
+            ● ceph-radosgw@rgw.osd1.service - Ceph rados gateway
+                Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; enabled; vendor preset: disabled)
+                Active: active (running) since Tue 2018-07-03 15:01:46 CST; 5s ago
+
+            [root@osd1 ~]# netstat -anptu | grep 9000
+            tcp        0      0 0.0.0.0:9000            0.0.0.0:*               LISTEN      13983/radosgw
+            [root@osd2 ~]# systemctl restart ceph-radosgw@rgw.osd2
+            [root@osd2 ~]# systemctl status ceph-radosgw@rgw.osd2
+            ● ceph-radosgw@rgw.osd2.service - Ceph rados gateway
+                Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; enabled; vendor preset: disabled)
+                Active: active (running) since Tue 2018-07-03 15:02:43 CST; 14s ago
+            [root@osd2 ~]# netstat -antpu | grep 9000
+            tcp        0      0 0.0.0.0:9000            0.0.0.0:*               LISTEN      3737/radosgw
+            
+            注：这一步做的过程中出了点小问题，osd1上的rgw一直无法重启成功，后来查看是ceph.client.radosgw.keyring 中osd1的用户信息没有了，需要重新添加一下，添加之前先通过ceph auth list看一下是否还有osd1的信息，如果有的话，需要手动清除一下，然后在执行之前的创建用户和添加授权的命令即可。正确的文件内容如下
+            [root@mon1 ~]# cat /etc/ceph/ceph.client.radosgw.keyring
+            [client.rgw.mon1]
+                    key = AQCPADtbk6AoJxAAXSUaO5FmHAJl9BJBCeVZVA==
+                    caps mon = "allow rwx"
+                    caps osd = "allow rwx"
+            [client.rgw.osd1]
+                    key = AQBRFjtb5zz0LRAAwr7RdxLprs344gA8v60Qhw==
+                    caps mon = "allow rwx"
+                    caps osd = "allow rwx"
+            [client.rgw.osd2]
+                    key = AQCeBztbQPdFChAAgoDcmDWsQwRCo5SDPaHAIw==
+                    caps mon = "allow rwx"
+                    caps osd = "allow rwx"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
