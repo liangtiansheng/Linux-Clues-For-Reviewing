@@ -1,0 +1,475 @@
+一、配置阿里源
+    1、配置阿里的base源和epel源
+        [root@mon1 ~]# wget -qO /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+        [root@mon1 ~]# wget -qO /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    2、配置阿里的ceph源
+        [root@mon1 ~]# cat /etc/yum.repos.d/Aliyun-ceph.repo
+        [ceph]
+        name=ceph
+        baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/x86_64/
+        gpgcheck=0
+        [ceph-noarch]
+        name=cephnoarch
+        baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/noarch/
+        gpgcheck=0
+二、部署monitor节点
+    1、所有节点都安装ceph ceph-radosgw
+        [root@mon1 ~]# yum -y install ceph ceph-radosgw
+        [root@osd1 ~]# yum -y install ceph ceph-radosgw
+        [root@osd2 ~]# yum -y install ceph ceph-radosgw
+    2、创建第一个mon节点
+        2.1、登录到mon1，查看ceph目录是否已经生成
+            [root@mon1 ~]# ls /etc/ceph/
+            rbdmap
+        2.2、生成ceph配置文件
+            [root@mon1 ~]# touch /etc/ceph/ceph.conf
+        2.3、执行uuidgen命令，得到一个唯一的标识，作为ceph集群的ID
+            [root@mon1 ~]# uuidgen
+            bdfb36e0-23ed-4e2f-8bc6-b98d9fa9136c
+        2.4、配置ceph.conf
+            [root@mon1 ~]# vim /etc/ceph/ceph.conf
+            [global]
+            fsid = bdfb36e0-23ed-4e2f-8bc6-b98d9fa9136c
+            #设置mon1为mon节点
+            mon initial members = mon1
+            #设置mon节点地址
+            mon host = 192.168.1.10
+            public network = 192.168.1.0/24
+            auth cluster required = cephx
+            auth service required = cephx
+            auth client required = cephx
+            osd journal size = 1024
+            #设置副本数
+            osd pool default size = 3
+            #设置最小副本数
+            osd pool default min size = 1
+            osd pool default pg num = 256
+            osd pool default pgp num = 256
+            osd crush chooseleaf type = 1
+            osd_mkfs_type = xfs
+            max mds = 5
+            mds max file size = 100000000000000
+            mds cache size = 1000000
+            #设置osd节点down后900s，把此osd节点逐出ceph集群，把之前映射到此节点的数据映射到其他节点。
+            mon osd down out interval = 900
+            [mon]
+            #把时钟偏移设置成0.5s，默认是0.05s,由于ceph集群中存在异构PC，导致时钟偏移总是大于0.05s，为了方便同步直接把时钟偏移设置成0.5s
+            mon clock drift allowed = .50
+        2.5、为监控节点创建管理密钥
+            [root@mon1 ~]# ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+            creating /tmp/ceph.mon.keyring
+        2.6、为ceph amin用户创建管理集群的密钥并赋予访问权限
+            [root@mon1 ~]# sudo ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+            creating /etc/ceph/ceph.client.admin.keyring
+        2.7、生成一个引导-osd密钥环，生成一个client.bootstrap-osd用户并将用户添加到密钥环中
+            [root@mon1 ~]# sudo ceph-authtool --create-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd'
+            creating /var/lib/ceph/bootstrap-osd/ceph.keyring
+        2.8、将生成的密钥添加到ceph.mon.keyring
+            [root@mon1 ~]# sudo ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
+            importing contents of /etc/ceph/ceph.client.admin.keyring into /tmp/ceph.mon.keyring
+            [root@mon1 ~]# sudo ceph-authtool /tmp/ceph.mon.keyring --import-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring
+            importing contents of /var/lib/ceph/bootstrap-osd/ceph.keyring into /tmp/ceph.mon.keyring
+        2.9、使用主机名、主机IP地址(ES)和FSID生成monmap。把它保存成/tmp/monmap
+            [root@mon1 ~]# monmaptool --create --add mon1 192.168.1.10 --fsid bdfb36e0-23ed-4e2f-8bc6-b98d9fa9136c /tmp/monmap
+            monmaptool: monmap file /tmp/monmap
+            monmaptool: set fsid to bdfb36e0-23ed-4e2f-8bc6-b98d9fa9136c
+            monmaptool: writing epoch 0 to /tmp/monmap (1 monitors)
+        2.10、创建一个默认的数据目录
+            [root@mon1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-mon1
+        2.11、修改ceph.mon.keyring属主和属组为ceph
+            [root@mon1 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
+        2.12、初始化mon
+            [root@mon1 ~]# sudo -u ceph ceph-mon --mkfs -i mon1 --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+            ceph-mon: set fsid to bdfb36e0-23ed-4e2f-8bc6-b98d9fa9136c
+            ceph-mon: created monfs at /var/lib/ceph/mon/ceph-mon1 for mon.mon1
+        2.13、为了防止重新被安装创建一个空的done文件
+            [root@mon1 ~]# sudo touch /var/lib/ceph/mon/ceph-mon1/done
+        2.14、启动mon
+            [root@mon1 ~]# systemctl start ceph-mon@mon1
+        2.15、查看运行状态
+            [root@mon1 ~]# systemctl status ceph-mon@mon1
+            ● ceph-mon@mon1.service - Ceph cluster monitor daemon
+                Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
+                Active: active (running) since Fri 2018-06-29 13:36:27 CST; 5min ago
+                Main PID: 1936 (ceph-mon)
+        2.16、设置mon开机自动启动
+            [root@mon1 ~]# systemctl enable ceph-mon@mon1
+            Created symlink from /etc/systemd/system/ceph-mon.target.wants/ceph-mon@mon1.service to /usr/lib/systemd/system/ceph-mon@.service.
+    3、新增mon节点osd1
+        3.1、把mon1上生成的配置文件和密钥文件拷贝到osd1
+            [root@mon1 ~]# scp /etc/ceph/* root@osd1:/etc/ceph/
+            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd1:/var/lib/ceph/bootstrap-osd/
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring
+        3.2、在osd1上创建一个默认的数据目录
+            [root@osd1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd1
+        3.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
+            [root@osd1 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
+        3.4、获取密钥和monmap信息
+            [root@osd1 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring
+            exported keyring for mon.
+            [root@osd1 ~]# ceph mon getmap -o /tmp/ceph.mon.map
+            got monmap epoch 1
+        3.5、初始化mon
+            [root@osd1 ~]# sudo -u ceph ceph-mon --mkfs -i osd1 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
+            ceph-mon: set fsid to 8ca723b0-c350-4807-9c2a-ad6c442616aa
+            ceph-mon: created monfs at /var/lib/ceph/mon/ceph-osd1 for mon.osd1
+        3.6、为了防止重新被安装创建一个空的done文件
+            [root@osd1 ~]# sudo touch /var/lib/ceph/mon/ceph-osd1/done
+        3.7、将新的mon节点添加至ceph集群的mon列表
+            [root@osd1 ~]# ceph mon add osd1 192.168.1.11:6789
+            adding mon.osd1 at 192.168.1.11:6789/0
+        3.8、启动新添加的mon
+            [root@osd1 ~]# systemctl start ceph-mon@osd1
+            [root@osd1 ~]# systemctl status ceph-mon@osd1
+            ● ceph-mon@osd1.service - Ceph cluster monitor daemon
+            Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
+            Active: active (running) since Sat 2018-06-30 10:58:52 CST; 6s ago
+            Main PID: 1555 (ceph-mon)
+        3.9、设置mon开机自动启动
+            [root@osd1 ~]# systemctl enable ceph-mon@osd1
+            Created symlink from /etc/systemd/system/ceph-mon.target.wants/ceph-mon@osd1.service to /usr/lib/systemd/system/ceph-mon@.service.
+    4、新增mon节点osd2
+        4.1、把mon1上生成的配置文件和密钥文件拷贝到osd2
+            [root@mon1 ~]# scp /etc/ceph/* root@osd2:/etc/ceph/ 
+            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd2:/var/lib/
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring
+        4.2、在osd2上创建一个默认的数据目录
+            [root@osd2 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd2
+        4.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
+            [root@osd2 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
+        4.4、获取密钥和monmap信息
+            [root@osd2 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring
+            exported keyring for mon.
+            [root@osd2 ~]# ceph mon getmap -o /tmp/ceph.mon.map
+            got monmap epoch 1
+        4.5、初始化mon
+            [root@osd2 ~]# sudo -u ceph ceph-mon --mkfs -i osd2 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
+            ceph-mon: set fsid to 8ca723b0-c350-4807-9c2a-ad6c442616aa
+            ceph-mon: created monfs at /var/lib/ceph/mon/ceph-osd2 for mon.osd2
+        4.6、为了防止重新被安装创建一个空的done文件
+            [root@osd2 ~]# sudo touch /var/lib/ceph/mon/ceph-osd2/done
+        4.7、将新的mon节点添加至ceph集群的mon列表
+            [root@osd2 ~]# ceph mon add osd2 192.168.1.12:6789
+            adding mon.osd2 at 192.168.1.12:6789/0
+        4.8、启动新添加的mon
+            [root@osd2 ~]# systemctl start ceph-mon@osd2
+            [root@osd2 ~]# systemctl status ceph-mon@osd2
+            ● ceph-mon@osd2.service - Ceph cluster monitor daemon
+            Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
+            Active: active (running) since Sat 2018-06-30 11:16:00 CST; 4s ago
+            Main PID: 1594 (ceph-mon)、
+        4.9、设置mon开机自动启动
+            [root@osd2 ~]# systemctl enable ceph-mon@osd2
+            Created symlink from /etc/systemd/system/ceph-mon.target.wants/ceph-mon@osd2.service to /usr/lib/systemd/system/ceph-mon@.service.
+        4.10、三个mon创建完成后可以通过ceph -s查看集群状态
+            [root@mon1 ~]# ceph -s
+                cluster 8ca723b0-c350-4807-9c2a-ad6c442616aa
+                health HEALTH_ERR
+                        64 pgs are stuck inactive for more than 300 seconds
+                        64 pgs stuck inactive
+                        64 pgs stuck unclean
+                        no osds
+                monmap e3: 3 mons at {mon1=192.168.1.10:6789/0,osd1=192.168.1.11:6789/0,osd2=192.168.1.12:6789/0}
+                        election epoch 12, quorum 0,1,2 mon1,osd1,osd2
+                osdmap e1: 0 osds: 0 up, 0 in
+                        flags sortbitwise,require_jewel_osds
+                pgmap v2: 64 pgs, 1 pools, 0 bytes data, 0 objects
+                        0 kB used, 0 kB / 0 kB avail
+                            64 creating
+            注：当前状态中的error是由于还没有添加osd
+
+三、部署osd节点
+    1、添加osd之前现在crush图中创建3个名称分别为mon1，osd1，osd2的桶
+        [root@mon1 ~]# ceph osd crush add-bucket mon1 host
+        added bucket mon1 type host to crush map
+        [root@mon1 ~]# ceph osd crush add-bucket osd1 host
+        added bucket osd1 type host to crush map
+        [root@mon1 ~]# ceph osd crush add-bucket osd2 host
+        added bucket osd2 type host to crush map
+    2、把3个新添加的桶移动到默认的root下
+        [root@mon1 ~]# ceph osd crush move mon1 root=default
+        moved item id -2 name 'mon1' to location {root=default} in crush map
+        [root@mon1 ~]# ceph osd crush move osd1 root=default
+        moved item id -3 name 'osd1' to location {root=default} in crush map
+        [root@mon1 ~]# ceph osd crush move osd2 root=default
+        moved item id -4 name 'osd2' to location {root=default} in crush map
+    3、创建第一个osd
+        3.1、创建osd
+            [root@mon1 ~]# ceph osd create
+            0
+            注：0位osd的ID号，默认情况下会自动递增
+        3.2、准备磁盘
+            注：通过ceph-disk命令可以自动根据ceph.conf文件中的配置信息对磁盘进行分区
+            [root@mon1 ~]# ceph-disk prepare /dev/sdb
+            Creating new GPT entries.
+            The operation has completed successfully.
+            The operation has completed successfully.
+            meta-data=/dev/sdb1              isize=2048   agcount=4, agsize=1245119 blks
+                    =                       sectsz=512   attr=2, projid32bit=1
+                    =                       crc=1        finobt=0, sparse=0
+            data     =                       bsize=4096   blocks=4980475, imaxpct=25
+                    =                       sunit=0      swidth=0 blks
+            naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+            log      =internal log           bsize=4096   blocks=2560, version=2
+                    =                       sectsz=512   sunit=0 blks, lazy-count=1
+            realtime =none                   extsz=4096   blocks=0, rtextents=0
+            The operation has completed successfully.
+        3.3、对第一个分区进行格式化
+            [root@mon1 ~]# mkfs.xfs -f /dev/sdb1
+            meta-data=/dev/sdb1              isize=512    agcount=4, agsize=1245119 blks
+                    =                       sectsz=512   attr=2, projid32bit=1
+                    =                       crc=1        finobt=0, sparse=0
+            data     =                       bsize=4096   blocks=4980475, imaxpct=25
+                    =                       sunit=0      swidth=0 blks
+            naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+            log      =internal log           bsize=4096   blocks=2560, version=2
+                    =                       sectsz=512   sunit=0 blks, lazy-count=1
+            realtime =none                   extsz=4096   blocks=0, rtextents=0
+        3.4、创建osd默认的数据目录
+            [root@mon1 ~]# mkdir -p /var/lib/ceph/osd/ceph-0
+            注：目录格式为ceph-$ID，第一步创建出的osd的ID为0，所以目录为ceph-0
+        3.5、对分区进行挂载
+            [root@mon1 ~]# mount /dev/sdc1 /var/lib/ceph/osd/ceph-0/
+        3.6、添加自动挂载信息
+            [root@mon1 ~]# echo "/dev/sdb1 /var/lib/ceph/osd/ceph-1 xfs defaults 0 0" >> /etc/fstab
+        3.7、初始化 OSD 数据目录
+            [root@mon1 ~]# ceph-osd -i 0 --mkfs --mkkey
+            2018-06-30 11:31:19.791042 7f7cbd911880 -1 journal FileJournal::_open: disabling aio for non-block journal.  Use journal_force_aio to force use of aio anyway
+            2018-06-30 11:31:19.808367 7f7cbd911880 -1 journal FileJournal::_open: disabling aio for non-block journal.  Use journal_force_aio to force use of aio anyway
+            2018-06-30 11:31:19.814628 7f7cbd911880 -1 filestore(/var/lib/ceph/osd/ceph-0) could not find #-1:7b3f43c4:::osd_superblock:0# in index: (2) No such file or directory
+            2018-06-30 11:31:19.875860 7f7cbd911880 -1 created object store /var/lib/ceph/osd/ceph-0 for osd.0 fsid 8ca723b0-c350-4807-9c2a-ad6c442616aa
+            2018-06-30 11:31:19.875985 7f7cbd911880 -1 auth: error reading file: /var/lib/ceph/osd/ceph-0/keyring: cannot open /var/lib/ceph/osd/ceph-0/keyring: (2) No such file or directory
+            2018-06-30 11:31:19.876241 7f7cbd911880 -1 created new key in keyring /var/lib/ceph/osd/ceph-0/keyring
+        3.8、添加key
+            [root@mon1 ~]# ceph auth add osd.0 osd 'allow *' mon 'allow profile osd' -i /var/lib/ceph/osd/ceph-0/keyring
+            added key for osd.0
+        3.9、把新建的osd添加到crush中
+            [root@mon1 ~]# ceph osd crush add osd.0 1.0 host=mon1
+            add item id 0 name 'osd.0' weight 1 at location {host=mon1} to crush map
+        3.10、修改osd数据目录的属主和属组为ceph
+            [root@mon1 ~]# chown -R ceph:ceph /var/lib/ceph/osd/ceph-0/
+        3.11、启动新添加的osd
+            [root@mon1 ~]# systemctl start ceph-osd@0
+            [root@mon1 ~]# systemctl status ceph-osd@0
+            ● ceph-osd@0.service - Ceph object storage daemon
+            Loaded: loaded (/usr/lib/systemd/system/ceph-osd@.service; disabled; vendor preset: disabled)
+            Active: active (running) since Sat 2018-06-30 11:32:58 CST; 4s ago
+            Process: 3408 ExecStartPre=/usr/lib/ceph/ceph-osd-prestart.sh --cluster ${CLUSTER} --id %i (code=exited, status=0/SUCCESS)
+            Main PID: 3459 (ceph-osd)
+        3.12、设置osd开机自动启动
+            [root@mon1 ~]# systemctl enable ceph-osd@0
+            Created symlink from /etc/systemd/system/ceph-osd.target.wants/ceph-osd@0.service to /usr/lib/systemd/system/ceph-osd@.service.
+        3.13、查看ceph osd tree状态
+            [root@mon1 ~]# ceph osd tree
+            ID WEIGHT  TYPE NAME      UP/DOWN REWEIGHT PRIMARY-AFFINITY
+            -1 1.00000 root default                                    
+            -2 1.00000     host mon1                                  
+            0 1.00000         osd.0       up  1.00000          1.00000
+            -3       0     host osd1                                  
+            -4       0     host osd2 
+    4、添加新的osd
+        注：和添加第一个osd的方法一样，这里写了个简单的添加脚本，可以通过脚本快速进行一下添加
+        [root@mon1 ~]# sh osd.sh
+        Select the disk: sdc
+        Select the host: mon1
+        Cleanup OSD ID is done.
+        Directory is done.
+        Prepare OSD Disk is done.
+        Add OSD is done
+
+        脚本内容
+        #!/bin/bash
+        read -p "Select the disk: " DISK
+        read -p "Select the host: " HOST
+
+        ##### Cleanup OSD ID #####
+        for i in $(ceph osd dump | grep new | awk '{print $1}' | awk -F"." '{print $2}')
+                    do
+                    ceph osd rm $i
+                    ceph auth del osd.$i
+        done
+        echo -e "\033[40;32mCleanup OSD ID is done.\033[0m"
+        ID=$(ceph osd create)
+        DIRECTORY=/var/lib/ceph/osd/ceph-$ID
+
+        ##### Create OSD Directory #####
+        if [ -d $DIRECTORY ] ;then
+                    rm -rf $DIRECTORY
+        fi
+        mkdir -p $DIRECTORY
+        if [ $? = 0 ] ; then
+                    echo -e "\033[40;32mDirectory is done.\033[0m"
+        else
+                    break
+        fi
+
+        ##### Prepare OSD Disk #####
+        blkid | grep $DISK | grep ceph &> /dev/zero
+        if [ $? != 0 ] ; then
+                    ceph-disk zap /dev/$DISK &> /dev/zero
+                    ceph-disk prepare /dev/$DISK &> /dev/zero
+        else
+                    continue
+        fi
+        PARTITION=/dev/${DISK}1
+        mkfs.xfs -f $PARTITION &> /dev/zero
+        echo "$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0" >> /etc/fstab
+        mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY
+        if [ $? = 0 ] ; then
+                    echo -e "\033[40;32mPrepare OSD Disk is done.\033[0m"
+        else
+                    break
+        fi
+
+        ##### Add OSD #####
+        ceph-osd -i $ID --mkfs --mkkey &> /dev/zero
+        ceph auth add osd.$ID osd 'allow *' mon 'allow profile osd' -i $DIRECTORY/keyring &> /dev/zero
+        ceph osd crush add osd.$ID 1.0 host=$HOST &> /dev/zero
+        chown -R ceph:ceph /var/lib/ceph/osd
+        systemctl start ceph-osd@$ID &> /dev/zero
+        systemctl enable ceph-osd@$ID &> /dev/zero
+        systemctl status ceph-osd@$ID &> /dev/zero
+        if [ $? = 0 ] ; then
+                    echo -e "\033[40;32mAdd OSD is done\033[0m"
+        fi
+        注：osd添加完成后查看ceph osd tree 状态
+
+        [root@mon1 ~]# ceph osd tree
+        ID WEIGHT  TYPE NAME      UP/DOWN REWEIGHT PRIMARY-AFFINITY
+        -1 9.00000 root default                                    
+        -2 3.00000     host mon1                                  
+        6 1.00000         osd.6       up  1.00000          1.00000
+        1 1.00000         osd.1       up  1.00000          1.00000
+        4 1.00000         osd.4       up  1.00000          1.00000
+        -3 3.00000     host osd1                                  
+        7 1.00000         osd.7       up  1.00000          1.00000
+        2 1.00000         osd.2       up  1.00000          1.00000
+        5 1.00000         osd.5       up  1.00000          1.00000
+        -4 3.00000     host osd2                                  
+        0 1.00000         osd.0       up  1.00000          1.00000
+        3 1.00000         osd.3       up  1.00000          1.00000
+        8 1.00000         osd.8       up  1.00000          1.00000
+    5、状态修复
+        5.1、通过ceph -s查看状态
+            [root@mon1 ~]# ceph -s
+                cluster ffcb01ea-e7e3-4097-8551-dde0256f610a
+                health HEALTH_WARN
+                        too few PGs per OSD (21 < min 30)
+                monmap e3: 3 mons at {mon1=192.168.1.10:6789/0,osd1=192.168.1.11:6789/0,osd2=192.168.1.12:6789/0
+                        election epoch 8, quorum 0,1,2 mon1,osd1,osd2
+                osdmap e52: 9 osds: 9 up, 9 in
+                        flags sortbitwise,require_jewel_osds
+                pgmap v142: 64 pgs, 1 pools, 0 bytes data, 0 objects
+                        9519 MB used, 161 GB / 170 GB avail
+                            64 active+clean
+            注：HEALTH_WARN 提示PG太小
+            
+            补充：PG计算方式
+            total PGs = ((Total_number_of_OSD * 100) / max_replication_count) / pool_count
+            当前ceph集群是9个osd，3副本，1个默认的rbd pool
+            所以PG计算结果为300，一般把这个值设置为与计算结果最接近的2的幂数，跟300比较接近的是256
+
+        5.2、查看当前的PG值
+            [root@mon1 ~]# ceph osd pool get rbd pg_num
+            pg_num: 64
+            [root@mon1 ~]# ceph osd pool get rbd pgp_num
+            pgp_num: 64
+        5.3、手动设置
+            [root@mon1 ~]# ceph osd pool set rbd pg_num 256
+            set pool 0 pg_num to 256
+            [root@mon1 ~]# ceph osd pool set rbd pgp_num 256
+            set pool 0 pgp_num to 256
+        5.4、再次查看状态
+            [root@mon1 ~]# ceph -s
+                cluster ffcb01ea-e7e3-4097-8551-dde0256f610a
+                health HEALTH_WARN
+                        clock skew detected on mon.osd1, mon.osd2
+                        Monitor clock skew detected
+                monmap e3: 3 mons at {mon1=192.168.1.10:6789/0,osd1=192.168.1.11:6789/0,osd2=192.168.1.12:6789/0}
+                        election epoch 16, quorum 0,1,2 mon1,osd1,osd2
+                osdmap e56: 9 osds: 9 up, 9 in
+                        flags sortbitwise,require_jewel_osds
+                pgmap v160: 256 pgs, 1 pools, 0 bytes data, 0 objects
+                        9527 MB used, 161 GB / 170 GB avail
+                            256 active+clean
+    6、Monitor clock skew detected
+        在上个查看结果中出现了一个新的warn，这个一般是由于mon节点的时间偏差比较大，可以修改ceph.conf中的时间偏差值参数来进行修复
+        修改结果：
+        [mon]
+        mon clock drift allowed = 2
+        mon clock drift warn backoff = 30
+        再次查看状态
+        [root@mon1 ~]# ceph -s
+            cluster ffcb01ea-e7e3-4097-8551-dde0256f610a
+            health HEALTH_OK
+            monmap e3: 3 mons at {mon1=192.168.1.10:6789/0,osd1=192.168.1.11:6789/0,osd2=192.168.1.12:6789/0}
+                    election epoch 22, quorum 0,1,2 mon1,osd1,osd2
+            osdmap e56: 9 osds: 9 up, 9 in
+                    flags sortbitwise,require_jewel_osds
+            pgmap v160: 256 pgs, 1 pools, 0 bytes data, 0 objects
+                    9527 MB used, 161 GB / 170 GB avail
+                        256 active+clean
+        注：生产环境中可以通过配置时间同步解决此状况
+
+四、部署mds
+    1、创建第一个mds
+        1.1、为mds元数据服务器创建一个目录
+            [root@mon1 ~]# mkdir -p /var/lib/ceph/mds/ceph-mon1
+        1.2、为bootstrap-mds客户端创建一个密钥 注：(如果下面的密钥在目录里已生成可以省略此步骤）
+            [root@mon1 ~]# ceph-authtool --create-keyring /var/lib/ceph/bootstrap-mds/ceph.keyring --gen-key -n client.bootstrap-mds
+            creating /var/lib/ceph/bootstrap-mds/ceph.keyring
+        1.3、在ceph auth库中创建bootstrap-mds客户端，赋予权限添加之前创建的密钥 注（查看ceph auth list 用户权限认证列表 如果已有client.bootstrap-mds此用户，此步骤可以省略）
+            [root@mon1 ~]# ceph auth add client.bootstrap-mds mon 'allow profile bootstrap-mds' -i /var/lib/ceph/bootstrap-mds/ceph.keyring
+        1.4、在root家目录里创建ceph.bootstrap-mds.keyring文件
+            [root@mon1 ~]# touch /root/ceph.bootstrap-mds.keyring
+        1.5、把keyring /var/lib/ceph/bootstrap-mds/ceph.keyring里的密钥导入家目录下的ceph.bootstrap-mds.keyring文件里
+            [root@mon1 ~]# ceph-authtool --import-keyring /var/lib/ceph/bootstrap-mds/ceph.keyring ceph.bootstrap-mds.keyring
+            importing contents of /var/lib/ceph/bootstrap-mds/ceph.keyring into ceph.bootstrap-mds.keyring
+        1.6、在ceph auth库中创建mds.mon1用户，并赋予权限和创建密钥，密钥保存在/var/lib/ceph/mds/ceph-mon1/keyring文件里
+            [root@mon1 ~]# ceph --cluster ceph --name client.bootstrap-mds --keyring /var/lib/ceph/bootstrap-mds/ceph.keyring auth get-or-create mds.mon1 osd 'allow rwx' mds 'allow' mon 'allow profile mds' -o /var/lib/ceph/mds/ceph-mon1/keyring
+        1.7、启动mds
+            [root@mon1 ~]# systemctl start ceph-mds@mon1
+            [root@mon1 ~]# systemctl status ceph-mds@mon1
+            ● ceph-mds@mon1.service - Ceph metadata server daemon
+                Loaded: loaded (/usr/lib/systemd/system/ceph-mds@.service; disabled; vendor preset: disabled)
+                Active: active (running) since Mon 2018-07-02 10:54:17 CST; 5s ago
+            Main PID: 18319 (ceph-mds)
+        1.8、设置mds开机自动启动
+            [root@mon1 ~]# systemctl enable ceph-mds@mon1
+            Created symlink from /etc/systemd/system/ceph-mds.target.wants/ceph-mds@mon1.service to /usr/lib/systemd/system/ceph-mds@.service.
+    2、添加第二个mds
+        2.1、拷贝密钥文件到osd1
+            [root@mon1 ~]# scp ceph.bootstrap-mds.keyring osd1:/root/ceph.bootstrap-mds.keyring       
+            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-mds/ceph.keyring osd1:/var/lib/ceph/bootstrap-mds/ceph.keyring
+        2.2、在osd1上创建mds元数据目录
+            [root@osd1 ~]# mkdir -p /var/lib/ceph/mds/ceph-osd1
+        2.3、在ceph auth库中创建mds.mon1用户，并赋予权限和创建密钥，密钥保存在/var/lib/ceph/mds/ceph-osd1/keyring文件里
+            [root@osd1 ~]# ceph --cluster ceph --name client.bootstrap-mds --keyring /var/lib/ceph/bootstrap-mds/ceph.keyring auth get-or-create mds.osd1 osd 'allow rwx' mds 'allow' mon 'allow profile mds' -o /var/lib/ceph/mds/ceph-osd1/keyring
+        2.4、启动mds
+            [root@osd1 ~]# systemctl start ceph-mds@osd1
+            [root@osd1 ~]# systemctl status ceph-mds@osd1
+            ● ceph-mds@osd1.service - Ceph metadata server daemon
+                Loaded: loaded (/usr/lib/systemd/system/ceph-mds@.service; disabled; vendor preset: disabled)
+                Active: active (running) since Mon 2018-07-02 11:21:09 CST; 3s ago
+            Main PID: 14164 (ceph-mds)
+        2.5、设置mds开机自动启动
+            [root@osd1 ~]# systemctl enable ceph-mds@osd1
+            Created symlink from /etc/systemd/system/ceph-mds.target.wants/ceph-mds@osd1.service to /usr/lib/systemd/system/ceph-mds@.service.
+    3、添加第三个mds
+        3.1、拷贝密钥文件到osd2
+            [root@mon1 ~]# scp ceph.bootstrap-mds.keyring osd2:/root/ceph.bootstrap-mds.keyring       
+            [root@mon1 ~]# scp /var/lib/ceph/bootstrap-mds/ceph.keyring osd2:/var/lib/ceph/bootstrap-mds/ceph.keyring
+        3.2、在osd2上创建mds元数据目录
+            [root@osd2 ~]# mkdir -p /var/lib/ceph/mds/ceph-osd2
+        3.3、在ceph auth库中创建mds.mon1用户，并赋予权限和创建密钥，密钥保存在/var/lib/ceph/mds/ceph-osd1/keyring文件里
+            [root@osd2 ~]# ceph --cluster ceph --name client.bootstrap-mds --keyring /var/lib/ceph/bootstrap-mds/ceph.keyring auth get-or-create mds.osd2 osd 'allow rwx' mds 'allow' mon 'allow profile mds' -o /var/lib/ceph/mds/ceph-osd2/keyring
+        3.4、启动mds
+            [root@osd2 ~]# systemctl restart ceph-mds@osd2
+            [root@osd2 ~]# systemctl status ceph-mds@osd2
+            ● ceph-mds@osd2.service - Ceph metadata server daemon
+                Loaded: loaded (/usr/lib/systemd/system/ceph-mds@.service; disabled; vendor preset: disabled)
+                Active: active (running) since Mon 2018-07-02 11:11:41 CST; 15min ago
+            Main PID: 31940 (ceph-mds)
+        3.5、设置mds开机自动启动
+            [root@osd2 ~]# systemctl enable ceph-mds@osd2
+            Created symlink from /etc/systemd/system/ceph-mds.target.wants/ceph-mds@osd2.service to /usr/lib/systemd/system/ceph-mds@.service.
