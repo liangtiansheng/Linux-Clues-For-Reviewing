@@ -761,7 +761,7 @@
             [root@osd2 ~]# netstat -antpu | grep 9000
             tcp        0      0 0.0.0.0:9000            0.0.0.0:*               LISTEN      3737/radosgw
             
-            注：这一步做的过程中出了点小问题，osd1上的rgw一直无法重启成功，后来查看是ceph.client.radosgw.keyring 中osd1的用户信息没有了，需要重新添加一下，添加之前先通过ceph auth list看一下是否还有osd1的信息，如果有的话，需要手动清除一下，然后在执行之前的创建用户和添加授权的命令即可。正确的文件内容如下
+            注：这一步做的过程中出了点小问题，osd1上的rgw一直无法重启成功，后来查看是ceph.client.radosgw.keyring 中osd1的用户信息没有了，需要重新添加一下，添加之前先通过ceph auth list看一下是否还有osd1的信息，如果有的话，需要手动清除一下，然后再执行之前的创建用户和添加授权的命令即可。正确的文件内容如下
             [root@mon1 ~]# cat /etc/ceph/ceph.client.radosgw.keyring
             [client.rgw.mon1]
                     key = AQCPADtbk6AoJxAAXSUaO5FmHAJl9BJBCeVZVA==
