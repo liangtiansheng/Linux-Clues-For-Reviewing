@@ -1,0 +1,92 @@
+第一种简单的方式:
+    服务端：配置pptd
+        ubuntu系统：安装pptpd
+            1、我们要使用PPTP协议，首先验证服务器是否支持MPPE模块，在服务器终端输入
+                modprobe ppp-compress-18 && echo MPPE is ok
+                若显示MPPE is ok，则说明服务器的linux内核支持MPPE模块，否则请升级linux内核到2.6.15以上版本，或者给内核打上MPPE的补丁，相应具体详细配置请点击，这里不再赘述。
+
+            2、安装pptpd插件，ubuntu下使用下面指令安装，其他linux指令不再赘述
+                sudo apt-get install pptpd
+            3、编辑配置文件pptpd.conf，添加建立VPN虚拟网络时的主机ip（网关）和这个虚拟主机分配给其他设备的虚拟ip 段。注意这个VPN虚拟ip主机和我们的服务器的ip没有关系，可以任意设置。而且最好避免和服务器所在网段内的其他设备ip冲突。输入下面指令，打开配置文件，编辑器使用vim的话替换参数即可。
+                sudo emacs /etc/pptpd.conf
+                在文件最后添加下面两行
+                localip  192.168.2.1
+                remote 192.168.2.10-99
+                这里我将参数localip也就是VPN虚拟网络的主机（网关）设置成了192.168.2.1，而我们要配置的服务器所在的网段的主机（网关），也就是实验室的路由器的ip为192.168.0.1，这样可以避免将来在外网登陆VPN时，VPN虚拟主机分配的ip与实验室内网的ip冲突。而参数rempteip表示VPN最多接受90个外网链接。
+
+            4、编辑配置文件pptpd-options，设置这个VPN虚拟网络的DNS，输入下面，指令打开配置文件
+                sudo emacs /etc/ppp/pptpd-options
+                修改以下部分，这里使用google的DNS
+                ms-dns 8.8.8.8
+                ms-dns 8.8.4.4
+                这里也可以填上，服务器主机所在网络使用的DNS地址。
+                ***注意：这一步是为了可以在vpn的环境下上网，不过这不够，还要配置iptables SNAT将ppp0环境的ip地址SNAT出去
+            5、编辑配置文件chap-secrets，设置这个VPN的登陆账号和密码，输入下面指令打开配置文件
+                sudo emacs /etc/ppp/chap-secrets
+                添加一行，依次为：用户名，服务，密码，限制ip：
+                user pptpd 123 *
+                *表示ip无限制。
+            6、输入下面指令以重启服务
+                sudo /etc/init.d/pptpd restart
+    客户端：
+        ubuntu系统：安装pptp-linux生成pptp、pptpsetup
+            1.要下载pptp的客户端
+                sudo apt-get install pptp-linux
+
+            2.创建连接
+                sudo pptpsetup --create haha --server 123.45.67.89 --username lige --password fk --encrypt --start
+                其中，
+                --create后的是创建的连接名称，可以为任意名称; 
+                --server后接的是vpn服务器的IP; 
+                --username是用户名
+                --password是密码，在这也可以没这个参数，命令稍后会自动询问。这样可以保证账号安全
+                --encrypt 是表示需要加密，不必指定加密方式，命令会读取配置文件中的加密方式
+                --start是表示创建连接完后马上连接，如果你不想连，就不写
+                ***这里面“haha”是创建的pptp客户端的名称，随便写一个就行，命令运行完会生成文件/etc/ppp/peers/haha
+                ***注意：有的时候遇到：LCP terminated by peer (MPPE required but peer refused)
+                ***这说明服务端要求MPPE加密，但是客户端不支持，也就是在运行pptpsetup命令时漏掉了：--encrypt
+            
+            3. 连上vpn
+                如果刚才你没有输入--start选项或者是下次再想连接时，输入的命令就更简单了
+                sudo pon haha
+                haha就是刚才创建的连接名。如果你曾经用过pppoe(ADSL)连网，会对这个命令很亲切的。
+                这个命令一般不会返回任何信息。查看连接的状态，可以用这个命令
+                plog
+
+            4. 中断vpn连接
+                更简单，和pppoe一样（因为都是点到点的连接，呵呵）
+                sudo poff
+
+            5.高级主题
+                pptp是通过点到点的方式连接到服务器，所以pptp连接实际上是需要依赖ppp软件包的。
+                安装pptp-linux软件包后，在/etc/ppp/目录下会出现一个新的文件“options.pptp” 
+                这个是pptp-linux的唯一配置文件，定义了pptp加密方式。一般情况下不需要进行更改，除非你知道vpn服务器没有用默认的加密方式
+
+                可能有些人觉得用pptpsetup还不够geek，想手动创建连接。那么方法如下：
+                (1) 修改/etc/ppp/chap-secrets
+                在文件末尾加上
+                user haha pwd *
+                lige和fk分别为用户名和密码，haha为连接名称。最后一项代表希望获得的IP，*表示任意IP都行
+
+                (2)创建文件/etc/ppp/peers/haha
+                pty "pptp 222.197.180.168 --nolaunchpppd"
+                lock
+                noauth
+                nobsdcomp
+                nodeflate
+                name lige
+                remotename haha
+                ipparam haha
+                require-mppe-128
+
+                文件中每行的含义，可以在/etc/ppp/options.pptp中查看
+
+                (3)连接和断开
+                sudo pon haha
+                sudo poff
+第二种方式：如果有一个路由隔开，想要通过这个路由拔号进入内网，那这个路由器必须支持vpn穿透才行
+第三种方式：就是用openvpn，这个功能强大，要配置证书，后续有需求再探索
+
+
+
+
