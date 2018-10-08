@@ -90,8 +90,8 @@ raw():只能放在下面两个链上
 				--icmp-type 
 					0: echo-reply
 					8: echo-request
-						# iptables -A OUTPUT -s 172.16.100.9 -p icmp --icmp-type 8 -j ACCEPT
-						# iptables -A INPUT -d 172.16.100.9 -p icmp --icmp-type 0 -j ACCEPT
+						# iptables -A OUTPUT -s 172.16.100.9/24 -p icmp --icmp-type 8 -j ACCEPT
+						# iptables -A INPUT -d 172.16.100.9/24 -p icmp --icmp-type 0 -j ACCEPT
 
 			-p udp
 				--sport
@@ -114,11 +114,11 @@ raw():只能放在下面两个链上
 					RELATED：相关联的
 						如vsftpd协议命令连接与数据连接之间的关系
 				首先要装载ip_conntrack_ftp和ip_nat_ftp模块
-				#iptables -A INPUT -d 172.16.100.7 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+				#iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
 				
 				对80端口伪装木马、不允许新请求出去
-				#iptables -I INPUT -d 172.16.100.9 -p tcp --dport 80 -m stat --stat NEW,ESTABLISHED -j ACCEPT
-				#iptables -I OUTPUT -s 172.16.100.9 -p tcp --sport 80 -m stat --stat ESTABLISHED -j ACCEPT
+				#iptables -I INPUT -d 172.16.100.9/24 -p tcp --dport 80 -m stat --stat NEW,ESTABLISHED -j ACCEPT
+				#iptables -I OUTPUT -s 172.16.100.9/24 -p tcp --sport 80 -m stat --stat ESTABLISHED -j ACCEPT
 			multiport: 离散的多端口匹配扩展
 				--source-ports
 				--destination-ports
@@ -139,28 +139,28 @@ raw():只能放在下面两个链上
 				! --connlimit-above n：连接的数量大于n
 				--connlimit-upto n：连接的数量小于等于n
 
-					iptables -A INPUT -d 172.16.100.7 -p tcp --dport 80 -m connlimit !--connlimit-above 2 -j ACCEPT
-					iptables -A INPUT -d 172.16.100.7 -p tcp --dport 80 -m connlimit --connlimit-above 2 -j DROP
+					iptables -A INPUT -d 172.16.100.7/24 -p tcp --dport 80 -m connlimit !--connlimit-above 2 -j ACCEPT
+					iptables -A INPUT -d 172.16.100.7/24 -p tcp --dport 80 -m connlimit --connlimit-above 2 -j DROP
 			
 			-m limit：控制服务器被正常访问机制（避免人蜂拥而至资源过耗）
 				令牌桶过滤器(类似摩天轮排队原理)
 				--limit RATE：控制每秒可以访问多少人
 				--limit-burst ：控制一批拥入可以多少人
-					iptables -R INPUT 3 -d 172.16.100.7 -p icmp --icmp-type 8 -m limit --limit 5/minute --limit-burst 6 -j ACCEPT
-					iptables -R OUTPUT 1 -S 172.16.100.7 -m state --state RELATED,ESTABLISHED -j ACCEPT
+					iptables -R INPUT 3 -d 172.16.100.7/24 -p icmp --icmp-type 8 -m limit --limit 5/minute --limit-burst 6 -j ACCEPT
+					iptables -R OUTPUT 1 -S 172.16.100.7/24 -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 			-m string：可以限定访问内容中的字符串（2.6.14内核以上）
 				--algo {bm|kmp}
 					字符串比对算法，必须选项
 				--string "STRING"
 					*注意请求的页面是从服务器出去的，如果是请求服务器INPUT那么限定的就只能是网址
-					iptables -I OUTPUT 1 -s 172.16.100.7 -m string --algo kmp --string "h7n9" -j REJECT
+					iptables -I OUTPUT 1 -s 172.16.100.7/24 -m string --algo kmp --string "h7n9" -j REJECT
 
 -j TARGET
 	LOG
 		--log-prefix "STRING"
 			*注意放的位置如果前面有ACCEPT或DROP那就直接匹配了，此时就不会生效，要写在其前面
-			iptables -I INPUT 4 -d 172.16.100.7 -p icmp --icmp-type 8 -j LOG --log-prefix "--firewall log for icmp--"
+			iptables -I INPUT 4 -d 172.16.100.7/24 -p icmp --icmp-type 8 -j LOG --log-prefix "--firewall log for icmp--"
 
 
 条件取反：!，-s ! 172.16.100.6
@@ -198,8 +198,8 @@ raw():只能放在下面两个链上
 	MARK：打标记
 
 ***开放172.16.100.7，sshd：22/tcp
-iptables -t filter -A INPUT -s 172.16.0.0/16 -d 172.16.100.7 -p tcp --dport 22 -j ACCEPT
-iptables -t filter -A OUTPUT -s 172.16.100.7 -d 172.16.0.0/16 -p tcp --sport 22 -j ACCEPT
+iptables -t filter -A INPUT -s 172.16.0.0/16 -d 172.16.100.7/16 -p tcp --dport 22 -j ACCEPT
+iptables -t filter -A OUTPUT -s 172.16.100.7/16 -d 172.16.0.0/16 -p tcp --sport 22 -j ACCEPT
 
 ***iptables不是服务，但有服务脚本；服务脚本的主要作用在于管理保存的规则
 	即时装载及移除iptables/netfilter相关的内核模块；
@@ -225,21 +225,52 @@ cat /proc/slabinfo
 	# iptables-restore < /etc/sysconfig/iptables.2013041801
 		让自定义的生效
 
+*****下面举几个例子：千万注意以下的前提条件，否则后果自负
+前题：
+    1、如果想用状态追踪(NEW,ESTABLISHED,INVALID,RELATED)必须首先启用nf_conntrack,nf_conntrack_ftp,nf_nat_ftp(后两者是ftp专用)
+    1、地址的掩码，没有掩码，iptables自动计算很容易出错，自己精确计算才有保证(如：192.168.2.84/24这样会被计算成192.168.2.0/24; )
+
 /*
 例1：状态检测
-Server: 172.16.100.7
-放行：sshd, httpd, icmp
-iptables -A INPUT -s 0.0.0.0 -d 172.16.100.7 -p tcp -dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-lsmod | grep ip
-iptables -A OUTPUT -s 172.16.100.7 -d 0.0.0.0 -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
-iptables -P INPUT DROP
-iptalbes -P OUTPUT DROP
+***放行sshd(server 192.168.2.84/24)
+*选择1：
+[root@osd3 ~]# iptables -A OUTPUT -s 192.168.2.84/24 -d 0.0.0.0/0 -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+[root@osd3 ~]# iptables -A INPUT -s 0.0.0.0/0 -d 192.168.2.84/24 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+[root@osd3 ~]# iptables -L -n
+Chain INPUT (policy DROP)
+target     prot opt source               destination         
+ACCEPT     tcp  --  0.0.0.0/0            192.168.2.0/24       tcp dpt:22 state NEW,ESTABLISHED
 
-iptables -A INPUT -s 0.0.0.0 -d 172.16.100.7 -p tcp -dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -s 172.16.100.7 -d 0.0.0.0 -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
 
-iptables -A INPUT -d 172.16.100.7 -p icmp --icmp-type 8 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -s 172.16.100.7 -p icmp --icmp-type 0 -m state --state ESTABLISHED -j ACCEPT
+Chain OUTPUT (policy DROP)
+target     prot opt source               destination         
+ACCEPT     tcp  --  192.168.2.0/24       0.0.0.0/0            tcp spt:22 state ESTABLISHED
+[root@osd3 ~]#
+
+*选择2：
+[root@osd3 ~]# iptables -A INPUT -s 0.0.0.0/0 -d 192.168.2.84/32 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+[root@osd3 ~]# iptables -A OUTPUT -s 192.168.2.84/32 -d 0.0.0.0/0 -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+[root@osd3 ~]# iptables -L -n
+Chain INPUT (policy DROP)
+target     prot opt source               destination         
+ACCEPT     tcp  --  0.0.0.0/0            192.168.2.84         tcp dpt:22 state NEW,ESTABLISHED
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy DROP)
+target     prot opt source               destination         
+ACCEPT     tcp  --  192.168.2.84         0.0.0.0/0            tcp spt:22 state ESTABLISHED
+[root@osd3 ~]#
+
+***放行httpd, icmp(Server: 172.16.100.7/24)
+iptables -A INPUT -s 0.0.0.0/0 -d 172.16.100.7/24 -p tcp -dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -s 172.16.100.7/24 -d 0.0.0.0/0 -p tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT
+
+iptables -A INPUT -d 172.16.100.7/24 -p icmp --icmp-type 8 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -s 172.16.100.7/24 -p icmp --icmp-type 0 -m state --state ESTABLISHED -j ACCEPT
 
 iptstate（追踪时间默认5天，超时就退出）
 ls /proc/sys/net/ipv4/netfilter（可以追踪很多状态，icmp和udp只追踪超时）
@@ -259,27 +290,27 @@ iptables -L -n --line-numbers -v
 2、放行请求报文
 	命令连接：NEW,ESTABLISHED
 	数据连接：RELATED,ESTABLISHED
-	#iptables -A INPUT -d 192.168.154.139 -p tcp --dport 21 -m state --state NEW,ESTABLISHED -j ACCEPT
-	#iptables -A INPUT -d 192.168.154.139 -p tcp  -m state --state RELATED,ESTABLISHED -j ACCEPT
+	#iptables -A INPUT -d 192.168.154.139/24 -p tcp --dport 21 -m state --state NEW,ESTABLISHED -j ACCEPT
+	#iptables -A INPUT -d 192.168.154.139/24 -p tcp  -m state --state RELATED,ESTABLISHED -j ACCEPT
 3、放行响应报文
 	ESTABLISHED
-	#iptables -A OUTPUT -s 192.168.154.139 -p tcp -m state --state ESTABLISHED -j ACCEPT
+	#iptables -A OUTPUT -s 192.168.154.139/24 -p tcp -m state --state ESTABLISHED -j ACCEPT
 
 vim /etc/sysconfig/iptables-config
 	启用IPTABLES_MODULES="ip_nat_ftp ip_conntrack_ftp"
-iptables -A INPUT -d 172.16.100.7 -p tcp --dport 21 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -d 172.16.100.7/24 -p tcp --dport 21 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptalbes -A OUTPUT -o lo -j ACCEPT
 *以上只放行了命令连接，那数据连接没法建立，为了不开放大于1024的所有端口，这里只能用到状态追踪的方式，
  而有个RELATED的状态扩展专为此设计，
- iptables -A INPUT -d 172.16.100.7 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+ iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
  出去的只需将例1中的汇总加一个RELATED即可：
- iptables -R OUTPUT 1 -s 172.16.100.7 -m state --state ESTABLISHED,RELATED -j ACCEPT
+ iptables -R OUTPUT 1 -s 172.16.100.7/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
  小结：进来的都有ESTABLISHED，为了提高效率可以写为如下，而三个NEW可以写成如下：
- iptables -A INPUT -d 172.16.100.7 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
- iptables -A INPUT -d 172.16.100.7 -p tcp -m multiport --destination-ports 21,22,80 -m state --state NEW -j ACCEPT
+ iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+ iptables -A INPUT -d 172.16.100.7/24 -p tcp -m multiport --destination-ports 21,22,80 -m state --state NEW -j ACCEPT
 */
 
 
@@ -298,10 +329,10 @@ iptalbes -A OUTPUT -o lo -j ACCEPT
 # iptables -A clean_in -p tcp --tcp-flags ALL NONE -j DROP
 
 *执行到最后一条就返回主链
-# iptables -A clean_in -d 172.16.100.7 -j RETURN 
+# iptables -A clean_in -d 172.16.100.7/24 -j RETURN 
 
 *主链调用自定义链clean_in
-# iptables -A INPUT -d 172.16.100.7 -j clean_in
+# iptables -A INPUT -d 172.16.100.7/24 -j clean_in
 
 # iptables -A INPUT  -i lo -j ACCEPT
 # iptables -A OUTPUT -o lo -j ACCEPT
@@ -371,9 +402,9 @@ iptables -A FORWARD -s 192.168.3.0/24 -p icmp --icmp-type 8 -m state --state NEW
 
 *外网进内网访问web
 *DNAT
-iptables -t nat -A PREROUTING -d 172.16.100.7 -p tcp --dport 80 -j DNAT --to-destination 192.168.10.22
+iptables -t nat -A PREROUTING -d 172.16.100.7/32 -p tcp --dport 80 -j DNAT --to-destination 192.168.10.22
 *PNAT
-iptables -t nat -R PREROUTING -d 172.16.100.7 -p tcp --dport 80 -j DNAT --to -destination 192.168.10.22:8080
+iptables -t nat -R PREROUTING -d 172.16.100.7/32 -p tcp --dport 80 -j DNAT --to -destination 192.168.10.22:8080
 *过滤h7n9
 iptables -A FORWARD -m string --algo kmp --string "h7n9" -j DROP
 
