@@ -113,6 +113,12 @@ raw():只能放在下面两个链上
 					INVALID：非法连接
 					RELATED：相关联的
 						如vsftpd协议命令连接与数据连接之间的关系
+                            主动FTP：
+                            　　命令连接：客户端 >1023端口 -> 服务器 21端口
+                            　　数据连接：客户端 >1023端口 <- 服务器 20端口 
+                        　　被动FTP：
+                            　　命令连接：客户端 >1023端口 -> 服务器 21端口
+                            　　数据连接：客户端 >1023端口 -> 服务器 >1023端口 
 				首先要装载ip_conntrack_ftp和ip_nat_ftp模块
 				#iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
 				
@@ -229,7 +235,7 @@ cat /proc/slabinfo
 前题：
     1、如果想用状态追踪(NEW,ESTABLISHED,INVALID,RELATED)必须首先启用nf_conntrack,nf_conntrack_ftp,nf_nat_ftp(后两者是ftp专用)
     2、地址的掩码，没有掩码，iptables自动计算很容易出错，自己精确计算才有保证(如：192.168.2.84/24这样会被计算成192.168.2.0/24; )
-    3、写iptables时，关于端口精确把握的问题，一定要搞清楚流量的走动方向，端口到底是sport还是dport
+    3、写iptables时，关于端口精确把握的问题，一定要搞清楚流量的走动方向，是自己去请求别人，还是别人来请求自己，这个决定了端口到底是sport还是dport
 /*
 例1：状态检测
 ***放行sshd(server 192.168.2.84/24)
@@ -284,6 +290,13 @@ iptables -L -n --line-numbers -v
 		没指明的扩展为任意
 
 例2：ftp放行，被动模式
+    主动FTP：
+   　　命令连接：客户端 >1023端口 -> 服务器 21端口
+   　　数据连接：客户端 >1023端口 <- 服务器 20端口 
+
+　　被动FTP：
+   　　命令连接：客户端 >1023端口 -> 服务器 21端口
+   　　数据连接：客户端 >1023端口 -> 服务器 >1023端口 
 *由于ftp服务很特殊，所以首先要让iptables装载两个模块
 1、装载ftp追踪时的专用的模块
 	# modprobe nf_conntrack_ftp
@@ -302,11 +315,10 @@ vim /etc/sysconfig/iptables-config
 iptables -A INPUT -d 172.16.100.7/24 -p tcp --dport 21 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptalbes -A OUTPUT -o lo -j ACCEPT
-*以上只放行了命令连接，那数据连接没法建立，为了不开放大于1024的所有端口，这里只能用到状态追踪的方式，
- 而有个RELATED的状态扩展专为此设计，
- iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
- 出去的只需将例1中的汇总加一个RELATED即可：
- iptables -R OUTPUT 1 -s 172.16.100.7/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
+***以上只放行了命令连接，那数据连接没法建立，为了不开放大于1024的所有端口，这里只能用到状态追踪的方式， 而有个RELATED的状态扩展专为此设计，
+iptables -A INPUT -d 172.16.100.7/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+***出去的只需将例1中的汇总加一个RELATED即可：
+iptables -R OUTPUT 1 -s 172.16.100.7/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
  小结：进来的都有ESTABLISHED，为了提高效率可以写为如下，而三个NEW可以写成如下：
