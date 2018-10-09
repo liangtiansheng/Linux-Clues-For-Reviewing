@@ -228,8 +228,8 @@ cat /proc/slabinfo
 *****下面举几个例子：千万注意以下的前提条件，否则后果自负
 前题：
     1、如果想用状态追踪(NEW,ESTABLISHED,INVALID,RELATED)必须首先启用nf_conntrack,nf_conntrack_ftp,nf_nat_ftp(后两者是ftp专用)
-    1、地址的掩码，没有掩码，iptables自动计算很容易出错，自己精确计算才有保证(如：192.168.2.84/24这样会被计算成192.168.2.0/24; )
-
+    2、地址的掩码，没有掩码，iptables自动计算很容易出错，自己精确计算才有保证(如：192.168.2.84/24这样会被计算成192.168.2.0/24; )
+    3、写iptables时，关于端口精确把握的问题，一定要搞清楚流量的走动方向，端口到底是sport还是dport
 /*
 例1：状态检测
 ***放行sshd(server 192.168.2.84/24)
@@ -287,6 +287,7 @@ iptables -L -n --line-numbers -v
 *由于ftp服务很特殊，所以首先要让iptables装载两个模块
 1、装载ftp追踪时的专用的模块
 	# modprobe nf_conntrack_ftp
+    # modprobe nf_nat_ftp
 2、放行请求报文
 	命令连接：NEW,ESTABLISHED
 	数据连接：RELATED,ESTABLISHED
@@ -313,28 +314,32 @@ iptalbes -A OUTPUT -o lo -j ACCEPT
  iptables -A INPUT -d 172.16.100.7/24 -p tcp -m multiport --destination-ports 21,22,80 -m state --state NEW -j ACCEPT
 
 例3：一般公司最开始的安全策略可以这样设置
-iptables -F 清空所有规则链
-iptables -X 删除特定手工设置的链
-iptables -Z 清空计数器
-iptables -P INPUT DROP //默认INPUT规则 丢弃
-iptables -P OUTPUT DROP //默认OUTPUT规则 丢弃
-iptables -P FORWARD DROP //默认FORWARD规则 丢弃
-iptables -A INPUT -d 192.168.10.250 -p tcp -m tcp --dport 22 -j ACCEPT //开SSH服务进站端口
-iptables -A INPUT -d 192.168.10.250 -p tcp -m tcp --dport 80 -j ACCEPT //开WEB服务进站端口
-iptables -A INPUT -s 127.0.0.1 -d 127.0.0.1 -j ACCEPT //允许本地环回数据
-iptables -A INPUT -p udp -m udp --sport 53 -j ACCEPT  //来自远程DNS服务器53端口的数据包进站通过
-iptables -A INPUT -p udp -m udp --dport 53 -j ACCEPT  //进入本地服务器53端口的数据包进站通过
-iptables -A INPUT -d 192.168.10.250 -p icmp -j ACCEPT //ICPM数据包可进入本地服务器
-         
-iptables -A OUTPUT -s 192.168.10.250 -p tcp -m tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT //对SSH的服务进入的数据包开启出站端口
-iptables -A OUTPUT -s 192.168.10.250 -p tcp -m tcp --sport 80 -m state --state ESTABLISHED -j ACCEPT //对WEB的服务进入的数据包开启出站端口
-iptables -A OUTPUT -s 127.0.0.1 -d 127.0.0.1 -j ACCEPT //允许本地环回数据
-iptables -A OUTPUT -p udp -m udp --sport 53 -j ACCEPT  //从本地53端口出站的数据包出站通过
-iptables -A OUTPUT -p udp -m udp --dport 53 -j ACCEPT  //去往远程DNS服务器53端口的数据包出站通过
-iptables -A OUTPUT -s 192.168.10.250 -p icmp -j ACCEPT //对对方ICMP数据包回应(ping命令回应数据包)
-service iptables save //保存配置信息
-service iptables start //开启防火墙服务
+***避免flush后默认规则都是DROP那就完蛋了
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -F
 
+***首先可以让ssh能连接
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+
+***保证apt-get可以使用
+iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp -m multiport --destination-ports 80,53 -m state --state NEW -j ACCEPT
+iptables -A OUTPUT -p udp --dport 53 -m state --state NEW -j ACCEPT
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+***正常情况这个总是要配置的,自己要能跟自己通信
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+***以上配置都正确则可以设置默认DROP,这个比较危险，老手也容易翻船，建议在写iptables前写个at计划或者crontab来清空规则
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+注意：以上的规则可以汇总
 */
 
 
