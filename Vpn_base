@@ -1,0 +1,233 @@
+第一种简单的方式:
+    服务端：配置pptd
+        ubuntu系统：安装pptpd
+            1、我们要使用PPTP协议，首先验证服务器是否支持MPPE模块，在服务器终端输入
+                modprobe ppp-compress-18 && echo MPPE is ok
+                若显示MPPE is ok，则说明服务器的linux内核支持MPPE模块，否则请升级linux内核到2.6.15以上版本，或者给内核打上MPPE的补丁，相应具体详细配置请点击，这里不再赘述。
+               
+                ******内核没有编译这个模块，可以考虑用dkms(dynamic kernel module support)外挂编译此模块，公版系统是可以的，某些下三滥的系统不一定可以
+
+            2、安装pptpd插件，ubuntu下使用下面指令安装，其他linux指令不再赘述
+                sudo apt-get install pptpd
+            3、编辑配置文件pptpd.conf，添加建立VPN虚拟网络时的主机ip（网关）和这个虚拟主机分配给其他设备的虚拟ip 段。注意这个VPN虚拟ip主机和我们的服务器的ip没有关系，可以任意设置。而且最好避免和服务器所在网段内的其他设备ip冲突。输入下面指令，打开配置文件，编辑器使用vim的话替换参数即可。
+                sudo emacs /etc/pptpd.conf
+                在文件最后添加下面两行
+                localip  192.168.2.1
+                remote 192.168.2.10-99
+                这里我将参数localip也就是VPN虚拟网络的主机（网关）设置成了192.168.2.1，而我们要配置的服务器所在的网段的主机（网关），也就是实验室的路由器的ip为192.168.0.1，这样可以避免将来在外网登陆VPN时，VPN虚拟主机分配的ip与实验室内网的ip冲突。而参数rempteip表示VPN最多接受90个外网链接。
+
+            4、编辑配置文件pptpd-options，设置这个VPN虚拟网络的DNS，输入下面，指令打开配置文件
+                sudo emacs /etc/ppp/pptpd-options
+                修改以下部分，这里使用google的DNS
+                ms-dns 8.8.8.8
+                ms-dns 8.8.4.4
+                这里也可以填上，服务器主机所在网络使用的DNS地址。
+                ***注意：这一步是为了可以在vpn的环境下上网，不过这不够，还要配置iptables SNAT将ppp0环境的ip地址SNAT出去
+            5、编辑配置文件chap-secrets，设置这个VPN的登陆账号和密码，输入下面指令打开配置文件
+                sudo emacs /etc/ppp/chap-secrets
+                添加一行，依次为：用户名，服务，密码，限制ip：
+                user pptpd 123 *
+                *表示ip无限制。
+            6、输入下面指令以重启服务
+                sudo /etc/init.d/pptpd restart
+    客户端：
+        ubuntu系统：安装pptp-linux生成pptp、pptpsetup
+            1.要下载pptp的客户端
+                sudo apt-get install pptp-linux
+
+            2.创建连接
+                sudo pptpsetup --create haha --server 123.45.67.89 --username lige --password fk --encrypt --start
+                其中，
+                --create后的是创建的连接名称，可以为任意名称; 
+                --server后接的是vpn服务器的IP; 
+                --username是用户名
+                --password是密码，在这也可以没这个参数，命令稍后会自动询问。这样可以保证账号安全
+                --encrypt 是表示需要加密，不必指定加密方式，命令会读取配置文件中的加密方式
+                --start是表示创建连接完后马上连接，如果你不想连，就不写
+                ***这里面“haha”是创建的pptp客户端的名称，随便写一个就行，命令运行完会生成文件/etc/ppp/peers/haha
+                ***注意：有的时候遇到：LCP terminated by peer (MPPE required but peer refused)
+                ***这说明服务端要求MPPE加密，但是客户端不支持，也就是在运行pptpsetup命令时漏掉了：--encrypt
+            
+            3. 连上vpn
+                如果刚才你没有输入--start选项或者是下次再想连接时，输入的命令就更简单了
+                sudo pon haha
+                haha就是刚才创建的连接名。如果你曾经用过pppoe(ADSL)连网，会对这个命令很亲切的。
+                这个命令一般不会返回任何信息。查看连接的状态，可以用这个命令
+                plog
+
+            4. 中断vpn连接
+                更简单，和pppoe一样（因为都是点到点的连接，呵呵）
+                sudo poff
+
+            5.高级主题
+                pptp是通过点到点的方式连接到服务器，所以pptp连接实际上是需要依赖ppp软件包的。
+                安装pptp-linux软件包后，在/etc/ppp/目录下会出现一个新的文件“options.pptp” 
+                这个是pptp-linux的唯一配置文件，定义了pptp加密方式。一般情况下不需要进行更改，除非你知道vpn服务器没有用默认的加密方式
+
+                可能有些人觉得用pptpsetup还不够geek，想手动创建连接。那么方法如下：
+                (1) 修改/etc/ppp/chap-secrets
+                在文件末尾加上
+                user haha pwd *
+                lige和fk分别为用户名和密码，haha为连接名称。最后一项代表希望获得的IP，*表示任意IP都行
+
+                (2)创建文件/etc/ppp/peers/haha
+                pty "pptp 222.197.180.168 --nolaunchpppd"
+                lock
+                noauth
+                nobsdcomp
+                nodeflate
+                name lige
+                remotename haha
+                ipparam haha
+                require-mppe-128
+
+                文件中每行的含义，可以在/etc/ppp/options.pptp中查看
+
+                (3)连接和断开
+                sudo pon haha
+                sudo poff
+第二种：xl2tpd+ipsec
+VPN 即 Virtual Private Network（虚拟专用网），简单来说，就是在公共网络上搭建一条虚拟的私有链路，可以通过该链路加入到远程的私有网络环境中。所以常用来帮助员工在办公室外安全地访问企业内部网。
+创建私有链路需要使用隧道技术，用到的协议包括点对点隧道协议（PPTP），第2层隧道协议（L2TP）等。macOS 系统已经不再支持 PPTP 类型的 VPN。
+
+一、安装软件包
+$ sudo apt-get install strongswan xl2tpd ppp lsof
+IPSec 是组建安全的 VPN 时使用的一个加密和认证标准，而 strongSwan 是一个完全支持 IKEv1 和 IKEv2 的 IKE 后台进程。
+
+二、修改配置文件
+1. 修改系统转发配置
+在 /etc/sysctl.conf 文件末尾添加以下内容：
+
+net.ipv4.ip_forward = 1
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.rp_filter = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+启用配置：
+$ sudo sysctl -p
+
+2. 配置 strongswan(IPSec)
+在 /etc/ipsec.conf 文件末尾添加如下内容（注意将 left 选项改为自己的 VPN 服务器地址）：
+
+version 2 
+
+config setup
+conn L2TP-PSK-noNAT
+    authby=secret
+    #shared secret. Use rsasig for certificates.
+
+    auto=add
+    #the ipsec tunnel should be started and routes created when the ipsec daemon itself starts.
+
+    keyingtries=3
+    #Only negotiate a conn. 3 times.
+
+    ikelifetime=8h
+    keylife=1h
+
+    ike=aes256-sha1,aes128-sha1,3des-sha1
+
+    type=transport
+    #because we use l2tp as tunnel protocol
+
+    left=10.2.67.203
+    # VPN 服务器的 IP 地址，'%any' 表示任意地址 
+
+    leftprotoport=17/1701
+    right=%any
+    rightprotoport=17/%any
+
+    dpddelay=10
+    # Dead Peer Dectection (RFC 3706) keepalives delay
+    dpdtimeout=20
+    #  length of time (in seconds) we will idle without hearing either an R_U_THERE poll from our peer, or an R_U_THERE_ACK reply.
+    dpdaction=clear
+    # When a DPD enabled peer is declared dead, what action should be taken. clear means the eroute and SA with both be cleared.
+配置共享密钥 /etc/ipsec.secrets：
+
+%any : PSK "PASSWORD"
+%any 针对任意服务器地址，PASSWORD 需要改为足够安全的长密码
+
+3. 配置 xl2tpd
+在 /etc/xl2tpd/xl2tpd.conf 文件末尾添加如下内容：
+
+[global]
+ipsec saref = yes
+saref refinfo = 30
+
+;debug avp = yes
+;debug network = yes
+;debug state = yes
+;debug tunnel = yes
+
+[lns default]
+ip range = 192.168.100.100 - 192.168.100.200
+local ip = 192.168.100.1
+refuse pap = yes
+require authentication = yes
+;ppp debug = yes
+pppoptfile = /etc/ppp/options.xl2tpd
+length bit = yes
+local ip 表示 VPN 虚拟网络的网关，ip range 表示客户端连接 VPN 服务器时能分配到的 IP 地址
+在 /etc/ppp/options.xl2tpd 文件中添加如下内容：
+
+require-mschap-v2
+ms-dns 10.2.64.1
+ms-dns 114.114.114.114
+auth
+mtu 1200
+mru 1000
+crtscts
+hide-password
+modem
+name l2tpd
+proxyarp
+lcp-echo-interval 30
+lcp-echo-failure 4
+修改 ms-dns 为需要 vpn 客户端使用的 dns 服务器
+
+4. 添加用户
+修改 /etc/ppp/chap-secrets 文件：
+
+starky l2tpd password1 *
+bob l2tpd password2 *
+格式为：用户名、服务、密码、限制 ip 。
+
+以上的配置完成以后，重启服务就可以使用客户端连接了。不过此时还不能通过该 VPN 访问互联网，需要部署 IP 转发（使用 iptables ）。
+
+三、配置转发
+输入下面的指令，开启 gre 协议，并打开服务器 47 和 1723 号端口。
+
+$ sudo iptables -A INPUT -p gre -j ACCEPT 
+$ sudo iptables -A INPUT -p tcp --dport 1723 -j ACCEPT   
+$ sudo iptables -A INPUT -p tcp --dport 47 -j ACCEPT
+开启一个 NAT 转发
+$ sudo iptables -t nat -A POSTROUTING -s 192.168.100.0/24 -o wlp4s0 -j MASQUERADE
+wlp4s0 表示当前服务器使用的网卡设备名。可以通过 ifconfig 命令查看
+
+通过上面的指令，iptables 做了这样一件事：将所有从服务器上传出的源地址为 192.168.100.1-255 的数据包源 ip 改成服务器的 ip 。
+
+四、连接测试
+首先需要重启服务：
+
+sudo ipsec restart
+sudo service xl2tpd restart
+
+
+
+
+
+
+
+
+
+
+
+第二种方式：如果有一个路由隔开，想要通过这个路由拔号进入内网，那这个路由器必须支持vpn穿透才行
+第三种方式：就是用openvpn，这个功能强大，要配置证书，后续有需求再探索
+
+
+
+
