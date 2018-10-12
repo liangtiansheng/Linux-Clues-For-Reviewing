@@ -102,7 +102,12 @@ cinder:两种存储方式
 			filter-->weighting(同nova)
 				AvailabilityZoneFilter：为了提高容灾和隔离服务，将存储节点和计算节点划分到不同的AvailabilityZone中，默认有一个Nova的Zone，所有节点初始在nova中
 				CapacityFilter：过滤掉大小不满足要求的存储节点，volume-type指定Capabilities的类型(cinder.conf中设置volume_backend_name，其作用是为存储节点的volume provider命名，这样capabilities通过volume type筛选指定的volume provider)
-		cinder-api:
+                CapabilitysFilter: 不同类型provider有自己的特性(Capabilities)，比如有的支技thin provisioning
+                    cinder用"Volume Type"指定需要的Capabilities, "Volume Type"可以根据需要定义若干Capabilities
+                        Admin-->System-->Volume通过"Volume Type"的"Extra Specs"定义Capabilities，"Extra Specs"是用Key-Value的开式来定义，不同volume provider支持的extra specs不同，可参考官方文档
+                            默认"Extra Specs"只有一个"volume_backend_name"，这是最重要也是必须要有的"Extra Specs"
+                                cinder.conf中的volume_backend_name是为存储节点的"Volume Provider"命名，这样CapabilitiesFilter就可以通过"Volume Type"的"volume_backend_name"筛选出指定的"Volume Provider"
+        cinder-api:
 			启动flow(工作流)，有若干tasks,ExtractVolumeRequestTask,QuotaReserveTask,EntryCreateTask,QuotaCommitTask,VolumeCastTask
 			这些tasks都有"PENDING","RUNNING","SUCCESS"三个阶段
 		cinder-scheduler:
