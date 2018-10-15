@@ -1,0 +1,20 @@
+1、安装gnome
+
+apt-get install --no-install-recommends ubuntu-desktop gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal -y
+2、安装dpi
+
+sudo apt-get install xfonts-100dpi
+sudo apt-get install xfonts-75dpi
+2、修改vi /home/yp/.vnc/xstartup
+
+#!/bin/sh
+# Uncomment the following two lines for normal desktop:
+export XKL_XMODMAP_DISABLE=1
+unset SESSION_MANAGER
+# exec /etc/X11/xinit/xinitrc
+unset DBUS_SESSION_BUS_ADDRESS
+gnome-panel &
+gnmoe-settings-daemon &
+metacity &
+nautilus &
+gnome-terminal &
