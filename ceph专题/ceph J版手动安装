@@ -100,16 +100,16 @@
         3.1、把mon1上生成的配置文件和密钥文件拷贝到osd1
             [root@mon1 ~]# scp /etc/ceph/* root@osd1:/etc/ceph/
             [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd1:/var/lib/ceph/bootstrap-osd/
-            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring //这个可以不用复制，因为3.4这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring //这个可以不用复制，因为3.3这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
         3.2、在osd1上创建一个默认的数据目录
             [root@osd1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd1
-        3.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
-            [root@osd1 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
-        3.4、获取密钥和monmap信息
+        3.3、获取密钥和monmap信息
             [root@osd1 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring //可以通过这个命令获取第一次创建的ceph.mon.keyring，然后改成ceph属主属组，不然会报没有权限，官方没有改权限这一步，是个坑
             exported keyring for mon.
             [root@osd1 ~]# ceph mon getmap -o /tmp/ceph.mon.map //这个是root属主属组，其它有读的权限即可，所以不用改成ceph属主属组
             got monmap epoch 1
+        3.4、在osd1上修改ceph.mon.keyring属主和属组为ceph
+            [root@osd1 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
         3.5、初始化mon
             [root@osd1 ~]# sudo -u ceph ceph-mon --mkfs -i osd1 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
             ceph-mon: set fsid to 8ca723b0-c350-4807-9c2a-ad6c442616aa
@@ -133,16 +133,16 @@
         4.1、把mon1上生成的配置文件和密钥文件拷贝到osd2
             [root@mon1 ~]# scp /etc/ceph/* root@osd2:/etc/ceph/ 
             [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd2:/var/lib/ceph/bootstrap-osd/
-            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring //这个可以不用复制，因为4.4这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
+            [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd2:/tmp/ceph.mon.keyring //这个可以不用复制，因为4.3这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
         4.2、在osd2上创建一个默认的数据目录
             [root@osd2 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd2
-        4.3、在osd1上修改ceph.mon.keyring属主和属组为ceph
-            [root@osd2 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
-        4.4、获取密钥和monmap信息
+        4.3、获取密钥和monmap信息
             [root@osd2 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring //可以通过这个命令获取第一次创建的ceph.mon.keyring，然后改成ceph属主属组，不然会报没有权限，官方没有改权限这一步，是个坑
             exported keyring for mon.
             [root@osd2 ~]# ceph mon getmap -o /tmp/ceph.mon.map //这个是root属主属组，其它有读的权限即可，所以不用改成ceph属主属组
             got monmap epoch 1
+        4.4、在osd2上修改ceph.mon.keyring属主和属组为ceph
+            [root@osd2 ~]# chown ceph.ceph /tmp/ceph.mon.keyring
         4.5、初始化mon
             [root@osd2 ~]# sudo -u ceph ceph-mon --mkfs -i osd2 --monmap /tmp/ceph.mon.map --keyring /tmp/ceph.mon.keyring
             ceph-mon: set fsid to 8ca723b0-c350-4807-9c2a-ad6c442616aa
