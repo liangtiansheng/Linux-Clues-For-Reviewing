@@ -284,6 +284,26 @@
         read -p "Select the host: " HOST
 
         ##### Cleanup DOWN OSD ID #####
+        function precheckOsd{
+            ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1,$2}'
+            echo "you have these down osds above, do you want to remove them?"
+            read -p "your choice[y/n]:" CHOICE
+            until [ $CHOICE == "y" -o $CHOICE == "n" ];do
+            read -p "your choice[y/n]:" CHOICE
+            done
+            if [[ $CHOICE == 'y' ]];then
+                for i in `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1}'`;do
+                    ceph osd crush remove $i
+                    ceph auth del $i
+                    ceph osd rm $id
+                done
+            elif [ $CHOICE == 'n' ];then
+                echo "you are going to ignoring these down osds"
+            else 
+
+
+
+        }
         for i in $(ceph osd dump | grep down | awk '{print $1}' | awk -F"." '{print $2}')
                     do
                     ceph osd rm $i
