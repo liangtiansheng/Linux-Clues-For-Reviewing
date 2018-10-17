@@ -282,9 +282,11 @@
         #!/bin/bash
         read -p "Select the disk: " DISK
         until [[ $DISK =~ ^sd[a-z] ]];do
+            echo "please input like sd[a-z]!!!"
             read -p "Select the disk: " DISK
         done
         read -p "Select the host: " HOST
+        until grep $HOST /etc/hosts
         ID=$(ceph osd create)
         DIRECTORY=/var/lib/ceph/osd/ceph-$ID
 
