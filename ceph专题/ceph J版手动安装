@@ -280,6 +280,8 @@
 
         脚本内容
         #!/bin/bash
+        set -x
+        set -o errexit
         read -p "Select the disk: " DISK
         until [[ $DISK =~ ^sd[a-z] ]];do
             echo "please input like sd[a-z]!!!"
@@ -290,6 +292,7 @@
             echo "please input ceph_cluster host!!!"
             read -p "Select the host: " HOST
         done
+        precheckOsd
         ID=$(ceph osd create)
         DIRECTORY=/var/lib/ceph/osd/ceph-$ID
 
@@ -333,16 +336,16 @@
 
         ##### Prepare OSD Disk #####
         function prepareOsdDisk {
-            ssh $HOST blkid | grep $DISK | grep ceph &> /dev/zero
+            ssh $HOST "blkid | grep $DISK | grep ceph &> /dev/zero"
             if [ $? != 0 ] ; then
-                ssh $HOST 'ceph-disk zap /dev/$DISK &> /dev/zero'
-                ssh $HOST 'ceph-disk prepare /dev/$DISK &> /dev/zero'
+                ssh $HOST "ceph-disk zap /dev/$DISK &> /dev/zero" //如果这里有zap，就默认格式化成了xfs格式，下面就不用mkfs.xfs
+                ssh $HOST "ceph-disk prepare /dev/$DISK &> /dev/zero"
             else
                     echo -e "\033[40;32m$DISK has already configured into osd.\033[0m"
                     exit 7
             fi
             PARTITION=/dev/${DISK}1
-            ssh $HOST "mkfs.xfs -f $PARTITION &> /dev/zero"
+            #ssh $HOST "mkfs.xfs -f $PARTITION &> /dev/zero"
             ssh $HOST "echo \"$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0\" >> /etc/fstab"
             ssh $HOST "mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY"
             if [ $? = 0 ] ; then
