@@ -290,8 +290,6 @@
             echo "please input ceph_cluster host!!!"
             read -p "Select the host: " HOST
         done
-        
-        
         ##### Cleanup DOWN OSD ID #####
         function precheckOsd {
             if [ `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1,$2}' | wc -l` -gt 0 ];then
@@ -310,13 +308,11 @@
                     echo -e "\033[40;32myou have finished clearing down osds.\033[0m"
                 else 
                     echo -e "\033[40;32myou are going to ignore these down osds.\033[0m"
+                fi
             else
                 echo "you have no down osds"
             fi
         }
-        
-        
-        
         ##### Create OSD Directory #####
         function createOsdDirectory {
             ssh $HOST "if [ -d $DIRECTORY ] ;then rm -rf $DIRECTORY;fi"
@@ -328,13 +324,11 @@
                 exit 7
             fi
         }
-        
-
         ##### Prepare OSD Disk #####
         function prepareOsdDisk {
             ssh $HOST "blkid | grep $DISK | grep ceph &> /dev/zero"
             if [ $? != 0 ] ; then
-                #ssh $HOST "ceph-disk zap /dev/$DISK &> /dev/zero" //如果这里有zap，就默认格式化成了xfs格式，下面就不用mkfs.xfs
+                ssh $HOST "ceph-disk zap /dev/$DISK &> /dev/zero" 
                 ssh $HOST "ceph-disk prepare /dev/$DISK &> /dev/zero"
             else
                     echo -e "\033[40;32m$DISK has already configured into osd.\033[0m"
@@ -351,8 +345,6 @@
                 exit 7
             fi
         }
-        
-
         ##### Add OSD #####
         function addOsd {
             ssh $HOST "ceph-osd -i $ID --mkfs --mkkey &> /dev/zero"
