@@ -342,9 +342,9 @@
                     exit 7
             fi
             PARTITION=/dev/${DISK}1
-            ssh $HOST 'mkfs.xfs -f $PARTITION &> /dev/zero'
-            ssh $HOST 'echo "$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0" >> /etc/fstab'
-            ssh $HOST 'mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY'
+            ssh $HOST "mkfs.xfs -f $PARTITION &> /dev/zero"
+            ssh $HOST "echo \"$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0\" >> /etc/fstab"
+            ssh $HOST "mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY"
             if [ $? = 0 ] ; then
                 echo -e "\033[40;32mPrepare OSD Disk is done.\033[0m"
             else
