@@ -281,79 +281,90 @@
         脚本内容
         #!/bin/bash
         read -p "Select the disk: " DISK
-        read -p "Select the host: " HOST
-
-        ##### Cleanup DOWN OSD ID #####
-        function precheckOsd{
-            ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1,$2}'
-            echo "you have these down osds above, do you want to remove them?"
-            read -p "your choice[y/n]:" CHOICE
-            until [ $CHOICE == "y" -o $CHOICE == "n" ];do
-            read -p "your choice[y/n]:" CHOICE
-            done
-            if [[ $CHOICE == 'y' ]];then
-                for i in `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1}'`;do
-                    ceph osd crush remove $i
-                    ceph auth del $i
-                    ceph osd rm $id
-                done
-            elif [ $CHOICE == 'n' ];then
-                echo "you are going to ignoring these down osds"
-            else 
-
-
-
-        }
-        for i in $(ceph osd dump | grep down | awk '{print $1}' | awk -F"." '{print $2}')
-                    do
-                    ceph osd rm $i
-                    ceph auth del osd.$i
+        until [[ $DISK =~ ^sd[a-z] ]];do
+            read -p "Select the disk: " DISK
         done
-        echo -e "\033[40;32mCleanup DOWN OSD ID is done.\033[0m"
+        read -p "Select the host: " HOST
         ID=$(ceph osd create)
         DIRECTORY=/var/lib/ceph/osd/ceph-$ID
 
+        ##### Cleanup DOWN OSD ID #####
+        function precheckOsd {
+            if [ `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1,$2}' | wc -l` -gt 0 ];then
+                ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1,$2}'
+                echo -e "\033[41;32myou have these down osds above, do you want to remove them?\033[0m"
+                read -p "your choice[y/n]:" CHOICE
+                until [ $CHOICE == "y" -o $CHOICE == "n" ];do
+                read -p "your choice[y/n]:" CHOICE
+                done
+                if [[ $CHOICE == 'y' ]];then
+                    for i in `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1}'`;do
+                        ceph osd crush remove $i
+                        ceph auth del $i
+                        ceph osd rm $id
+                    done
+                    echo -e "\033[40;32myou have finished clearing down osds.\033[0m"
+                else 
+                    echo -e "\033[40;32myou are going to ignore these down osds.\033[0m"
+            else
+                echo "you have no down osds"
+            fi
+        }
+        
+        
+        
         ##### Create OSD Directory #####
-        if [ -d $DIRECTORY ] ;then
-                    rm -rf $DIRECTORY
-        fi
-        mkdir -p $DIRECTORY
-        if [ $? = 0 ] ; then
-                    echo -e "\033[40;32mDirectory is done.\033[0m"
-        else
-                    break
-        fi
+        function createOsdDirectory {
+            ssh $HOST "if [ -d $DIRECTORY ] ;then rm -rf $DIRECTORY;fi"
+            ssh $HOST "mkdir -p $DIRECTORY"
+            if [ $? = 0 ] ; then
+                echo -e "\033[40;32mDirectory is done.\033[0m"
+            else
+                echo -e "\033[41;32mDirectory is not ready, please check it.\033[0m"
+                exit 7
+            fi
+        }
+        
 
         ##### Prepare OSD Disk #####
-        blkid | grep $DISK | grep ceph &> /dev/zero
-        if [ $? != 0 ] ; then
-                    ceph-disk zap /dev/$DISK &> /dev/zero
-                    ceph-disk prepare /dev/$DISK &> /dev/zero
-        else
+        function prepareOsdDisk {
+            ssh $HOST blkid | grep $DISK | grep ceph &> /dev/zero
+            if [ $? != 0 ] ; then
+                ssh $HOST 'ceph-disk zap /dev/$DISK &> /dev/zero'
+                ssh $HOST 'ceph-disk prepare /dev/$DISK &> /dev/zero'
+            else
                     echo -e "\033[40;32m$DISK has already configured into osd.\033[0m"
                     exit 7
-        fi
-        PARTITION=/dev/${DISK}1
-        mkfs.xfs -f $PARTITION &> /dev/zero
-        echo "$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0" >> /etc/fstab
-        mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY
-        if [ $? = 0 ] ; then
-                    echo -e "\033[40;32mPrepare OSD Disk is done.\033[0m"
-        else
-                    break
-        fi
+            fi
+            PARTITION=/dev/${DISK}1
+            ssh $HOST 'mkfs.xfs -f $PARTITION &> /dev/zero'
+            ssh $HOST 'echo "$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0" >> /etc/fstab'
+            ssh $HOST 'mount -o rw,noatime,attr2,inode64,noquota $PARTITION $DIRECTORY'
+            if [ $? = 0 ] ; then
+                echo -e "\033[40;32mPrepare OSD Disk is done.\033[0m"
+            else
+                echo -e "\033[40;32mSomething is wrong with preparing osd.\033[0m"
+                exit 7
+            fi
+        }
+        
 
         ##### Add OSD #####
-        ceph-osd -i $ID --mkfs --mkkey &> /dev/zero
-        ceph auth add osd.$ID osd 'allow *' mon 'allow profile osd' -i $DIRECTORY/keyring &> /dev/zero
-        ceph osd crush add osd.$ID 1.0 host=$HOST &> /dev/zero
-        chown -R ceph:ceph /var/lib/ceph/osd
-        systemctl start ceph-osd@$ID &> /dev/zero
-        systemctl enable ceph-osd@$ID &> /dev/zero
-        systemctl status ceph-osd@$ID &> /dev/zero
-        if [ $? = 0 ] ; then
-                    echo -e "\033[40;32mAdd OSD is done\033[0m"
-        fi
+        function addOsd {
+            ssh $HOST "ceph-osd -i $ID --mkfs --mkkey &> /dev/zero"
+            ssh $HOST "ceph auth add osd.$ID osd 'allow *' mon 'allow profile osd' -i $DIRECTORY/keyring &> /dev/zero"
+            ssh $HOST "ceph osd crush add osd.$ID 1.0 host=$HOST &> /dev/zero"
+            ssh $HOST "chown -R ceph:ceph /var/lib/ceph/osd"
+            ssh $HOST "systemctl start ceph-osd@$ID &> /dev/zero"
+            ssh $HOST "systemctl enable ceph-osd@$ID &> /dev/zero"
+            ssh $HOST "systemctl status ceph-osd@$ID &> /dev/zero"
+            if [ $? = 0 ] ; then
+                echo -e "\033[40;32mAdd OSD is done\033[0m"
+            else
+                echo -e "\033[40;32mSomthing is wrong with adding osd.\033[0m"
+            fi
+        }
+        
         注：osd添加完成后查看ceph osd tree 状态
 
         [root@mon1 ~]# ceph osd tree
