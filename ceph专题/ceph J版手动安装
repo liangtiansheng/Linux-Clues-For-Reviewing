@@ -286,7 +286,10 @@
             read -p "Select the disk: " DISK
         done
         read -p "Select the host: " HOST
-        until grep $HOST /etc/hosts
+        until grep $HOST /etc/hosts;do
+            echo "please input ceph_cluster host!!!"
+            read -p "Select the host: " HOST
+        done
         ID=$(ceph osd create)
         DIRECTORY=/var/lib/ceph/osd/ceph-$ID
 
@@ -303,7 +306,7 @@
                     for i in `ceph osd dump | egrep ^osd.[[:digit:]]+[[:space:]]{1}down|awk '{print $1}'`;do
                         ceph osd crush remove $i
                         ceph auth del $i
-                        ceph osd rm $id
+                        ceph osd rm $i
                     done
                     echo -e "\033[40;32myou have finished clearing down osds.\033[0m"
                 else 
