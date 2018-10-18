@@ -68,9 +68,21 @@ ceph-deploy-ceph.log
 实际上，这些秘钥文件都是通过用户 mon. 创建的，包括 client.admin 用户及其秘钥。所以在整个 CephX 的历史中，mon. 才是第一个生成的用户，而其他的用户均由 mon. 用户生成或者依次向下生成。
 
 用一张图来表明秘钥的生成关系：
-
-
-
+							  +-----> client.cinder
+							  |
+        +--> client.admin ----+-----> client.nova
+		|					  |					  
+		|					  +-----> client.glance
+		|
+        +--> client.bootstrap-mds --------> mds.NodeA					  
+        |
+		|
+mon. ------> client.bootstrap-osd --------> osd.0
+		|							  |
+		|							  +---> osd.1
+		|							  +---> osd.2
+		|--> client.bootstrap-rgw --------> client.rgw.NodeA
+		|--> client.bootstrap-mgr --------> client.rgw.NodeA
 通过这张图，我们可以很容易理解 bootstrap 的几个用户的用处了，就是用于引导生成对应类用户的用户，比如bootstrap-osd 用于引导生成所有 osd.N 用户。
 
 CephX 使用场景
