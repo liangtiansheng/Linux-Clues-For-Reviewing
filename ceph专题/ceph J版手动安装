@@ -344,6 +344,7 @@
                 else
                     echo "you are going to ignore this disk and quit"
                     exit 0
+                fi
             fi
             ssh $HOST "mkfs.xfs -f $PARTITION &> /dev/zero"
             ssh $HOST "echo \"$PARTITION $DIRECTORY xfs rw,noatime,attr2,inode64,noquota 0 0\" >> /etc/fstab"
