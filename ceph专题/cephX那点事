@@ -80,7 +80,9 @@ ceph-deploy-ceph.log
 mon. ------> client.bootstrap-osd --------> osd.0
 		|							  |
 		|							  +---> osd.1
-		|							  +---> osd.2
+        |                             |
+    	|							  +---> osd.2
+        |
 		|--> client.bootstrap-rgw --------> client.rgw.NodeA
 		|--> client.bootstrap-mgr --------> client.rgw.NodeA
 通过这张图，我们可以很容易理解 bootstrap 的几个用户的用处了，就是用于引导生成对应类用户的用户，比如bootstrap-osd 用于引导生成所有 osd.N 用户。
