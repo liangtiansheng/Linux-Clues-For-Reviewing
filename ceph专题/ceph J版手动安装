@@ -340,6 +340,7 @@
                 if [ $DETERMIN == 'y' ];then
                     if ssh $HOST "mount | grep $PARTITION";then ssh $HOST "umount $PARTITION";fi
                     ssh $HOST "ceph-disk zap /dev/$DISK &> /dev/null"
+                    ssh $HOST "partprobe /dev/$DISK" //注意这一步一定要做，不然内核还记录着分区的状态，后面会失败
                     ssh $HOST "ceph-disk prepare /dev/$DISK &> /dev/null"
                 else
                     echo "you are going to ignore this disk and quit"
