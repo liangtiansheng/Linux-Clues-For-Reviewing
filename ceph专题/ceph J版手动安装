@@ -120,7 +120,7 @@
             [root@osd1 ~]# ceph mon add osd1 192.168.1.11:6789
             adding mon.osd1 at 192.168.1.11:6789/0
         3.8、启动新添加的mon
-            [root@osd1 ~]# systemctl start ceph-mon@osd1 //启动mon服务会自动生成bootstarp-mds及bootstrap-rgw的密钥
+            [root@osd1 ~]# systemctl start ceph-mon@osd1 
             [root@osd1 ~]# systemctl status ceph-mon@osd1
             ● ceph-mon@osd1.service - Ceph cluster monitor daemon
             Loaded: loaded (/usr/lib/systemd/system/ceph-mon@.service; disabled; vendor preset: disabled)
@@ -129,6 +129,35 @@
         3.9、设置mon开机自动启动
             [root@osd1 ~]# systemctl enable ceph-mon@osd1
             Created symlink from /etc/systemd/system/ceph-mon.target.wants/ceph-mon@osd1.service to /usr/lib/systemd/system/ceph-mon@.service.
+           
+            补充1：cephX用一张图来表明秘钥的生成关系：
+                                        +-----> client.cinder
+                                        |
+                    +--> client.admin ----+-----> client.nova
+                    |					  |					  
+                    |					  +-----> client.glance
+                    |
+                    +--> client.bootstrap-mds --------> mds.NodeA					  
+                    |
+                    |
+            mon. ------> client.bootstrap-osd --------> osd.0
+                    |							  |
+                    |							  +---> osd.1
+                    |                             |
+                    |							  +---> osd.2
+                    |
+                    |--> client.bootstrap-rgw --------> client.rgw.NodeA
+                    |--> client.bootstrap-mgr --------> client.rgw.NodeA
+            通过这张图，我们可以很容易理解 bootstrap 的几个用户的用处了，就是用于引导生成对应类用户的用户，比如bootstrap-osd 用于引导生成所有 osd.N 用户。
+           
+            补充2：启动mon服务会自动生成bootstarp-mds及bootstrap-rgw的密钥,cephX中mon.是认证鼻祖,mon初始化时会生成相关对象的自举密钥，以下是ceph-deploy mon create-initial产生的日志
+            [2017-07-28 16:49:53,468][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --admin-daemon=/var/run/ceph/ceph-mon.centos7.asok mon_status
+            [2017-07-28 16:49:53,557][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get client.admin
+            [2017-07-28 16:49:53,761][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get client.bootstrap-mds
+            [2017-07-28 16:49:54,046][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get client.bootstrap-mgr
+            [2017-07-28 16:49:54,255][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get-or-create client.bootstrap-mgr mon allow profile bootstrap-mgr
+            [2017-07-28 16:49:54,452][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get client.bootstrap-osd
+            [2017-07-28 16:49:54,658][centos7][INFO  ] Running command: /usr/bin/ceph --connect-timeout=25 --cluster=ceph --name mon. --keyring=/var/lib/ceph/mon/ceph-centos7/keyring auth get client.bootstrap-rgw
     4、新增mon节点osd2
         4.1、把mon1上生成的配置文件和密钥文件拷贝到osd2
             [root@mon1 ~]# scp /etc/ceph/* root@osd2:/etc/ceph/ 
