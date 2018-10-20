@@ -41,6 +41,10 @@ cfssl工具，子命令介绍：
         -ca-key：指明ca的私钥文件
         -config：指明请求证书的json文件
         -profile：与-config中的profile对应，是指根据config中的profile段来生成证书的相关信息
+            容器相关证书类型:
+                client certificate： 用于服务端认证客户端,例如etcdctl、etcd proxy、fleetctl、docker客户端
+                server certificate: 服务端使用，客户端以此验证服务端身份,例如docker服务端、kube-apiserver
+                peer certificate: 双向证书，用于etcd集群成员间通信
     ocspdump
     ocspsign
     info: 获取有关远程签名者的信息
@@ -52,23 +56,72 @@ cfssl工具，子命令介绍：
 CFSSL可以创建一个获取和操作证书的内部认证中心。
 运行认证中心需要一个CA证书和相应的CA私钥。任何知道私钥的人都可以充当CA颁发证书。因此，私钥的保护至关重要。
 生成CA证书和私钥(root 证书和私钥)
-创建一个文件ca-csr.json：
+# mkdir /opt/ssl
+# cd /opt/ssl
+# cfssl print-defaults config > ca-config.json
+# cfssl print-defaults csr > ca-csr.json
+
+配置证书生成策略，让CA软件知道颁发什么样的证书。
+修改ca-config.json,分别配置针对三种不同证书类型的profile,其中有效期43800h为5年
     {
-    "CN": "www.51yunv.com",
+    "signing": {
+        "default": {
+            "expiry": "43800h"
+        },
+        "profiles": {
+            "server": {
+                "expiry": "43800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth"
+                ]
+            },
+            "client": {
+                "expiry": "43800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "client auth"
+                ]
+            },
+            "peer": {
+                "expiry": "43800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            }
+        }
+    }
+    }
+这个策略，有一个默认的配置，和三个profile
+    默认策略，指定了证书的有效期是一年(8760h)
+    server,client,peer策略，指定了证书的用途
+    signing, 表示该证书可用于签名其它证书；生成的 ca.pem 证书中 CA=TRUE
+    server auth：表示 client 可以用该 CA 对 server 提供的证书进行验证
+    client auth：表示 server 可以用该 CA 对 client 提供的证书进行验证
+
+
+修改ca-csr.json
+    {
+    "CN": "Self Signed Ca",
     "key": {
         "algo": "rsa",
         "size": 2048
     },
     "names": [
         {
-        "C": "CN",
-        "ST": "BeiJing",
-        "L": "BeiJing",
-        "O": "51yunv",
-        "OU": "ops"
-        }
-    ]
+            "C": "CN",
+            "L": "SH",
+            "O": "Netease",
+            "ST": "SH",            
+            "OU": "OT"
+        }    ]
     }
+
 术语介绍:
     CN: Common Name，浏览器使用该字段验证网站是否合法，一般写的是域名。非常重要。浏览器使用该字段验证网站是否合法
     C: Country， 国家
@@ -92,35 +145,80 @@ CFSSL可以创建一个获取和操作证书的内部认证中心。
         # cfssl certinfo -cert ca.pem
     查看CSR(证书签名请求)信息：
         # cfssl certinfo -csr ca.csr
-配置证书生成策略
-配置证书生成策略，让CA软件知道颁发什么样的证书。
-    # vim ca-config.json
+
+签发Server Certificate
+    # cfssl print-defaults csr &gt; server.json
+    # vim server.json
     {
-    "signing": {
-        "default": {
-        "expiry": "8760h"
+        "CN": "Server",
+        "hosts": [
+            "192.168.1.1"
+        ],
+        "key": {
+            "algo": "ecdsa",
+            "size": 256
         },
-        "profiles": {
-        "etcd": {
-            "usages": [
-                "signing",
-                "key encipherment",
-                "server auth",
-                "client auth"
-            ],
-            "expiry": "8760h"
-        }
-        }
+        "names": [
+            {
+                "C": "CN",
+                "L": "SH",
+                "ST": "SH"
+            }
+        ]
     }
+    生成服务端证书和私钥
+    # cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server server.json | cfssljson -bare server
+
+签发Client Certificate
+    # cfssl print-defaults csr &gt; client.json
+    # vim client.json
+    {
+        "CN": "Client",
+        "hosts": [],
+        "key": {
+            "algo": "ecdsa",
+            "size": 256
+        },
+        "names": [
+            {
+                "C": "CN",
+                "L": "SH",
+                "ST": "SH"
+            }
+        ]
     }
-这个策略，有一个默认的配置，和一个profile，可以设置多个profile，这里的profile是etcd。
-    默认策略，指定了证书的有效期是一年(8760h)
-    etcd策略，指定了证书的用途
-    signing, 表示该证书可用于签名其它证书；生成的 ca.pem 证书中 CA=TRUE
-    server auth：表示 client 可以用该 CA 对 server 提供的证书进行验证
-    client auth：表示 server 可以用该 CA 对 client 提供的证书进行验证
+    生成客户端证书和私钥
+    # cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client
+签发peer certificate
+    # cfssl print-defaults csr &gt; member1.json
+    # vim member1.json
+    {
+        "CN": "member1",
+        "hosts": [
+            "192.168.1.1"
+        ],
+        "key": {
+            "algo": "ecdsa",
+            "size": 256
+        },
+        "names": [
+            {
+                "C": "CN",
+                "L": "SH",
+                "ST": "SH"
+            }
+        ]
+    }
+    为节点member1生成证书和私钥:
+    # cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer member1.json | cfssljson -bare member1
+    针对etcd服务,每个etcd节点上按照上述方法生成相应的证书和私钥
 
 
+最后校验证书
+校验生成的证书是否和配置相符
+    # openssl x509 -in ca.pem -text -noout
+    # openssl x509 -in server.pem -text -noout
+    # openssl x509 -in client.pem -text -noout
 
 cfssl常用命令：
     cfssl gencert -initca ca-csr.json | cfssljson -bare ca ## 初始化ca
