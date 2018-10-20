@@ -1493,3 +1493,48 @@ Helm:
                     verify
         https://www.helm.sh/
         ***通过官方文档更好的使用helm和开发自己的chart
+
+k8s下载可以直接下载官方打包文件:
+    最新的版本一般直接在kubernets.io
+    https://kubernetes.io/docs/setup/release/
+    
+    以前的版本都托管到github上了，选择CHANGELOG-1.10.md
+    https://github.com/kubernetes/kubernetes
+
+    或者直接到仓库下载
+    https://storage.googleapis.com/kubernetes-release/release/v1.11.1/kubernetes-server-linux-arm64.tar.gz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
