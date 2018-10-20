@@ -59,8 +59,6 @@ CFSSL可以创建一个获取和操作证书的内部认证中心。
 # mkdir /opt/ssl
 # cd /opt/ssl
 # cfssl print-defaults config > ca-config.json
-# cfssl print-defaults csr > ca-csr.json
-
 配置证书生成策略，让CA软件知道颁发什么样的证书。
 修改ca-config.json,分别配置针对三种不同证书类型的profile,其中有效期43800h为5年
     {
@@ -104,7 +102,7 @@ CFSSL可以创建一个获取和操作证书的内部认证中心。
     server auth：表示 client 可以用该 CA 对 server 提供的证书进行验证
     client auth：表示 server 可以用该 CA 对 client 提供的证书进行验证
 
-
+# cfssl print-defaults csr > ca-csr.json
 修改ca-csr.json
     {
     "CN": "Self Signed Ca",
