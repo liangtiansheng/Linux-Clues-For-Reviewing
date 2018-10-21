@@ -1,0 +1,5 @@
+*****注意这里的坑，systemd用到的文件要手动创建,mkdir /var/lib/etcd, touch /etc/etcd/etcd.conf
+*****注意这里的systemd没有指明用户，那就是root，所以手动创建的目录属主属组也是root，要对应
+*****三个etcd出现有某个etcd起不来，修改文件后重启一直说member已加入，只有先删掉这个etcd，再加进来，加进来时千万注意，修改systemd文件中的new改成existing，删除/var/lib/etcd/member，再重启，否则这个服务怎么都起不来的
+    # etcdctl --ca-file=/etc/etcd/ssl/ca.pem --cert-file=/etc/etcd/ssl/etcd.pem --key-file=/etc/etcd/ssl/etcd-key.pem --endpoints=https://192.168.2.11:2379,https://192.168.2.22:2379,https://192.168.2.33:2379 member remove 830e0a58a878a0ce
+    # etcdctl --ca-file=/etc/etcd/ssl/ca.pem --cert-file=/etc/etcd/ssl/etcd.pem --key-file=/etc/etcd/ssl/etcd-key.pem --endpoints=https://192.168.2.11:2379,https://192.168.2.22:2379,https://192.168.2.33:2379 member add etcd03 https://192.168.2.33:2380
