@@ -517,6 +517,76 @@ esac
 
 
 
+keepalived做HA时，经常会遇到抢占式的master和backup之间的切换
+example:
+        通常如果master服务死掉后backup会变成master，但是当master服务又好了的时候 master此时会抢占VIP，这样就会发生两次切换对业务繁忙的网站来说是不好的。所以我们要在配置文件加入  nopreempt  非抢占，但是这个参数只能用于state 为backup，故我们在用HA的时候最好master 和backup的state都设置成backup 让其通过priority来竞争。
+        注意：这样配置后，我们要注意启动keepalived服务的顺序，假设我想让A成为backup那就不能先启动A的keepalived服务。
+以下是结合MHA架构主、备库配置事例
+主库
+[root@mysqltest ~]# more /etc/keepalived/keepalived.conf 
+#!/bin/bash
+
+global_defs {
+    router_id mysqlmha
+}
+
+vrrp_script check_run {
+   script "/etc/keepalived/check_mysql.sh"
+   interval 1
+}
+
+vrrp_instance VI_1 {
+    state BACKUP     --这里状态指定为backup
+    interface eth0
+    virtual_router_id 151
+    priority 100
+    advert_int 1
+    nopreempt         --设置 nopreempt 防止抢占资源
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+
+    track_script {
+        check_run
+    }
+    virtual_ipaddress {
+        192.168.66.53
+    }
+}
+
+备库
+[root@ceshi ~]# more /etc/keepalived/keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id mysqlmha
+}
+
+vrrp_script check_run {
+   script "/etc/keepalived/check_mysql.sh"
+   interval 1
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 151
+    priority 90
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+
+    track_script {
+       check_run
+    }
+
+    virtual_ipaddress {
+        192.168.66.53
+    }
+}
 
 
 

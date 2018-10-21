@@ -44,7 +44,7 @@
     7.修改docker的service文件
         ExecStart=/usr/bin/dockerd \
             --exec-opt native.cgroupdriver=systemd
-四.安装etcd+tls集群环境
+四.安装etcd+tls集群环境(其中一台上创建，其它复制即可)
     角色    ip地址          配置主机名      客户端端口      集群端口
     etcd01	192.168.2.11    etcd01         2379	          2380
     etcd02	192.168.2.22	etcd02	       2379	          2380
@@ -188,7 +188,7 @@
         WantedBy=multi-user.target
         " >/usr/lib/systemd/system/etcd.service
         *****注意这里的坑，systemd用到的文件要手动创建,mkdir /var/lib/etcd, touch /etc/etcd/etcd.conf
-        *****注意这里的systemd没有指明用户，那就是root，所以创建的目录属主属组也是root，要对应
+        *****注意这里的systemd没有指明用户，那就是root，所以手动创建的目录属主属组也是root，要对应
         *****三个etcd出现有某个etcd起不来，修改文件后重启一直说member已加入，只有先删掉这个etcd，再加进来，加进来时千万注意，修改systemd文件中的new改成existing，删除/var/lib/etcd/member，再重启，否则这个服务怎么都起不来的
             # etcdctl --ca-file=/etc/etcd/ssl/ca.pem --cert-file=/etc/etcd/ssl/etcd.pem --key-file=/etc/etcd/ssl/etcd-key.pem --endpoints=https://192.168.2.11:2379,https://192.168.2.22:2379,https://192.168.2.33:2379 member remove 830e0a58a878a0ce
             # etcdctl --ca-file=/etc/etcd/ssl/ca.pem --cert-file=/etc/etcd/ssl/etcd.pem --key-file=/etc/etcd/ssl/etcd-key.pem --endpoints=https://192.168.2.11:2379,https://192.168.2.22:2379,https://192.168.2.33:2379 member add etcd03 https://192.168.2.33:2380
@@ -196,17 +196,17 @@
         systemctl daemon-reload
         systemctl start etcd.service
         systemctl status etcd.service
-6. 查看集群健康状态
-etcdctl \
---ca-file=/etc/etcd/ssl/ca.pem \
---cert-file=/etc/etcd/ssl/etcd.pem \
---key-file=/etc/etcd/ssl/etcd-key.pem \
---endpoints=https://10.255.72.189:2379,https://10.255.72.190:2379,https://10.255.72.191:2379 cluster-health
-输出结果为:
-member 11561ab2384b6c6d is healthy: got healthy result from https://10.255.72.191:2379
-member 5b2cf22137bb72af is healthy: got healthy result from https://10.255.72.190:2379
-member c88f6852e21dbb31 is healthy: got healthy result from https://10.255.72.189:2379
-cluster is healthy
+    6. 查看集群健康状态
+        etcdctl \
+        --ca-file=/etc/etcd/ssl/ca.pem \
+        --cert-file=/etc/etcd/ssl/etcd.pem \
+        --key-file=/etc/etcd/ssl/etcd-key.pem \
+        --endpoints=https://10.255.72.189:2379,https://10.255.72.190:2379,https://10.255.72.191:2379 cluster-health
+        输出结果为:
+        member 11561ab2384b6c6d is healthy: got healthy result from https://10.255.72.191:2379
+        member 5b2cf22137bb72af is healthy: got healthy result from https://10.255.72.190:2379
+        member c88f6852e21dbb31 is healthy: got healthy result from https://10.255.72.189:2379
+        cluster is healthy
 五. 在10.255.72.{189,190,191}下载kubernetes二进制文件,并复制到/usr/local/bin/下,在10.255.72.192上只需要kubelet二进制文件
 curl - LO https://dl.k8s.io/v1.10.0/kubernetes-server-linux-amd64.tar.gz
 tar zxvf kubernetes-server-linux-amd64.tar.gz
@@ -309,7 +309,7 @@ LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
-">/usr/bin/systemd/system/kube-apiserver.service
+">/usr/lib/systemd/system/kube-apiserver.service
 5. 启动并查看apiserver的集群状态
 systemctl daemon-reload
 systemctl start kube-apiserver.service
