@@ -2,9 +2,7 @@
 环境约束：Kubernetes1.9.0最大支持docker版本为17.03.X。
 
 一、采用kubeadm
-
 1. 安装docker
-
     可以直接通过apt-get udpate && apt-get install -y docker.io 
 		docker version 得出版本为：Client/Server 1.13.1
     这里也可以指定docker版本下载，因为目前docker分为docker ce和docker ee两个版本，我们只能安装免费的docker ce。需要先安装相关工具：
