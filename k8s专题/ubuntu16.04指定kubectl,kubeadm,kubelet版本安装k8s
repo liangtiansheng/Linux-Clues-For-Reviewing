@@ -65,9 +65,8 @@
 	问题3： 怎么在apt-get install kubectl kubeadm kubelet时，选择特定版本下载安装？
 		以上是直接通过apt-get install -y kubectl kubeadm kubelet来安装的，这就不够灵活了。
 		# curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
-			注意：其中${RELEASE}对应RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
-			例如：v1.10.0
-				  其中的$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)，可以替换成你想要的版本，比如：v1.9.0
+        # curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.10.9/bin/linux/arm64/{kubeadm,kubelet,kubectl}
+			其中的$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)，可以替换成你想要的版本，比如：v1.11.1
 	这里还需要获取/etc/systemd/system/kubelet.service文件
 		# curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service
     再创建/etc/systemd/system/kubelet.service.d/10-kubeadm.conf文件
