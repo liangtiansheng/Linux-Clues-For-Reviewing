@@ -151,6 +151,7 @@ mode=1：(active-backup) Active-backup policy（主-备份策略）只有一个�
         TYPE=Ethernet
         MASTER=bond1
         SLAVE=yes
+mode=6,配置只需修改BOND_OPS中的mode即可，如果不指默认的就是bond0
     bonding配置参数
         在内核文档中，列举了许多bonding驱动的参数，然后本文不是文档的翻译，因此不再翻译文档和介绍和主题无关的参数，仅对比较重要的参数进行介绍，并且这些介绍也不是翻译，而是一些建议或者心得。
 
