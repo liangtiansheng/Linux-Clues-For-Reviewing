@@ -63,15 +63,32 @@
 	问题2： 怎么让master可以作为work节点，因为默认是不允许master作为工作节点的。
 		# kubectl taint nodes --all node-role.kubernetes.io/master-
 	问题3： 怎么在apt-get install kubectl kubeadm kubelet时，选择特定版本下载安装？
-		以上是直接通过apt-get install -y kubectl kubeadm kubelet来安装的，这就不够灵活了。
-		# curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
-        # curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.10.9/bin/linux/arm64/{kubeadm,kubelet,kubectl}
-			其中的$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)，可以替换成你想要的版本，比如：v1.11.1
-	这里还需要获取/etc/systemd/system/kubelet.service文件
-		# curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service
-    再创建/etc/systemd/system/kubelet.service.d/10-kubeadm.conf文件
-		# mkdir -p /etc/systemd/system/kubelet.service.d
-		# curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+		a.通过apt-cache showpkg kubeadm
+            root@master1:~# apt-cache showpkg kubeadm
+            Package: kubeadm
+            Versions: 
+            1.11.3-00 (/var/lib/dpkg/status)
+            Description Language: 
+                            File: /var/lib/dpkg/status
+                            MD5: bb3c7836839894793de38af875e01b30
+            Reverse Depends: 
+            Dependencies: 
+            1.11.3-00 - kubelet (2 1.6.0) kubectl (2 1.6.0) kubernetes-cni (5 0.6.0) cri-tools (2 1.11.0) 
+            Provides: //这里是手动下载了1.11.3这个版本，所以只有这一个提供了，官方实际提供了所有的版本http://apt.kubernetes.io/
+            1.11.3-00 - 
+            Reverse Provides: 
+            root@master1:~# 
+            然后执行安装相应的版本
+            root@master1:~# apt install kubeadm=1.11.3-00 
+        b.也可以通过二进制来安装
+            # curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+            # curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.10.9/bin/linux/arm64/{kubeadm,kubelet,kubectl}
+                其中的$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)，可以替换成你想要的版本，比如：v1.11.1
+	        这里还需要获取/etc/systemd/system/kubelet.service文件
+		    # curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service
+            再创建/etc/systemd/system/kubelet.service.d/10-kubeadm.conf文件
+		    # mkdir -p /etc/systemd/system/kubelet.service.d
+		    # curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 	问题4： 为什么执行kubeamd join之后，虽然在master上可以查看到节点，但是仍然为notReady？
 		这里还需要将admin.conf文件从master节点上拷贝到node节点上，同样可以写入/etc/profile
 		# scp root@<masterIp>:/etc/kubernetes/admin.conf /etc/kubernetes/admin.conf
@@ -156,3 +173,5 @@
 	3. 这里用火狐浏览器访问：https://nodeIp:NodePort/即可。
 	   在谷歌浏览器上出现非安全连接的https证书问题。
 	我们需要给登录dashboard或者说apiserver的user(图左侧)进行授权。
+
+
