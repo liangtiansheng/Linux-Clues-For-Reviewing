@@ -365,6 +365,64 @@ template:
         - containerPort: 80
 EOF
     kubectl apply -f nginx.yaml
+19、创建一个POD来测试DNS解析
+cat > centos.yaml <<EOF
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: centos-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: centos
+  template:
+    metadata:
+      name: centos-template
+      labels:
+        app: centos
+    spec:
+      containers:
+      - name: centos-container
+        image: arm64v8/centos
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh","-c","sleep 3600"]
+EOF
+    root@master1:~# kubectl apply -f centos/centos.yaml
+    root@master1:~/centos# kubectl exec -it centos-deploy-69755846fd-rmmlp bash
+    [root@centos-deploy-69755846fd-rmmlp /]# yum install bind-utils -y
+    root@master1:~# kubectl get svc --all-namespaces 
+    NAMESPACE     NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+    default       kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP         1d
+    default       nginx        NodePort    10.108.46.161   <none>        80:31000/TCP    5h
+    kube-system   kube-dns     ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP   23h
+    root@master1:~#
+    root@master1:~/centos# kubectl exec -it centos-deploy-69755846fd-rmmlp bash
+    [root@centos-deploy-69755846fd-rmmlp /]# dig @10.96.0.10 nginx.default.cluster.local. A
+
+    ; <<>> DiG 9.9.4-RedHat-9.9.4-61.el7_5.1 <<>> @10.96.0.10 nginx.default.cluster.local. A
+    ; (1 server found)
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 2361
+    ;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+    ;; OPT PSEUDOSECTION:
+    ; EDNS: version: 0, flags:; udp: 4096
+    ;; QUESTION SECTION:
+    ;nginx.default.cluster.local.	IN	A
+
+    ;; AUTHORITY SECTION:
+    cluster.local.		23	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1542784249 7200 1800 86400 30
+
+    ;; Query time: 1 msec
+    ;; SERVER: 10.96.0.10#53(10.96.0.10)
+    ;; WHEN: Wed Nov 21 07:11:39 UTC 2018
+    ;; MSG SIZE  rcvd: 149
+
+    [root@centos-deploy-69755846fd-rmmlp /]#
 
 
 
