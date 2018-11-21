@@ -25,11 +25,11 @@
     $ sudo modprobe br_netfilter
     $ sudo modprobe ip_vs
 5、所有节点配置转发相关参数，否则可能会出错
-    cat <<EOF >  /etc/sysctl.d/k8s.conf
-    net.bridge.bridge-nf-call-ip6tables = 1
-    net.bridge.bridge-nf-call-iptables = 1
-    vm.swappiness=0
-    EOF
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+vm.swappiness=0
+EOF
 
     sysctl --system
 6、所有节点加载ipvs相关模块：
@@ -59,109 +59,109 @@
     172.16.4.250       VIP
 9、三个master节点安装etcd，用二进制安装即可，这里不打算用证书配置etcd
 10、master1节点安装keepalived+haproxy,配置如下
-    cat  > keepalived-master.conf <<EOF
-    global_defs {
-        router_id lb-master-105
+cat  > keepalived-master.conf <<EOF
+global_defs {
+    router_id lb-master-105
+}
+
+vrrp_script check-haproxy {
+    script "killall -0 haproxy"
+    interval 5
+    weight -30
+}
+
+vrrp_instance VI-kube-master {
+    state MASTER
+    priority 120
+    dont_track_primary
+    interface ${VIP_IF}
+    virtual_router_id 68
+    advert_int 3
+    track_script {
+        check-haproxy
     }
-
-    vrrp_script check-haproxy {
-        script "killall -0 haproxy"
-        interval 5
-        weight -30
+    virtual_ipaddress {
+        ${MASTER_VIP}
     }
+}
+EOF
 
-    vrrp_instance VI-kube-master {
-        state MASTER
-        priority 120
-        dont_track_primary
-        interface ${VIP_IF}
-        virtual_router_id 68
-        advert_int 3
-        track_script {
-            check-haproxy
-        }
-        virtual_ipaddress {
-            ${MASTER_VIP}
-        }
-    }
-    EOF
+cat > haproxy.cfg <<EOF
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    chroot /var/lib/haproxy
+    stats socket /var/run/haproxy-admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+    nbproc 1
 
-    cat > haproxy.cfg <<EOF
-    global
-        log /dev/log    local0
-        log /dev/log    local1 notice
-        chroot /var/lib/haproxy
-        stats socket /var/run/haproxy-admin.sock mode 660 level admin
-        stats timeout 30s
-        user haproxy
-        group haproxy
-        daemon
-        nbproc 1
+defaults
+    log     global
+    timeout connect 5000
+    timeout client  10m
+    timeout server  10m
 
-    defaults
-        log     global
-        timeout connect 5000
-        timeout client  10m
-        timeout server  10m
+listen  admin_stats
+    bind 0.0.0.0:10080
+    mode http
+    log 127.0.0.1 local0 err
+    stats refresh 30s
+    stats uri /status
+    stats realm welcome login\ Haproxy
+    stats auth admin:123456
+    stats hide-version
+    stats admin if TRUE
 
-    listen  admin_stats
-        bind 0.0.0.0:10080
-        mode http
-        log 127.0.0.1 local0 err
-        stats refresh 30s
-        stats uri /status
-        stats realm welcome login\ Haproxy
-        stats auth admin:123456
-        stats hide-version
-        stats admin if TRUE
-
-    listen kube-master
-        bind 0.0.0.0:8443
-        mode tcp
-        option tcplog
-        balance source
-        server master1 172.16.4.61:6443 check inter 2000 fall 2 rise 2 weight 1
-        server master2 172.16.4.62:6443 check inter 2000 fall 2 rise 2 weight 1
-        server master3 172.16.4.63:6443 check inter 2000 fall 2 rise 2 weight 1
-    EOF
+listen kube-master
+    bind 0.0.0.0:8443
+    mode tcp
+    option tcplog
+    balance source
+    server master1 172.16.4.61:6443 check inter 2000 fall 2 rise 2 weight 1
+    server master2 172.16.4.62:6443 check inter 2000 fall 2 rise 2 weight 1
+    server master3 172.16.4.63:6443 check inter 2000 fall 2 rise 2 weight 1
+EOF
 11、master2,master3同样配置keepalived+haproxy，注意配置不同，主备优先级之类的
 12、master1上执行
     cd $HOME
-    cat << EOF > /root/kubeadm-init.yaml
-    apiVersion: kubeadm.k8s.io/v1alpha2
-    kind: MasterConfiguration
-    kubernetesVersion: v1.11.3      # kubernetes的版本
-    api:
-    advertiseAddress: 172.16.4.61   
-    bindPort: 6443
-    controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
-    apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
-    - master1
-    - master2
-    - master3
-    - 172.16.4.61
-    - 172.16.4.62
-    - 172.16.4.63
-    - 172.16.4.250
-    - 127.0.0.1
-    etcd:    #ETCD的地址
-    external:
-        endpoints:
-        - "http://172.16.4.61:2379"
-        - "http://172.16.4.62:2379"
-        - "http://172.16.4.63:2379"
+cat << EOF > /root/kubeadm-init.yaml
+apiVersion: kubeadm.k8s.io/v1alpha2
+kind: MasterConfiguration
+kubernetesVersion: v1.11.3      # kubernetes的版本
+api:
+advertiseAddress: 172.16.4.61   
+bindPort: 6443
+controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
+apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
+- master1
+- master2
+- master3
+- 172.16.4.61
+- 172.16.4.62
+- 172.16.4.63
+- 172.16.4.250
+- 127.0.0.1
+etcd:    #ETCD的地址
+external:
+    endpoints:
+    - "http://172.16.4.61:2379"
+    - "http://172.16.4.62:2379"
+    - "http://172.16.4.63:2379"
 #        caFile: /etc/kubernetes/pki/etcd/etcd-ca.pem
 #        certFile: /etc/kubernetes/pki/etcd/etcd.pem
 #        keyFile: /etc/kubernetes/pki/etcd/etcd-key.pem
-    networking:
-    podSubnet: 10.244.0.0/16      # pod网络的网段
-    kubeProxy:
-    config:
-        mode: ipvs   #启用IPVS模式
-    featureGates:
-    CoreDNS: true
+networking:
+podSubnet: 10.244.0.0/16      # pod网络的网段
+kubeProxy:
+config:
+    mode: ipvs   #启用IPVS模式
+featureGates:
+CoreDNS: true
 #    imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers  # image的仓库源
-    EOF
+EOF
     
     systemctl enable kubelet
 
@@ -172,9 +172,9 @@
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-    cat << EOF > /etc/profile.d/kubernetes.sh 
-    source <(kubectl completion bash)
-    EOF
+cat << EOF > /etc/profile.d/kubernetes.sh 
+source <(kubectl completion bash)
+EOF
     source /etc/profile.d/kubernetes.sh 
 
     scp -r /etc/kubernetes/pki 172.16.4.62:/etc/kubernetes/
@@ -184,41 +184,41 @@
     cd /etc/kubernetes/pki/
     rm -fr apiserver.crt apiserver.key
     cd $HOME
-    cat << EOF > /root/kubeadm-init.yaml
-    apiVersion: kubeadm.k8s.io/v1alpha2
-    kind: MasterConfiguration
-    kubernetesVersion: v1.11.3      # kubernetes的版本
-    api:
-    advertiseAddress: 172.16.4.62  
-    bindPort: 6443
-    controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
-    apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
-    - master1
-    - master2
-    - master3
-    - 172.16.4.61
-    - 172.16.4.62
-    - 172.16.4.63
-    - 172.16.4.250
-    - 127.0.0.1
-    etcd:    #ETCD的地址
-    external:
-        endpoints:
-        - "http://172.16.4.61:2379"
-        - "http://172.16.4.62:2379"
-        - "http://172.16.4.63:2379"
+cat << EOF > /root/kubeadm-init.yaml
+apiVersion: kubeadm.k8s.io/v1alpha2
+kind: MasterConfiguration
+kubernetesVersion: v1.11.3      # kubernetes的版本
+api:
+advertiseAddress: 172.16.4.62  
+bindPort: 6443
+controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
+apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
+- master1
+- master2
+- master3
+- 172.16.4.61
+- 172.16.4.62
+- 172.16.4.63
+- 172.16.4.250
+- 127.0.0.1
+etcd:    #ETCD的地址
+external:
+    endpoints:
+    - "http://172.16.4.61:2379"
+    - "http://172.16.4.62:2379"
+    - "http://172.16.4.63:2379"
 #        caFile: /etc/kubernetes/pki/etcd/etcd-ca.pem
 #        certFile: /etc/kubernetes/pki/etcd/etcd.pem
 #        keyFile: /etc/kubernetes/pki/etcd/etcd-key.pem
-    networking:
-    podSubnet: 10.244.0.0/16      # pod网络的网段
-    kubeProxy:
-    config:
-        mode: ipvs   #启用IPVS模式
-    featureGates:
-    CoreDNS: true
+networking:
+podSubnet: 10.244.0.0/16      # pod网络的网段
+kubeProxy:
+config:
+    mode: ipvs   #启用IPVS模式
+featureGates:
+CoreDNS: true
 #    imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers  # image的仓库源
-    EOF
+EOF
     
     systemctl enable kubelet
 
@@ -229,50 +229,50 @@
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-    cat << EOF > /etc/profile.d/kubernetes.sh 
-    source <(kubectl completion bash)
-    EOF
+cat << EOF > /etc/profile.d/kubernetes.sh 
+source <(kubectl completion bash)
+EOF
     source /etc/profile.d/kubernetes.sh 
 
 14、master3上执行
     cd /etc/kubernetes/pki/
     rm -fr apiserver.crt apiserver.key
     cd $HOME
-    cat << EOF > /root/kubeadm-init.yaml
-    apiVersion: kubeadm.k8s.io/v1alpha2
-    kind: MasterConfiguration
-    kubernetesVersion: v1.11.3      # kubernetes的版本
-    api:
-    advertiseAddress: 172.16.4.63  
-    bindPort: 6443
-    controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
-    apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
-    - master1
-    - master2
-    - master3
-    - 172.16.4.61
-    - 172.16.4.62
-    - 172.16.4.63
-    - 172.16.4.250
-    - 127.0.0.1
-    etcd:    #ETCD的地址
-    external:
-        endpoints:
-        - "http://172.16.4.61:2379"
-        - "http://172.16.4.62:2379"
-        - "http://172.16.4.63:2379"
+cat << EOF > /root/kubeadm-init.yaml
+apiVersion: kubeadm.k8s.io/v1alpha2
+kind: MasterConfiguration
+kubernetesVersion: v1.11.3      # kubernetes的版本
+api:
+advertiseAddress: 172.16.4.63  
+bindPort: 6443
+controlPlaneEndpoint: 172.16.4.250:8443   #VIP地址
+apiServerCertSANs:              #此处填所有的masterip和lbip和其它你可能需要通过它访问apiserver的地址和域名或者主机名等
+- master1
+- master2
+- master3
+- 172.16.4.61
+- 172.16.4.62
+- 172.16.4.63
+- 172.16.4.250
+- 127.0.0.1
+etcd:    #ETCD的地址
+external:
+    endpoints:
+    - "http://172.16.4.61:2379"
+    - "http://172.16.4.62:2379"
+    - "http://172.16.4.63:2379"
 #        caFile: /etc/kubernetes/pki/etcd/etcd-ca.pem
 #        certFile: /etc/kubernetes/pki/etcd/etcd.pem
 #        keyFile: /etc/kubernetes/pki/etcd/etcd-key.pem
-    networking:
-    podSubnet: 10.244.0.0/16      # pod网络的网段
-    kubeProxy:
-    config:
-        mode: ipvs   #启用IPVS模式
-    featureGates:
-    CoreDNS: true
+networking:
+podSubnet: 10.244.0.0/16      # pod网络的网段
+kubeProxy:
+config:
+    mode: ipvs   #启用IPVS模式
+featureGates:
+CoreDNS: true
 #    imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers  # image的仓库源
-    EOF
+EOF
     
     systemctl enable kubelet
 
@@ -283,9 +283,9 @@
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-    cat << EOF > /etc/profile.d/kubernetes.sh 
-    source <(kubectl completion bash)
-    EOF
+cat << EOF > /etc/profile.d/kubernetes.sh 
+source <(kubectl completion bash)
+EOF
     source /etc/profile.d/kubernetes.sh 
 
 15、将所有node节点加入集群
@@ -325,47 +325,45 @@
     root@master1:~# 
 18、创建一个nginx，测试应用和dns是否正常
     cd /root && mkdir nginx && cd nginx
+cat << EOF > nginx.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+name: nginx
+spec:
+selector:
+    app: nginx
+type: NodePort
+ports:
+- port: 80
+    nodePort: 31000
+    name: nginx-port
+    targetPort: 80
+    protocol: TCP
 
-    cat << EOF > nginx.yaml
-    ---
-    apiVersion: v1
-    kind: Service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: nginx
+spec:
+replicas: 2
+selector:
+    matchLabels:
+    app: nginx
+template:
     metadata:
     name: nginx
-    spec:
-    selector:
+    labels:
         app: nginx
-    type: NodePort
-    ports:
-    - port: 80
-        nodePort: 31000
-        name: nginx-port
-        targetPort: 80
-        protocol: TCP
-
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-    name: nginx
     spec:
-    replicas: 2
-    selector:
-        matchLabels:
-        app: nginx
-    template:
-        metadata:
-        name: nginx
-        labels:
-            app: nginx
-        spec:
-        containers:
-        - name: nginx
-            image: nginx
-            ports:
-            - containerPort: 80
-    EOF
-
+    containers:
+    - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+EOF
     kubectl apply -f nginx.yaml
 
 
