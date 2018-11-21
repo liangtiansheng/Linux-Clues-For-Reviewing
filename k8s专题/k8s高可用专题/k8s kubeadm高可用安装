@@ -180,7 +180,7 @@
     scp -r /etc/kubernetes/pki 172.16.4.62:/etc/kubernetes/
     scp -r /etc/kubernetes/pki 172.16.4.63:/etc/kubernetes/
 
-13、master2上执行
+13、master2上执行，注意advertiseAddress不同
     cd /etc/kubernetes/pki/
     rm -fr apiserver.crt apiserver.key
     cd $HOME
@@ -323,6 +323,50 @@
     kube-system   kube-scheduler-master2            1/1       Running   0          2h
     kube-system   kube-scheduler-master3            1/1       Running   0          2h
     root@master1:~# 
+18、创建一个nginx，测试应用和dns是否正常
+    cd /root && mkdir nginx && cd nginx
+
+    cat << EOF > nginx.yaml
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: nginx
+    spec:
+    selector:
+        app: nginx
+    type: NodePort
+    ports:
+    - port: 80
+        nodePort: 31000
+        name: nginx-port
+        targetPort: 80
+        protocol: TCP
+
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+    name: nginx
+    spec:
+    replicas: 2
+    selector:
+        matchLabels:
+        app: nginx
+    template:
+        metadata:
+        name: nginx
+        labels:
+            app: nginx
+        spec:
+        containers:
+        - name: nginx
+            image: nginx
+            ports:
+            - containerPort: 80
+    EOF
+
+    kubectl apply -f nginx.yaml
 
 
 
