@@ -470,6 +470,7 @@ sed -i s@--streaming-server-addr=192.168.2.117@--streaming-server-addr=$ssa@g /l
 
 #start all services
 [ ! -d /var/log/hyper ] && mkdir /var/log/hyper
+[ ! -d /var/log/frakti ] && mkdir /var/log/frakti
 systemctl daemon-reload
 service hyperd start
 systemctl enable hyperd
