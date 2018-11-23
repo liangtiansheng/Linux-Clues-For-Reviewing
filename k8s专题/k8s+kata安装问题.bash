@@ -244,6 +244,6 @@ FAQ
         ExecStart=
         ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
         root@compute1:~# 
-                    
+        ---->现在关于kata的内部通信机制的轮廓应该清淅了，api-->kubelet(各种启动参数指向frakti)-->frakti(接受用户传来的参数)-->hyperd-->qemu-kvm(/etc/hyper/config有介绍)-->hyperctl pull images               
 			
 			
