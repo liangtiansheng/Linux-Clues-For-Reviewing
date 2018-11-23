@@ -450,6 +450,7 @@ systemctl enable kubelet
 #cd ${GOPATH}/src/github.com/hyperhq/hyperd
 cp /root/k8s_kata/hyperd -rf /usr/bin/hyperd
 cp /root/k8s_kata/hyperctl -rf /usr/bin/hyperctl
+chmod +x /usr/bin/{hyperctl,hyperd}
 cp /root/k8s_kata/hyperd.service /lib/systemd/system/
 [ ! -d /etc/hyper ] && mkdir /etc/hyper
 cp /root/k8s_kata/config /etc/hyper/
@@ -458,6 +459,7 @@ cp /root/k8s_kata/{kernel,hyper-initrd.img} /var/lib/hyper/
 #configure frakti
 #cd $GOPATH/src/k8s.io/frakti
 cp -f /root/k8s_kata/frakti /usr/bin
+chmod +x /usr/bin/frakti
 ceph_drive_dir=/usr/libexec/kubernetes/kubelet-plugins/volume/exec/hyper~cephrbd
 [ ! -d $ceph_drive_dir ] && mkdir -p $ceph_drive_dir
 cp /root/k8s_kata/cephrbd /usr/libexec/kubernetes/kubelet-plugins/volume/exec/hyper~cephrbd/cephrbd
