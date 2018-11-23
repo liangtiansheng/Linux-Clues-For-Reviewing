@@ -463,6 +463,7 @@ chmod +x /usr/bin/frakti
 ceph_drive_dir=/usr/libexec/kubernetes/kubelet-plugins/volume/exec/hyper~cephrbd
 [ ! -d $ceph_drive_dir ] && mkdir -p $ceph_drive_dir
 cp /root/k8s_kata/cephrbd /usr/libexec/kubernetes/kubelet-plugins/volume/exec/hyper~cephrbd/cephrbd
+chmod +x /usr/libexec/kubernetes/kubelet-plugins/volume/exec/hyper~cephrbd/cephrbd
 cp /root/k8s_kata/frakti.service /lib/systemd/system/
 ssa=`ifconfig eth0 | grep "\<inet\>" | awk '{print $2}' | awk -F":" '{print $2}'`
 sed -i s@--streaming-server-addr=192.168.2.117@--streaming-server-addr=$ssa@g /lib/systemd/system/frakti.service
