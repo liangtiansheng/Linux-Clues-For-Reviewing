@@ -57,7 +57,7 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
     # make
     # make push(这一步可以创建镜像，但是源码中就会上传至quay.io/external_storage/rbd-provisioner:latest，没有权限，可以上传到自己的仓库)
 
-***以下根据操作思路来进行，具体问题具体分析
+***以下根据操作思路来进行，具体问题具体分析，以下文件都是成功测试后复制下来的
     1、修改external-storage中的deploy文件
         root@master1:~/dynamic_pvc/official_env# cat clusterrolebinding.yaml 
         kind: ClusterRoleBinding
@@ -157,6 +157,67 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         metadata:
         name: rbd-provisioner
         root@master1:~/dynamic_pvc/official_env# 
+    2、自定义几个文件
+        root@master1:~/dynamic_pvc# cat ceph-storageclass.yaml 
+        apiVersion: storage.k8s.io/v1beta1
+        kind: StorageClass
+        metadata:
+        name: dynamic
+        annotations:
+            storageclass.beta.kubernetes.io/is-default-class: "true"
+        #provisioner: kubernetes.io/rbd
+        provisioner: ceph.com/rbd
+        parameters:
+        monitors: 172.16.4.61:6789,172.16.4.62:6789,172.16.4.63:6789 ##ceph的monitor用逗号隔开
+        adminId: admin ##可以在存储池创建镜像的客户端ID，默认情况下是admin
+        adminSecretName: ceph-secret ##admin客户端的密钥文件，密钥文件必须要有type kubernetes.io/rbd，这里用的是外挂，所以改成外挂对应的type: ceph.com/rbd
+        adminSecretNamespace: default ##admin客户端的名称空间，默认是default
+        pool: kube ##ceph的rbd pool，默认是rbd，但是不建议
+        userId: kube ##用来映射ceph rbd镜像的客户端ID，默认情况下也是admin
+        userSecretName: ceph-user-secret ##映射ceph rbd镜像客户端的密钥文件，必须跟pvc处于同一名称空间，必须要有，除非设成新项目的默认值，可参考https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html
+        root@master1:~/dynamic_pvc# 
+
+        $ ceph osd pool create kube 1024
+        $ ceph auth get-or-create client.kube mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=kube' -o ceph.client.kube.keyring
+        root@master1:~/dynamic_pvc# cat ceph_secret.yaml 
+        apiVersion: v1
+        kind: Secret
+        metadata:
+        name: ceph-secret
+        data:
+        key: QVFEeWR2ZGJ1ZjdpRkJBQTB2WVVGSmNxOTRWbE1tTXMzTHQyY2c9PQ==
+        type: ceph.com/rbd
+        root@master1:~/dynamic_pvc# 
+        ##在mon节点上用ceph auth get-key client.admin | base64 获得key
+        ##ceph提供动态存储时要用到ceph-secret
+
+        root@master1:~/dynamic_pvc# cat ceph_user_secret.yaml 
+        apiVersion: v1
+        kind: Secret
+        metadata:
+        name: ceph-user-secret
+        data:
+        key: QVFCMW1meGJtbHVOSUJBQUU0Uk92czNYU2kzWUJvR1BIZmRoMkE9PQ==
+        type: ceph.com/rbd
+        root@master1:~/dynamic_pvc# 
+        ##映射ceph rbd镜像客户端的密钥
+
+        root@master1:~/dynamic_pvc# cat ceph-claim.yaml 
+        kind: PersistentVolumeClaim
+        apiVersion: v1
+        metadata:
+        name: ceph-claim
+        spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+            requests:
+            storage: 2Gi
+        root@master1:~/dynamic_pvc# 
+        ##创建pvc事例
+    问题1、出现rbd-provisioner寻找admin的secret错误，因为两个文件直接下载下来是在不同名称空间内的，所以要调整在一个名称空间
+    问题2、这次实验修改了Dockerfile中的基础镜像，分别以centos7和ubuntu:16.04进行编译，都可以成功，上传时报错，源码是要直接上传至quay.io上去，没权限，不要紧，上传到自己的dockerhub
+    问是2、最棘手的报错是ImportError: librados.so.2: cannot map zero-fill pages，进入rbd容器后执行ceph命令都是这种错，原因最终查得是pod的内存分配有问题，默认的是128M，改成limits 800M后，成功实现
 
 
 
