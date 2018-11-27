@@ -402,7 +402,7 @@ EOF
     root@master1:~/centos# kubectl exec -it centos-deploy-69755846fd-rmmlp bash
     [root@centos-deploy-69755846fd-rmmlp /]# dig @10.96.0.10 nginx.default.cluster.local. A
 
-    ; <<>> DiG 9.9.4-RedHat-9.9.4-61.el7_5.1 <<>> @10.96.0.10 nginx.default.cluster.local. A
+    '<<>> DiG 9.9.4-RedHat-9.9.4-61.el7_5.1 <<>> @10.96.0.10 nginx.default.cluster.local. A
     ; (1 server found)
     ;; global options: +cmd
     ;; Got answer:
@@ -449,7 +449,7 @@ EOF
 
     <p><em>Thank you for using nginx.</em></p>
     </body>
-    </html>
+    </html>'
     [root@centos-deploy-69755846fd-9nxl4 /]#
 20、关闭vip所在的节点，发现vip飘到了master2
 
