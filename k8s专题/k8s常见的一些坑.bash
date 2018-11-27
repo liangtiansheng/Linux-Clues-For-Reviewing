@@ -57,6 +57,108 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
     # make
     # make push(这一步可以创建镜像，但是源码中就会上传至quay.io/external_storage/rbd-provisioner:latest，没有权限，可以上传到自己的仓库)
 
+***以下根据操作思路来进行，具体问题具体分析
+    1、修改external-storage中的deploy文件
+        root@master1:~/dynamic_pvc/official_env# cat clusterrolebinding.yaml 
+        kind: ClusterRoleBinding
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+        name: rbd-provisioner
+        subjects:
+        - kind: ServiceAccount
+            name: rbd-provisioner
+            namespace: default
+        roleRef:
+        kind: ClusterRole
+        name: rbd-provisioner
+        apiGroup: rbac.authorization.k8s.io
+
+        root@master1:~/dynamic_pvc/official_env# cat clusterrole.yaml 
+        kind: ClusterRole
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+        name: rbd-provisioner
+        rules:
+        - apiGroups: [""]
+            resources: ["persistentvolumes"]
+            verbs: ["get", "list", "watch", "create", "delete"]
+        - apiGroups: [""]
+            resources: ["persistentvolumeclaims"]
+            verbs: ["get", "list", "watch", "update"]
+        - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["get", "list", "watch"]
+        - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create", "update", "patch"]
+        - apiGroups: [""]
+            resources: ["services"]
+            resourceNames: ["kube-dns","coredns"]
+            verbs: ["list", "get"]
+        - apiGroups: [""]
+            resources: ["endpoints"]
+            verbs: ["get", "list", "watch", "create", "update", "patch"]
+        root@master1:~/dynamic_pvc/official_env# 
+        root@master1:~/dynamic_pvc/official_env# cat deployment.yaml 
+        apiVersion: extensions/v1beta1
+        kind: Deployment
+        metadata:
+        name: rbd-provisioner
+        spec:
+        replicas: 1
+        strategy:
+            type: Recreate
+        template:
+            metadata:
+            labels:
+                app: rbd-provisioner
+            spec:
+            containers:
+            - name: rbd-provisioner
+                image: "quay.io/external_storage/rbd-provisioner"
+                resources:
+                limits: ###关于这个资源定义问题，下面会着重强调
+                    memory: "800Mi"
+                imagePullPolicy: IfNotPresent
+                env:
+                - name: PROVISIONER_NAME
+                value: ceph.com/rbd
+            serviceAccount: rbd-provisioner
+        root@master1:~/dynamic_pvc/official_env#
+        root@master1:~/dynamic_pvc/official_env# cat rolebinding.yaml 
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+        name: rbd-provisioner
+        roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: rbd-provisioner
+        subjects:
+        - kind: ServiceAccount
+        name: rbd-provisioner
+        namespace: default
+        root@master1:~/dynamic_pvc/official_env# 
+        root@master1:~/dynamic_pvc/official_env# cat role.yaml 
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+        name: rbd-provisioner
+        rules:
+        - apiGroups: [""]
+        resources: ["secrets"]
+        verbs: ["get"]
+        - apiGroups: [""]
+        resources: ["endpoints"]
+        verbs: ["get", "list", "watch", "create", "update", "patch"]
+        root@master1:~/dynamic_pvc/official_env# cat serviceaccount.yaml 
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+        name: rbd-provisioner
+        root@master1:~/dynamic_pvc/official_env# 
+
+
 
 
 
