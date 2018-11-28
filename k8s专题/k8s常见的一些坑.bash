@@ -69,35 +69,35 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
             name: rbd-provisioner
             namespace: default
         roleRef:
-        kind: ClusterRole
-        name: rbd-provisioner
-        apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: rbd-provisioner
+          apiGroup: rbac.authorization.k8s.io
 
         root@master1:~/dynamic_pvc/official_env# cat clusterrole.yaml 
         kind: ClusterRole
         apiVersion: rbac.authorization.k8s.io/v1
         metadata:
-        name: rbd-provisioner
+          name: rbd-provisioner
         rules:
         - apiGroups: [""]
-            resources: ["persistentvolumes"]
-            verbs: ["get", "list", "watch", "create", "delete"]
+          resources: ["persistentvolumes"]
+          verbs: ["get", "list", "watch", "create", "delete"]
         - apiGroups: [""]
-            resources: ["persistentvolumeclaims"]
-            verbs: ["get", "list", "watch", "update"]
+          resources: ["persistentvolumeclaims"]
+          verbs: ["get", "list", "watch", "update"]
         - apiGroups: ["storage.k8s.io"]
-            resources: ["storageclasses"]
-            verbs: ["get", "list", "watch"]
+          resources: ["storageclasses"]
+          verbs: ["get", "list", "watch"]
         - apiGroups: [""]
-            resources: ["events"]
-            verbs: ["create", "update", "patch"]
+          resources: ["events"]
+          verbs: ["create", "update", "patch"]
         - apiGroups: [""]
-            resources: ["services"]
-            resourceNames: ["kube-dns","coredns"]
-            verbs: ["list", "get"]
+          resources: ["services"]
+          resourceNames: ["kube-dns","coredns"]
+          verbs: ["list", "get"]
         - apiGroups: [""]
-            resources: ["endpoints"]
-            verbs: ["get", "list", "watch", "create", "update", "patch"]
+          resources: ["endpoints"]
+          verbs: ["get", "list", "watch", "create", "update", "patch"]
         root@master1:~/dynamic_pvc/official_env# 
         root@master1:~/dynamic_pvc/official_env# cat deployment.yaml 
         apiVersion: extensions/v1beta1
@@ -129,52 +129,52 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         apiVersion: rbac.authorization.k8s.io/v1
         kind: RoleBinding
         metadata:
-        name: rbd-provisioner
+          name: rbd-provisioner
         roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: Role
-        name: rbd-provisioner
+          apiGroup: rbac.authorization.k8s.io
+          kind: Role
+          name: rbd-provisioner
         subjects:
         - kind: ServiceAccount
-        name: rbd-provisioner
-        namespace: default
+          name: rbd-provisioner
+          namespace: default
         root@master1:~/dynamic_pvc/official_env# 
         root@master1:~/dynamic_pvc/official_env# cat role.yaml 
         apiVersion: rbac.authorization.k8s.io/v1
         kind: Role
         metadata:
-        name: rbd-provisioner
+          name: rbd-provisioner
         rules:
         - apiGroups: [""]
-        resources: ["secrets"]
-        verbs: ["get"]
+          resources: ["secrets"]
+          verbs: ["get"]
         - apiGroups: [""]
-        resources: ["endpoints"]
-        verbs: ["get", "list", "watch", "create", "update", "patch"]
+          resources: ["endpoints"]
+          verbs: ["get", "list", "watch", "create", "update", "patch"]
         root@master1:~/dynamic_pvc/official_env# cat serviceaccount.yaml 
         apiVersion: v1
         kind: ServiceAccount
         metadata:
-        name: rbd-provisioner
+          name: rbd-provisioner
         root@master1:~/dynamic_pvc/official_env# 
     2、自定义几个文件
         root@master1:~/dynamic_pvc# cat ceph-storageclass.yaml 
         apiVersion: storage.k8s.io/v1beta1
         kind: StorageClass
         metadata:
-        name: dynamic
-        annotations:
+          name: dynamic
+          annotations:
             storageclass.beta.kubernetes.io/is-default-class: "true"
         #provisioner: kubernetes.io/rbd
         provisioner: ceph.com/rbd
         parameters:
-        monitors: 172.16.4.61:6789,172.16.4.62:6789,172.16.4.63:6789 ##ceph的monitor用逗号隔开
-        adminId: admin ##可以在存储池创建镜像的客户端ID，默认情况下是admin
-        adminSecretName: ceph-secret ##admin客户端的密钥文件，密钥文件必须要有type kubernetes.io/rbd，这里用的是外挂，所以改成外挂对应的type: ceph.com/rbd
-        adminSecretNamespace: default ##admin客户端的名称空间，默认是default
-        pool: kube ##ceph的rbd pool，默认是rbd，但是不建议
-        userId: kube ##用来映射ceph rbd镜像的客户端ID，默认情况下也是admin
-        userSecretName: ceph-user-secret ##映射ceph rbd镜像客户端的密钥文件，必须跟pvc处于同一名称空间，必须要有，除非设成新项目的默认值，可参考https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html
+          monitors: 172.16.4.61:6789,172.16.4.62:6789,172.16.4.63:6789 ##ceph的monitor用逗号隔开
+          adminId: admin ##可以在存储池创建镜像的客户端ID，默认情况下是admin
+          adminSecretName: ceph-secret ##admin客户端的密钥文件，密钥文件必须要有type kubernetes.io/rbd，这里用的是外挂，所以改成外挂对应的type: ceph.com/rbd
+          adminSecretNamespace: default ##admin客户端的名称空间，默认是default
+          pool: kube ##ceph的rbd pool，默认是rbd，但是不建议
+          userId: kube ##用来映射ceph rbd镜像的客户端ID，默认情况下也是admin
+          userSecretName: ceph-user-secret ##映射ceph rbd镜像客户端的密钥文件，必须跟pvc处于同一名称空间，必须要有，除非设成新项目的默认值，可参考https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html
         root@master1:~/dynamic_pvc# 
 
         $ ceph osd pool create kube 1024
@@ -183,9 +183,9 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         apiVersion: v1
         kind: Secret
         metadata:
-        name: ceph-secret
+          name: ceph-secret
         data:
-        key: QVFEeWR2ZGJ1ZjdpRkJBQTB2WVVGSmNxOTRWbE1tTXMzTHQyY2c9PQ==
+          key: QVFEeWR2ZGJ1ZjdpRkJBQTB2WVVGSmNxOTRWbE1tTXMzTHQyY2c9PQ==
         type: ceph.com/rbd
         root@master1:~/dynamic_pvc# 
         ##在mon节点上用ceph auth get-key client.admin | base64 获得key
@@ -195,9 +195,9 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         apiVersion: v1
         kind: Secret
         metadata:
-        name: ceph-user-secret
+          name: ceph-user-secret
         data:
-        key: QVFCMW1meGJtbHVOSUJBQUU0Uk92czNYU2kzWUJvR1BIZmRoMkE9PQ==
+          key: QVFCMW1meGJtbHVOSUJBQUU0Uk92czNYU2kzWUJvR1BIZmRoMkE9PQ==
         type: ceph.com/rbd
         root@master1:~/dynamic_pvc# 
         ##映射ceph rbd镜像客户端的密钥
@@ -206,12 +206,12 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         kind: PersistentVolumeClaim
         apiVersion: v1
         metadata:
-        name: ceph-claim
+          name: ceph-claim
         spec:
         accessModes:
         - ReadWriteOnce
         resources:
-            requests:
+          requests:
             storage: 2Gi
         root@master1:~/dynamic_pvc# 
         ##创建pvc事例
