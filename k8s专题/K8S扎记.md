@@ -19,7 +19,15 @@
 > > 5、kubelet 负责维持容器的生命周期，同时也负责 Volume（CVI）和网络（CNI）的管理；   
 > > 6、Container runtime 负责镜像管理以及 Pod 和容器的真正运行（CRI），默认的容器运行时为 Docker；   
 > > 7、kube-proxy 负责为 Service 提供 cluster 内部的服务发现和负载均衡；   
-![K8s组件](./images/K8s组件.png)
+![K8s组件](./images/K8s组件.png)   
+> >
+>  除了核心组件，还有一些推荐的 Add-ons：   
+> > 1、coredns(kube-dns)负责为整个集群提供 DNS 服务   
+> > 2、Ingress Controller 为服务提供外网入口   
+> > 3、metrics-server(heapster) 提供资源监控
+> > 4、Dashboard 提供 GUI   
+> > 5、Federation 提供跨可用区的集群   
+> > 6、Fluentd-elasticsearch 提供集群日志采集、存储与查询   
 
 
 
