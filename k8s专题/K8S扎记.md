@@ -8,6 +8,10 @@
 > > 3、Borglet 负责真正运行任务（在容器中）；   
 > > 4、borgcfg 是 Borg 的命令行工具，用于跟 Borg 系统交互，一般通过一个配置文件来提交任务。   
 
+## Kubernetes 架构
+> Kubernetes 借鉴了 Borg 的设计理念，比如 Pod、Service、Labels 和单 Pod 单 IP 等。Kubernetes 的整体架构跟 Borg 非常像，如下图所示   
+![K8s架构](./images/K8s架构.png)
+
 
 
 
