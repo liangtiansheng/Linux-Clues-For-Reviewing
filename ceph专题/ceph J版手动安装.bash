@@ -102,7 +102,7 @@
             [root@mon1 ~]# scp /var/lib/ceph/bootstrap-osd/ceph.keyring root@osd1:/var/lib/ceph/bootstrap-osd/
             [root@mon1 ~]# scp /tmp/ceph.mon.keyring root@osd1:/tmp/ceph.mon.keyring //这个可以不用复制，因为3.3这步手动获取到了ceph.mon.keyring，但是要改成ceph属主属组
         3.2、在osd1上创建一个默认的数据目录
-            [root@osd1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd1
+            [root@osd1 ~]# sudo -u ceph mkdir /var/lib/ceph/mon/ceph-osd1 //这个目录可以不用手动创建，ceph-mon --mkfs -i命令会自动创建，目录命名为ceph-`hostname`
         3.3、获取密钥和monmap信息
             [root@osd1 ~]# ceph auth get mon. -o /tmp/ceph.mon.keyring //可以通过这个命令获取第一次创建的ceph.mon.keyring，然后改成ceph属主属组，不然会报没有权限，官方没有改权限这一步，是个坑
             exported keyring for mon.
