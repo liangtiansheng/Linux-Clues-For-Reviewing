@@ -125,9 +125,7 @@
             ***生成ta.key文件（防DDos攻击、UDP淹没等恶意攻击）
             # openvpn --genkey --secret keys/ta.key
         3、创建服务器端配置文件
-            ***在openvpn的配置目录下新建一个keys目录
-            # mkdir /etc/openvpn/keys
-            ***将需要用到的openvpn证书和密钥复制一份到刚创建好的keys目录中
+            ***将需要用到的openvpn证书和密钥复制一份到根目录下/etc/openvpn中
             # cp /usr/share/easy-rsa/keys/{ca.crt,server.{crt,key},dh2048.pem,ta.key} /etc/openvpn
             ***复制一份服务器端配置文件模板server.conf到/etc/openvpn/
             # gzip -d /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz
