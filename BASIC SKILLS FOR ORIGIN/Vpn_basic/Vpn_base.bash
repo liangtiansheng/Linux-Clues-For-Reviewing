@@ -134,7 +134,7 @@
             # grep '^[^#;]' /etc/openvpn/server.conf
             ***编辑server.conf
             # vim /etc/openvpn/server.conf 
-                ########## 注意这个文件使用的都是相对路径，根目录是/etc/openvpn/，如果在根目录下创建了一个keys目录，证书和密钥放在keys下，那引用就是keys/ca.crt ##########
+                # 注意这个文件使用的都是相对路径，根目录是/etc/openvpn/，如果在根目录下创建了一个keys目录，证书和密钥放在keys下，那引用就是keys/ca.crt ##########
                 #OpenVPN应该监听本机的哪些IP地址？
                 #该命令是可选的，如果不设置，则默认监听本机的所有IP地址。
                 ;local a.b.c.d
