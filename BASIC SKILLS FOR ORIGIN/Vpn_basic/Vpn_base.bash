@@ -341,6 +341,8 @@
             # openvpn --daemon --cd /etc/openvpn --config client.ovpn --log-append /var/log/openvpn.log &
             ***上面是以守护进程启动的，可以把上面脚本放在/etc/rc.local实现开机启动。或者使用以服务的形式启动，如果想清晰明了，建议放在启动脚本。
 
+        友情提示：经过生产环境多次测试，如果vpn不能拔通，一定要仔细检查服务器端server.conf和客户端的client.ovpn两个配置文件，只有相对应的项匹配才能拔通，比如两端是tcp还是udp，是否都开启tls-auth等
+
 
 
 
