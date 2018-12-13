@@ -217,7 +217,63 @@ Sep 23 16:34:58 master kubelet: E0923 16:34:58.814833   11405 summary.go:102] Fa
         ##创建pvc事例
     问题1、出现rbd-provisioner寻找admin的secret错误，因为两个文件直接下载下来是在不同名称空间内的，所以要调整在一个名称空间
     问题2、这次实验修改了Dockerfile中的基础镜像，分别以centos7和ubuntu:16.04进行编译，都可以成功，上传时报错，源码是要直接上传至quay.io上去，没权限，不要紧，上传到自己的dockerhub
-    问是2、最棘手的报错是ImportError: librados.so.2: cannot map zero-fill pages，进入rbd容器后执行ceph命令都是这种错，原因最终查得是pod的内存分配有问题，默认的是128M，改成limits 800M后，成功实现
+    问题3、最棘手的报错是ImportError: librados.so.2: cannot map zero-fill pages，进入rbd容器后执行ceph命令都是这种错，原因最终查得是pod的内存分配有问题，默认的是128M，改成limits 800M后，成功实现
+    问题4、yaml文件中定义资源时一定注意，同种字段不要定义两次，因为即便定义两次，也只可能一个生效，如下有两个volumes，只有一个生效，应该去掉一个volumes，volumes本来就是列表形式
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: galera
+  namespace: middleware
+spec:
+  replicas: 3
+  serviceName: roundrobin-mysql
+  template:
+    metadata:
+      labels:
+        app: galera
+      namespace: middleware
+    spec:
+      containers:
+      - name: mariadb
+        image: liangtiansheng/mariadb-galera-arm64v8:v10.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 2Gi
+        ports:
+        - containerPort: 3306
+          name: mysql
+      readinessProbe:
+          exec:
+            command: ["bash", "-c", "mysql -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -e 'show databases;'"]
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: mariadbconfig
+          mountPath: /etc/mysql/conf.d
+        - name: datadir
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mariadbconfig
+        configMap:
+          name: mysql-config
+          items:
+          - path: "galera.cnf"
+            key: galera.cnf
+          - path: "mariadb.cnf"
+            key: mariadb.cnf
+          - path: "tune.cnf"
+            key: tune.cnf
+      volumes:
+      - name: datadir
+#        persistentVolumeClaim:
+#          claimName: wp-pv-claim
+        flexVolume:
+          driver: "hyper/cephrbd"
+          fsType: "ext4"
+          options:
+            pool: "mariadb-galera"
+            volumeID: "mariadb-galera-itself"
 
 
 
