@@ -1,14 +1,27 @@
 
 ################ ubuntu 16.04 简单操作 ##############
 1、安装gnome
-
 apt-get install --no-install-recommends ubuntu-desktop gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal -y
-2、安装dpi
 
+2、安装dpi
 sudo apt-get install xfonts-100dpi
 sudo apt-get install xfonts-75dpi
-2、修改vi /home/yp/.vnc/xstartup
 
+3、启动vnc
+root@ly-os:~# vncserver :1
+You will require a password to access your desktops.
+Password:
+Password must be at least 6 characters - try again
+Password:
+Verify:
+Password too long - only the first 8 characters will be used
+New 'ly-os:1 (root)' desktop is ly-os:1
+Creating default startup script /root/.vnc/xstartup
+Starting applications specified in /root/.vnc/xstartup
+Log file is /root/.vnc/ly-os:1.log
+root@ly-os:~# 
+
+4、修改vi /home/yp/.vnc/xstartup
 #!/bin/sh
 # Uncomment the following two lines for normal desktop:
 export XKL_XMODMAP_DISABLE=1
