@@ -489,9 +489,7 @@ k8s安装：
                 LoadBalancer:
                     云服务的LBaas-->NodePort-->pods
                 ExternalName:
-                ***This Service definition, for example, would map the my-service Service in the prod namespace to my.database.example.com:
-                ***When looking up the host my-service.prod.svc.CLUSTER, the cluster DNS service will return a CNAME record with the value my.database.example.com
-                ***That redirection happens at the DNS level rather than via proxying or forwarding
+                当查询主机 my-service.prod.svc.CLUSTER时，集群的 DNS 服务将返回一个值为 my.database.example.com 的 CNAME 记录。 访问这个服务的工作方式与其它的相同，唯一不同的是重定向发生在 DNS 层，而且不会进行代理或转发。 如果后续决定要将数据库迁移到 Kubernetes 集群中，可以启动对应的 Pod，增加合适的 Selector 或 Endpoint，修改 Service 的 type。
                     kind: Service
                     apiVersion: v1
                     metadata:
