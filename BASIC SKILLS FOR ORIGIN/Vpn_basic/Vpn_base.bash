@@ -289,6 +289,7 @@
             # sysctl -p
             ***配置防火墙，别忘记保存
             # iptables -I INPUT -p tcp --dport 1194 -m comment --comment "openvpn" -j ACCEPT
+            ***这一句可以保证客户端可以与服务器所在的其它网段主机通信，甚至可以上网
             # iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
             # mkdir /etc/iptables
             # iptables-save > /etc/iptables/iptables.conf
