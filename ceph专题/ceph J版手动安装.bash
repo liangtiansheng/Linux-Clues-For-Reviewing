@@ -673,9 +673,9 @@
                 [root@osd2 ~]# mkdir /var/log/radosgw
                 [root@osd2 ~]# chown ceph:ceph /var/log/radosgw
             e、 启动osd1和osd2上的rgw服务
-                [root@osd1 ~]# systemctl restart ceph-radosgw@rgw.mon1
-                [root@osd1 ~]# systemctl status ceph-radosgw@rgw.mon1
-                ● ceph-radosgw@rgw.mon1.service - Ceph rados gateway
+                [root@osd1 ~]# systemctl start ceph-radosgw@rgw.osd1
+                [root@osd1 ~]# systemctl status ceph-radosgw@rgw.osd1
+                ● ceph-radosgw@rgw.osd1.service - Ceph rados gateway
                     Loaded: loaded (/usr/lib/systemd/system/ceph-radosgw@.service; disabled; vendor preset: disabled)
                     Active: active (running) since Tue 2018-07-03 13:19:51 CST; 5s ago
                 Main PID: 12016 (radosgw)
