@@ -30,7 +30,9 @@
 图 3. 基于驱动程序的 libvirt 架构     
 ![基于驱动程序的 libvirt 架构](./images/使用libvirtd控制远程虚拟机监控程序.png)
 > 3. 在撰写此文时，libvirt 为表 1 所列的虚拟机监控程序实现了驱动程序。随着新的虚拟机监控程序在开源社区出现，其他驱动程序无疑也将可用。   
+
 表 1. libvirt 支持的虚拟机监控程序   
+
 虚拟机监控程序|	描述
 -------------|---------
 Xen|	面向 IA-32，IA-64 和 PowerPC 970 架构的虚拟机监控程序
@@ -47,7 +49,9 @@ Storage|	存储池驱动器（本地磁盘，网络磁盘，iSCSI 卷）
 > 1. 上面已经介绍了 libvirt 的一些架构，接下来看一下如何使用 libvirt 虚拟化 API 的一些示例。首先介绍一种名为 virsh（虚拟 shell）的应用程序，它构建于 libvirt 之上。该 shell 允许以交互（基于 shell）方式使用多个 libvirt 功能。在本节中，我使用 virsh 演示了一些 VM 操作。   
 > 2. 第一步是要定义域配置文件（如下面的 清单 1 所示）。该代码指定了定义域所需的所有选项 — 从虚拟机监控程序（仿真器）到域使用的资源以及外围配置（比如网络）。注意，这只是个简单的配置，libvirt 真正支持的属性更加多样化。例如，您可以指定 BIOS 和主机引导程序，域要使用的资源，以及要用到的设备 — 从软盘和 CD-ROM 到 USB 和 PCI 设备。   
 > 3. 域配置文件定义该 QEMU 域要使用的一些基本元数据，包括域名、最大内存、初始可用内存（当前）以及该域可用的虚拟处理器数量。您不需要自己分配 Universally Unique Idenifier (UUID)，而是让 libvirt 分配。您需要为该平台定义要仿真的机器类型 — 在本例中是被完全虚拟化（hvm）的 686 处理器。您需要为域定义仿真器的位置（以备需要支持多个同类型仿真器时使用）和虚拟磁盘。这里注意要指明 VM，它是以 Virtual Machine Disk（VMDK）格式存在的 ReactOS 操作系统。最后，要指定默认网络设置，并使用面向图形的 Virtual Network Computing (VNC)。   
+
 清单 1. 域配置文件   
+
 ```bash
 <xml version="1.0"?>
 <domain type='qemu'>
@@ -73,7 +77,9 @@ Storage|	存储池驱动器（本地磁盘，网络磁盘，iSCSI 卷）
 <domain>
 ```
 > 4. 完成了域配置文件之后，现在开始使用 virsh 工具启动域。virsh 工具为要执行的特定动作采用命令参数。在启动新域时，使用 create 命令和域配置文件：   
+
 清单 2. 启动新域    
+
 ```bash
 mtj@mtj-desktop:~/libvtest$ virsh create react-qemu.xml
 Connecting to uri: qemu:///system
@@ -83,7 +89,9 @@ mtj@mtj-desktop:~/libvtest$
 ```
 > 5. 这里要注意用于连接到域（qemu:///system）的 Universal Resource Indicator (URI)。该本地 URI 连接到本地 QEMU 驱动程序的系统模式守护进程上。要通过主机 shinchan 上的 Secure Shell (SSH) 协议连接到远程 QEMU 虚拟机监控程序，可以使用 URL qemu+ssh://shinchan/。   
 > 6. 下一步，您可以使用 virsh 内的 list 命令列出给定主机上的活动域。这样做可以列出活动域，域 ID，以及它们的状态，如下所示：   
+
 清单 3. 列出活动域   
+
 ```bash
 mtj@mtj-desktop:~/libvtest$ virsh list
 Connecting to uri: qemu:///system
@@ -95,7 +103,9 @@ mtj@mtj-desktop:~/libvtest$
 ```
 > 7. 注意，这里定义的名称是在域配置文件元数据中定义过的名称。可以看到，该域的域名是 1 且正在运行中。   
 > 8. 您也可以使用 suspend 命令中止域。该命令可停止处于调度中的域，不过该域仍存在于内存中，可快速恢复运行。下面的例子展示了如何中止域，执行列表查看状态，然后重新启动域：   
+
 清单 4. 中止域，检查状态，并重新启动   
+
 ```bash
 mtj@mtj-desktop:~/libvtest$ virsh suspend 1
 Connecting to uri: qemu:///system
@@ -115,7 +125,9 @@ mtj@mtj-desktop:~/libvtest$
 ```
 > 9. virsh 工具也支持许多其他命令，比如保存域的命令（save），恢复已存域的命令（restore），重新启动域的命令（reboot），以及其他命令。您还可以从运行中的域（dumpxml）创建域配置文件。   
 > 10. 到目前为止，我们已经启动并操作了域，但是如何连接域来查看当前活动域呢？这可以通过 VNC 实现。要创建表示特定域图形桌面的窗口，可以使用 VNC：   
+
 清单 5. 连接到域   
+
 ```bash
 mtj@mtj-desktop:~/libvtest$ xvnc4viewer 127.0.0.1 0
 ```
@@ -123,7 +135,9 @@ mtj@mtj-desktop:~/libvtest$ xvnc4viewer 127.0.0.1 0
 # libvirt 和 Python
 > 1. 上一个例子说明了如何使用命令行工具 virsh 实现对域的控制。现在我们看一个使用 Python 来控制域的例子。Python 是受 libvirt 支持的脚本语言，它向 libvirt API 提供完全面向对象的接口。   
 > 2. 在本例中，我研究了一些基本操作，与之前用 virsh 工具（list、suspend、resume 等）展示的操作类似。Python 示例脚本见 清单 6。在本例中，我们从导入 libvirt 模块开始。然后连接到本地 QEMU 虚拟机监控程序。从这里开始，重复可用的域 ID；对每个 ID 创建一个域对象，然后中止，继续，最后删除该域。   
+
 清单 6. 用于控制域的示例 Python 脚本（libvtest.py）   
+
 ```bash
 import libvirt
  
@@ -144,7 +158,9 @@ for id in conn.listDomainsID():
     dom.destroy()
 ```
 > 3. 虽然这只是个简单示例，我们仍然可以看到 libvirt 通过 Python 提供的强大功能。通过一个简单的脚本就能够重复所有本地 QEMU 域，发行有关域的信息，然后控制域。该脚本的结果如 清单 7 所示。   
+
 清单 7. 清单 6 中的 Python 脚本输出的结果   
+
 ```bash
 mtj@mtj-desktop:~/libvtest$ python libvtest.py
 Dom ReactOS-on-QEMU  State 1
