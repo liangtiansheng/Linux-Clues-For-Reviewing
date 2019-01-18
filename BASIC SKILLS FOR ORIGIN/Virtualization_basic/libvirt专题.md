@@ -56,7 +56,7 @@ Storage|	存储池驱动器（本地磁盘，网络磁盘，iSCSI 卷）
 <xml version="1.0"?>
 <domain type='qemu'>
   <name>ReactOS-on-QEMU<name>
-  <uuid<uuid>
+  <uuid><uuid>
   <memory>131072<memory>
   <currentMemory>131072<currentMemory>
   <vcpu>1<vcpu>
@@ -76,6 +76,7 @@ Storage|	存储池驱动器（本地磁盘，网络磁盘，iSCSI 卷）
   <devices>
 <domain>
 ```
+**注意：这个实例是2010年的实例，现在是2019年，所以实例只作逻辑理解，并不能实现**
 > 4. 完成了域配置文件之后，现在开始使用 virsh 工具启动域。virsh 工具为要执行的特定动作采用命令参数。在启动新域时，使用 create 命令和域配置文件：   
 
 清单 2. 启动新域    
