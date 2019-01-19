@@ -53,40 +53,216 @@ Storage|	存储池驱动器（本地磁盘，网络磁盘，iSCSI 卷）
 清单 1. 域配置文件   
 
 ```bash
-<xml version="1.0"?>
-<domain type='qemu'>
-  <name>ReactOS-on-QEMU<name>
-  <uuid><uuid>
-  <memory>131072<memory>
-  <currentMemory>131072<currentMemory>
-  <vcpu>1<vcpu>
+<domain type='kvm'>
+  <name>demo</name>
+  <memory>524288</memory>
+  <vcpu>1</vcpu>
   <os>
-    <type arch='i686' machine='pc'>hvm<type>
-  <os>
+    <type arch='x86_64' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <clock offset='localtime'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
-    <emulator>usr/bin/qemu<emulator>
+    <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
-      <source file='/home/mtj/libvtest/ReactOS.vmdk'/>
-      <target dev='hda'/>
-    <disk>
-    <interface type='network'>
-      <source network='default'/>
-    <interface>
-    <graphics type='vnc' port='-1'/>
-  <devices>
-<domain>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/root/another/cirros-0.3.0-x86_64-disk.img'/>
+      <target dev='hda' bus='ide'/>
+    </disk>
+    <graphics type="vnc" autoport="yes" keymap="en-us" listen="0.0.0.0"/>
+  </devices>
+</domain>
 ```
-**注意：这个实例是2010年的实例，现在是2019年，所以实例只作逻辑理解，并不能实现**
+**亲测可以启动实例，这是一个非常简单的xml定义文件，没有console口，也没有网卡**
+
+**改进,加入网卡,从console口可以登陆,注意嵌套的位置**
+
+```bash
+<domain type='kvm'>
+  <name>demo</name>
+  <memory>524288</memory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <clock offset='localtime'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/root/another/cirros-0.3.0-x86_64-disk.img'/>
+      <target dev='hda' bus='ide'/>
+    </disk>
+    <graphics type="vnc" autoport="yes" keymap="en-us" listen="0.0.0.0"/>
+    <interface type='network'>
+      <mac address='52:54:00:b5:24:00'/>
+      <source network='default'/>
+      <model type='rtl8139'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>
+```
+
+**另外，这里要提示一下，想用virsh console ID进入实例，必须要满足以下条件**
+
+1. 添加ttyS0的安全许可，允许root登录：   
+```bash
+# echo "ttyS0" >> /etc/securetty
+```
+2. 给内核传递参数console=ttyS0,115200
+
+根据你用的发行版本不同，添加方式不同，RHEL6以前的grub配置很简单，直接在/etc/grub.conf中找到kernel这行，在末尾加入上述参数即可
+
+如果是RHEL7以后的版本，或者说用的是grub2版本，grub.conf是自动生成的，给内核传递参数最简单的方式是在/etc/default/grub中找到GRUB_CMDLINE_LINUX=""，将上述参数写在这个引号中即可，同时执行grub2-mkconfig -o /boot/grub2/grub.cfg或者update-grub2
+
+3. 如果是RHEL7+到此为止，如果是RHEL6-则添加如下行
+
+```bash
+S0:12345:respawn:/sbin/agetty ttyS0 115200
+```
+
+**以下是完整版**
+
+```bash
+<!--
+WARNING: THIS IS AN AUTO-GENERATED FILE. CHANGES TO IT ARE LIKELY TO BE
+OVERWRITTEN AND LOST. Changes to this xml configuration should be made using:
+  virsh edit generic
+or other application using the libvirt API.
+-->
+
+<domain type='qemu'>
+  <name>cirros</name>
+  <uuid>613003c2-2930-4eba-8142-83a99a0b72a7</uuid>
+  <memory unit='KiB'>3096576</memory>
+  <currentMemory unit='KiB'>3096576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc-i440fx-xenial'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='custom' match='exact'>
+    <model fallback='allow'>Nehalem</model>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <pm>
+    <suspend-to-mem enabled='no'/>
+    <suspend-to-disk enabled='no'/>
+  </pm>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/root/cirros-0.3.6-x86_64-disk.img'/>
+      <target dev='hda' bus='ide'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <controller type='usb' index='0' model='ich9-ehci1'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x7'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci1'>
+      <master startport='0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci2'>
+      <master startport='2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x1'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci3'>
+      <master startport='4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x2'/>
+    </controller>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='ide' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <controller type='virtio-serial' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+    </controller>
+    <interface type='network'>
+      <mac address='52:54:00:b5:24:58'/>
+      <source network='default'/>
+      <model type='rtl8139'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <channel type='spicevmc'>
+      <target type='virtio' name='com.redhat.spice.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <input type='mouse' bus='ps2'/>
+    <input type='keyboard' bus='ps2'/>
+    <graphics type='spice' autoport='yes'>
+      <image compression='off'/>
+    </graphics>
+    <sound model='ich6'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </sound>
+    <video>
+      <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </video>
+    <redirdev bus='usb' type='spicevmc'>
+    </redirdev>
+    <redirdev bus='usb' type='spicevmc'>
+    </redirdev>
+    <memballoon model='virtio'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+    </memballoon>
+  </devices>
+</domain>
+```
+
 > 4. 完成了域配置文件之后，现在开始使用 virsh 工具启动域。virsh 工具为要执行的特定动作采用命令参数。在启动新域时，使用 create 命令和域配置文件：   
 
 清单 2. 启动新域    
 
 ```bash
-mtj@mtj-desktop:~/libvtest$ virsh create react-qemu.xml
-Connecting to uri: qemu:///system
-Domain ReactOS-on-QEMU created from react-qemu.xml
- 
-mtj@mtj-desktop:~/libvtest$
+root@ly-virtual-machine:~# virsh create instance.xml
+Domain cirros created from instance.xml
+
+root@ly-virtual-machine:~#
+
 ```
 > 5. 这里要注意用于连接到域（qemu:///system）的 Universal Resource Indicator (URI)。该本地 URI 连接到本地 QEMU 驱动程序的系统模式守护进程上。要通过主机 shinchan 上的 Secure Shell (SSH) 协议连接到远程 QEMU 虚拟机监控程序，可以使用 URL qemu+ssh://shinchan/。   
 > 6. 下一步，您可以使用 virsh 内的 list 命令列出给定主机上的活动域。这样做可以列出活动域，域 ID，以及它们的状态，如下所示：   
@@ -94,13 +270,15 @@ mtj@mtj-desktop:~/libvtest$
 清单 3. 列出活动域   
 
 ```bash
-mtj@mtj-desktop:~/libvtest$ virsh list
-Connecting to uri: qemu:///system
- Id Name                 State
-----------------------------------
-  1 ReactOS-on-QEMU      running
- 
-mtj@mtj-desktop:~/libvtest$
+root@ly-virtual-machine:~# virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 5     generic                        running
+ 11    cirros                         running
+ 16    demo                           running
+
+root@ly-virtual-machine:~#
+
 ```
 > 7. 注意，这里定义的名称是在域配置文件元数据中定义过的名称。可以看到，该域的域名是 1 且正在运行中。   
 > 8. 您也可以使用 suspend 命令中止域。该命令可停止处于调度中的域，不过该域仍存在于内存中，可快速恢复运行。下面的例子展示了如何中止域，执行列表查看状态，然后重新启动域：   
@@ -108,21 +286,35 @@ mtj@mtj-desktop:~/libvtest$
 清单 4. 中止域，检查状态，并重新启动   
 
 ```bash
-mtj@mtj-desktop:~/libvtest$ virsh suspend 1
-Connecting to uri: qemu:///system
-Domain 1 suspended
- 
-mtj@mtj-desktop:~/libvtest$ virsh list
-Connecting to uri: qemu:///system
- Id Name                 State
-----------------------------------
-  1 ReactOS-on-QEMU      paused
- 
-mtj@mtj-desktop:~/libvtest$ virsh resume 1
-Connecting to uri: qemu:///system
-Domain 1 resumed
- 
-mtj@mtj-desktop:~/libvtest$
+root@ly-virtual-machine:~# virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 5     generic                        running
+ 11    cirros                         running
+ 16    demo                           running
+
+root@ly-virtual-machine:~# virsh suspend 11
+Domain 11 suspended
+
+root@ly-virtual-machine:~# virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 5     generic                        running
+ 11    cirros                         paused
+ 16    demo                           running
+
+root@ly-virtual-machine:~# virsh resume 11
+Domain 11 resumed
+
+root@ly-virtual-machine:~# virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 5     generic                        running
+ 11    cirros                         running
+ 16    demo                           running
+
+root@ly-virtual-machine:~# 
+
 ```
 > 9. virsh 工具也支持许多其他命令，比如保存域的命令（save），恢复已存域的命令（restore），重新启动域的命令（reboot），以及其他命令。您还可以从运行中的域（dumpxml）创建域配置文件。   
 > 10. 到目前为止，我们已经启动并操作了域，但是如何连接域来查看当前活动域呢？这可以通过 VNC 实现。要创建表示特定域图形桌面的窗口，可以使用 VNC：   
