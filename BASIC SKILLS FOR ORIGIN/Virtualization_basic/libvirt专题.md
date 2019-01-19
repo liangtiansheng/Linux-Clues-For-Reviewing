@@ -322,8 +322,28 @@ root@ly-virtual-machine:~#
 清单 5. 连接到域   
 
 ```bash
-mtj@mtj-desktop:~/libvtest$ xvnc4viewer 127.0.0.1 0
+root@ly-virtual-machine:~# virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 3     generic                        running
+
+root@ly-virtual-machine:~# xvnc4viewer :0
+
+VNC Viewer Free Edition 4.1.1 for X - built Feb 25 2015 22:57:51
+Copyright (C) 2002-2005 RealVNC Ltd.
+See http://www.realvnc.com for information on VNC.
+
+Sat Jan 19 15:33:44 2019
+ CConn:       connected to host localhost port 5900
+ CConnection: Server supports RFB protocol version 3.8
+ CConnection: Using RFB protocol version 3.8
+ TXImage:     Using default colormap and visual, TrueColor, depth 24.
+ CConn:       Using pixel format depth 6 (8bpp) rgb222
+ CConn:       Using ZRLE encoding
+
 ```
+
+**注意：上面的xml文件中定义的图形界面是spice，这里用的是vnc所以要改成<graphics type='vnc' port='-1'/>**
 
 # libvirt 和 Python
 > 1. 上一个例子说明了如何使用命令行工具 virsh 实现对域的控制。现在我们看一个使用 Python 来控制域的例子。Python 是受 libvirt 支持的脚本语言，它向 libvirt API 提供完全面向对象的接口。   
