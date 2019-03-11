@@ -351,7 +351,18 @@ iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 
+*** 注意保存规则
+centos7:
+    # iptables-save > /etc/sysconfig/iptables
+ubuntu 16.04:
+    # iptables-save > /etc/iptables-rules
+    在/etc/network/interface后面加上一行
+    post-up iptables-restore < /etc/iptables-rules
+        补充：pre-up是网卡启动前要执行的动作、pre-down是网卡关闭前要执行的动作、post-up是网卡启动后要执行的动作、post-down是网卡关闭后要执行的动作
+        有人用pre-up来恢复iptables规则，不懂这个逻辑，实际上经过测试在ubuntu16.04上也实现不了iptables的恢复，用post-up可以实现，而且也符合逻辑啊，网卡启动了再用iptables是不是更合适，毕竟规则中用到了网卡接口
+
 注意：以上的规则可以汇总
+    比如ssh的--dport 22可以和 -m multiport --destination-ports合并
 */
 
 
