@@ -91,3 +91,5 @@ centos7上编译：
             ]
         # systemctl restart libvirtd
         # virt-manager启动图形界面直接操作
+    小技巧：如果edk2.git提供的UEFI不能用，也找不到合适的UEFI固件，可以用下面方法将上面提到的命令行UEFI嫁接过来
+        # dd if=QEMU_EFI.fd of=/usr/share/edk2.git/aarch64/QEMU_EFI-pflash.raw conv=notrunc
