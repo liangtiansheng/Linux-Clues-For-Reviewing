@@ -354,6 +354,7 @@ iptables -P FORWARD DROP
 *** 注意保存规则
 centos7:
     # iptables-save > /etc/sysconfig/iptables
+    这个会自动生效，不像ubuntu需要脚本辅助
 ubuntu 16.04:
     # iptables-save > /etc/iptables-rules
     在/etc/network/interface后面加上一行
