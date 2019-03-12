@@ -87,19 +87,40 @@ centos7上编译：
         # 安装edk2.git-aarch64生成这四个关键文件
         # 在 /etc/libvirt/qemu.conf 中通过下面字段指出UEFI固件的位置
             nvram = [
-            "/usr/share/edk2.git/aarch64/QEMU_EFI.fd:/usr/share/edk2.git/aarch64/QEMU_VARS.fd"
+            "/usr/share/edk2.git/aarch64/QEMU_EFI-pflash.raw:/usr/share/edk2.git/aarch64/vars-template-pflash.raw"
             ]
         # systemctl restart libvirtd
         # virt-manager启动图形界面直接操作
-    小技巧：如果edk2.git提供的UEFI不能用，也找不到合适的UEFI固件，可以用下面方法将上面提到的命令行UEFI嫁接过来
-        # dd if=QEMU_EFI.fd of=/usr/share/edk2.git/aarch64/QEMU_EFI-pflash.raw conv=notrunc
     
     ***使用virt-manager 选择aarch64出现的问题
     问题1：
         qemu-system-aarch64: -sandbox on,obsolete=deny,elevateprivileges=deny,spawn=deny,resourcecontrol=deny: seccomp support is disabled
     分析1：
+        有用的信息是seccomp support is disabled， 根据这个可以推测qemu在编译时是不是没有启用某个功能，configure源码分析
+        其中有一段说明如下，意思是默认情况下，所有的功能参数都会被赋予一个默认值，默认值有no（不编译，除非enable指定）,""（为空，搜索有没有编译环境，有就编译，没有就不编译）,yes（默认编译，搜索编译环境，没有就报错）
+        # Default value for a variable defining feature "foo".
+        #  * foo="no"  feature will only be used if --enable-foo arg is given
+        #  * foo=""    feature will be searched for, and if found, will be used
+        #              unless --disable-foo is given
+        #  * foo="yes" this value will only be set by --enable-foo flag.
+        #              feature will searched for,
+        #              if not found, configure exits with error
+        #
+        # Always add --enable-foo and --disable-foo command line args.
+        # Distributions want to ensure that several features are compiled in, and it
+        # is impossible without a --enable-foo that exits if a feature is not found.
+        而seccomp的默认设置是seccomp=""，很显然会搜索编译环境，也就是有没有安装libseccomp和libxeccomp-devel，有就编译，没有就不编译，很显然系统没有安装，也就不编译，出现上述问题
+    解决：
+        # 安装 libseccomp 和 libseccomp-devel
+        # 编译 qemu 显式指定--enable-seccomp
+        # 可以重编译覆盖
 
-    问题2：qemu-system-aarch64: Initialization of device cfi.pflash01 failed: failed to read the initial flash content
+    问题2：
+        qemu-system-aarch64: Initialization of device cfi.pflash01 failed: failed to read the initial flash content
+    分析2：
+        不好定位问题，经过多次尝试，发现是低级错误，在 /var/lib/libvirt/images/ 下的镜像不能重名，否则就会报以上错误
+    解决：
+        用virt-manager创建虚拟机时，要记得更改镜像名字
 
 
 
