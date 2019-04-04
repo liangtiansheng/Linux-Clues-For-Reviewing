@@ -87,7 +87,7 @@
 第二种方式：如果有一个路由隔开，想要通过这个路由拔号进入内网，那这个路由器必须支持vpn穿透才行
 第三种方式：就是用openvpn，这个功能强大，要配置证书
     Ubuntu 16.04搭建OpenVPN服务器以及客户端的使用(启动时注意用户权限，比如root用户启动)
-    OpenVPN版本：OpenVPN 2.3.10(一般以系统源安装的版本为准，比如现在安装的基本以2.3.10为主，可能以后会随着源升级而更新到最新版本)
+    OpenVPN版本：OpenVPN 2.3.10(这是2.x版本的样式，3.x版本就不一样了，参考样式https://blog.rj-bai.com/post/136.html)
         1、安装前准备
             ***安装openssl和lzo，lzo用于压缩通讯数据加快传输速度
             # sudo apt-get install openssl libssl-dev
