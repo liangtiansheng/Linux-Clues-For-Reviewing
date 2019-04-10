@@ -84,7 +84,15 @@
                 (3)连接和断开
                 sudo pon haha
                 sudo poff
-第二种方式：如果有一个路由隔开，想要通过这个路由拔号进入内网，那这个路由器必须支持vpn穿透才行
+
+
+
+第二种方式：使用 openswan 也就是 ipsec 加密方式来配置多机房之间的 vpn。 
+
+
+
+
+
 第三种方式：就是用openvpn，这个功能强大，要配置证书
     Ubuntu 16.04搭建OpenVPN服务器以及客户端的使用(启动时注意用户权限，比如root用户启动)
     OpenVPN版本：OpenVPN 2.3.10(证书生成器 easy-rsa 2.x 版本配置如下，easy-rsa 3.x 版本就不一样了，参考样式https://blog.rj-bai.com/post/136.html)
@@ -206,7 +214,7 @@
                 # (简而言之，就是允许客户端所在的局域网成员也能够访问VPN)
                 # 举个例子：假设有个Common Name为"Thelonious"的客户端背后也有一个小型子网想要连接到VPN，该子网为192.168.40.128/255.255.255.248。
                 # 首先，你需要去掉下面两行指令的注释：
-                ;client-config-dir ccd
+                ;client-config-dir ccd //这里需要注意一下，上次看官方文档，好像跟 duplicate-cn 是冲突的，需要确认
                 ;route 192.168.40.128 255.255.255.248
                 # 然后创建一个文件ccd/Thelonious，该文件的内容为：
                 # iroute 192.168.40.128 255.255.255.248
