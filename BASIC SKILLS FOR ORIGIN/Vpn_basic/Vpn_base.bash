@@ -87,7 +87,7 @@
 
 
 
-第二种方式：使用 openswan 也就是 ipsec 加密方式来配置多机房之间的 vpn。 
+第二种方式：使用 openswan 也就是 ipsec 加密方式来配置多机房之间的 vpn。 老男孩 Linux运维 中级课程第三节课 Openswan（一二）（可以直接在 51cto 上搜索下载）
 
 
 
