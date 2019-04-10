@@ -95,7 +95,7 @@
 
 第三种方式：就是用openvpn，这个功能强大，要配置证书
     Ubuntu 16.04搭建OpenVPN服务器以及客户端的使用(启动时注意用户权限，比如root用户启动)
-    OpenVPN版本：OpenVPN 2.3.10(证书生成器 easy-rsa 2.x 版本配置如下，easy-rsa 3.x 版本就不一样了，参考样式https://blog.rj-bai.com/post/136.html)
+    OpenVPN版本：OpenVPN 2.3.10(证书生成器 easy-rsa 2.x 版本配置如下，easy-rsa 3.x 版本就不一样了，参考本地world文件)
         1、安装前准备
             ***安装openssl和lzo，lzo用于压缩通讯数据加快传输速度
             # sudo apt-get install openssl libssl-dev
