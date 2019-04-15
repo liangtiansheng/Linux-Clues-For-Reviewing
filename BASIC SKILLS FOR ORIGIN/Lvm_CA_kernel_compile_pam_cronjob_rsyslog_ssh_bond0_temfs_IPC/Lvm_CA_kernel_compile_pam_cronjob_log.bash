@@ -580,7 +580,7 @@ jerry
 [root@lcfyl ~]# echo $AGE
 18
 
-	-p “PROMPT": 给出提示
+	-p "PROMPT": 给出提示
 	-t 3：表示输入时间在3秒内
 #!/bin/bash
 #
@@ -2384,7 +2384,7 @@ OpenSSL: ssl的开源实现，功能强大
 				Doing des cbc for 3s on 256 size blocks: 440491 des cbc's in 2.88s
 				
 				[root@RHEL5 ~]# whatis passwd
-				passwd               (1)  - update a user's authentication tokens(s)
+				passwd               (1)  - update a user\'s authentication tokens(s)
 				passwd               (5)  - password file
 				passwd              (rpm) - The passwd utility for setting/changing passwords using PAM
 				passwd [sslpasswd]   (1ssl)  - compute password hashes
@@ -2492,7 +2492,7 @@ State or Province Name (full name) [HuBei]:
 Locality Name (eg, city) [WuHan]:
 Organization Name (eg, company) [MageEdu]:
 Organizational Unit Name (eg, section) [Tech]:
-Common Name (eg, your name or your server's hostname) []:magedu.com
+Common Name (eg, your name or your server\'s hostname) []:magedu.com
 Email Address []:caadminmagedu.com
 [root@RHEL5 CA]# mkdir certs newcerts crl
 [root@RHEL5 CA]# ls
@@ -2528,7 +2528,7 @@ State or Province Name (full name) [HuBei]:
 Locality Name (eg, city) [WuHan]:
 Organization Name (eg, company) [MageEdu]:
 Organizational Unit Name (eg, section) [Tech]:
-Common Name (eg, your name or your server's hostname) []:www.magedu.com
+Common Name (eg, your name or your server\'s hostname) []:www.magedu.com
 Email Address []:www.adminmagedu.com
 
 Please enter the following 'extra' attributes
