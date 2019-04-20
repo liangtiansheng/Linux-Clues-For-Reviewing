@@ -54,3 +54,35 @@ Command line option	Description
 -T, --title str	Prefix every output line with this string.
 -C, --linux-congestion algo	Set the congestion control algorithm (Linux only for iPerf 3.0, Linux and FreeBSD for iPerf 3.1).
 See also https://github.com/esnet/iperf
+
+
+注：iperf3的使用相对比较简单，其中除了-t -n -k这三个选项有点费解外，其余的选项都不难理解
+    
+    -t -n -k 这三个选项只能同时使用一个，否则会报如下错误：
+        parameter error - only one test end condition (-t, -n, -k) may be specified
+        参数错误 - 只能指定一个测试结束条件（-t，-n，-k）
+    
+    -t选项：
+        -t, --time #，以时间为测试结束条件进行测试，默认为 10 秒；
+        -n, --bytes #[KMG]，以数据传输大小为测试结束条件进行测试；
+        -k, --blockcount #[KMG]，以传输数据包数量为测试结束条件进行测试；
+
+    -l, --len #[KMG]，读写缓冲区的长度，TCP 默认为 128K，UDP 默认为 8K；
+
+
+    另外在测试大带宽时，靠单个进程或单个进程的多个线程是远远不够的，如以下说明：
+    iperf3 at 40Gbps and above
+        Achieving line rate on a 40G or 100G test host often requires parallel streams. However, using iperf3, it isn\'t as simple as just adding a -P flag because each iperf process is single-threaded, including all streams used by that iperf process for a parallel test. This means all the parallel streams for one test use the same CPU core. If you are core limited (this is often the case for a 40G host and it's usually the case for a 100G host), adding parallel streams won't help you unless you do so by adding additional iperf processes which can use additional cores.
+        Note also that it is not possible to do this while using bwctl to manage iperf3 tests, so this is typically better suited to lab or testbed environments.
+        To run multiple iperf processes for a testing a high-speed host, do the following:
+    Start multiple servers:
+        iperf3 -s -p 5101&; iperf3 -s -p 5102&; iperf3 -s -p 5103 &
+    and then run multiple clients, using the "-T" flag to label the output:
+        iperf3 -c hostname -T s1 -p 5101 &;  
+        iperf3 -c hostname -T s2 -p 5102 &; 
+        iperf3 -c hostname -T s3 -p 5103 &;
+    Also, there are a number of additional host tuning settings needed for 40/100G hosts. The TCP autotuning settings may not be large enough for 40G, and you may want to try using the iperf3 -w option to set the window even larger (e.g.: -w 128M). Be sure to check your IRQ settings as well.
+
+
+
+
