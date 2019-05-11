@@ -20,6 +20,30 @@ this:is:a:test.
 [root@RHEL5 ~]# awk 'BEGIN{OFS=":"}{print $1,$2,"Hello",$3,$4}' test.txt 
 this:is:Hello:a:test.
 
+系统解析 awk 之前我们制作一个文本文件
+cat > netstat.txt << EOF
+Proto Recv-Q Send-Q Local-Address          Foreign-Address             State
+tcp        0      0 0.0.0.0:3306           0.0.0.0:*                   LISTEN
+tcp        0      0 0.0.0.0:80             0.0.0.0:*                   LISTEN
+tcp        0      0 127.0.0.1:9000         0.0.0.0:*                   LISTEN
+tcp        0      0 coolshell.cn:80        124.205.5.146:18245         TIME_WAIT
+tcp        0      0 coolshell.cn:80        61.140.101.185:37538        FIN_WAIT2
+tcp        0      0 coolshell.cn:80        110.194.134.189:1032        ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49809       ESTABLISHED
+tcp        0      0 coolshell.cn:80        116.234.127.77:11502        FIN_WAIT2
+tcp        0      0 coolshell.cn:80        123.169.124.111:49829       ESTABLISHED
+tcp        0      0 coolshell.cn:80        183.60.215.36:36970         TIME_WAIT
+tcp        0   4166 coolshell.cn:80        61.148.242.38:30901         ESTABLISHED
+tcp        0      1 coolshell.cn:80        124.152.181.209:26825       FIN_WAIT1
+tcp        0      0 coolshell.cn:80        110.194.134.189:4796        ESTABLISHED
+tcp        0      0 coolshell.cn:80        183.60.212.163:51082        TIME_WAIT
+tcp        0      1 coolshell.cn:80        208.115.113.92:50601        LAST_ACK
+tcp        0      0 coolshell.cn:80        123.169.124.111:49840       ESTABLISHED
+tcp        0      0 coolshell.cn:80        117.136.20.85:50025         FIN_WAIT2
+tcp        0      0 :::22                  :::*                        LISTEN
+EOF
+
+
 awk的输出：
 
 一、print
@@ -28,7 +52,7 @@ print的使用格式：
 要点：
 1、各项目之间使用逗号隔开，而输出时则以空白字符分隔；
 2、输出的item可以为字符串或数值、当前记录的字段(如$1)、变量或awk的表达式；数值会先转换为字符串，而后再输出；
-3、print命令后面的item可以省略，此时其功能相当于print $0, 也就是$0相当于整行，因此，如果想输出空白行，则需要使用print ""；
+3、print命令后面的item可以省略，此时其功能相当于print $0, 也就是$0相当于整个行，因此，如果想输出空白行，则需要使用print ""；
 
 例子：
 # awk 'BEGIN { print "line one\nline two\nline three" }'
@@ -56,6 +80,56 @@ ARGV: 数组，保存命令行本身这个字符串，如awk '{print $0}' a.txt 
 ARGC: awk命令的参数的个数；
 FILENAME: awk命令所处理的文件的名称；
 ENVIRON：当前shell环境变量及其值的关联数组；
+
+例1：我们如果要输出行号
+$ awk '$3==0 && $6=="ESTABLISHED" || NR==1 {printf "%02s %s %-20s %-20s %s\n",NR, FNR, $4,$5,$6}' netstat.txt
+01 1 Local-Address        Foreign-Address      State
+07 7 coolshell.cn:80      110.194.134.189:1032 ESTABLISHED
+08 8 coolshell.cn:80      123.169.124.111:49809 ESTABLISHED
+10 10 coolshell.cn:80      123.169.124.111:49829 ESTABLISHED
+14 14 coolshell.cn:80      110.194.134.189:4796 ESTABLISHED
+17 17 coolshell.cn:80      123.169.124.111:49840 ESTABLISHED
+
+例2：指定分隔符
+$  awk  'BEGIN{FS=":"} {print $1,$3,$6}' /etc/passwd
+root 0 /root
+bin 1 /bin
+daemon 2 /sbin
+adm 3 /var/adm
+lp 4 /var/spool/lpd
+sync 5 /sbin
+shutdown 6 /sbin
+halt 7 /sbin
+上面的命令也等价于：（-F的意思就是指定分隔符）
+$ awk  -F: '{print $1,$3,$6}' /etc/passwd
+注：如果你要指定多个分隔符，你可以这样来：
+awk -F '[;:]'
+
+例3：再来看一个以\t作为分隔符输出的例子（下面使用了/etc/passwd文件，这个文件是以:分隔的）：
+$ awk  -F: '{print $1,$3,$6}' OFS="\t" /etc/passwd
+root    0       /root
+bin     1       /bin
+daemon  2       /sbin
+adm     3       /var/adm
+lp      4       /var/spool/lpd
+sync    5       /sbin
+
+例4：环境变量
+使用-v参数和ENVIRON，使用ENVIRON的环境变量需要export
+$ x=5
+ 
+$ y=10
+$ export y
+ 
+$ echo $x $y
+5 10
+ 
+$ awk -v val=$x '{print $1, $2, $3, $4+val, $5+ENVIRON["y"]}' OFS="\t" score.txt
+Marry   2143    78      89      87
+Jack    2321    66      83      55
+Tom     2122    48      82      81
+Mike    2537    87      102     105
+Bob     2415    40      62      72
 
 
 
@@ -107,8 +181,32 @@ N: 显示宽度；
 -: 左对齐；
 +：显示数值符号；
 
-例子：%号跟后面的字符段一一对应
+例子1：%号跟后面的字符段一一对应
 # awk -F: '{printf "%-15s %i\n",$1,$3}' /etc/passwd
+例子2：
+$ awk '{printf "%-8s %-8s %-8s %-18s %-22s %-15s\n",$1,$2,$3,$4,$5,$6}' netstat.txt
+Proto    Recv-Q   Send-Q   Local-Address      Foreign-Address        State
+tcp      0        0        0.0.0.0:3306       0.0.0.0:*              LISTEN
+tcp      0        0        0.0.0.0:80         0.0.0.0:*              LISTEN
+tcp      0        0        127.0.0.1:9000     0.0.0.0:*              LISTEN
+tcp      0        0        coolshell.cn:80    124.205.5.146:18245    TIME_WAIT
+tcp      0        0        coolshell.cn:80    61.140.101.185:37538   FIN_WAIT2
+tcp      0        0        coolshell.cn:80    110.194.134.189:1032   ESTABLISHED
+tcp      0        0        coolshell.cn:80    123.169.124.111:49809  ESTABLISHED
+tcp      0        0        coolshell.cn:80    116.234.127.77:11502   FIN_WAIT2
+tcp      0        0        coolshell.cn:80    123.169.124.111:49829  ESTABLISHED
+tcp      0        0        coolshell.cn:80    183.60.215.36:36970    TIME_WAIT
+tcp      0        4166     coolshell.cn:80    61.148.242.38:30901    ESTABLISHED
+tcp      0        1        coolshell.cn:80    124.152.181.209:26825  FIN_WAIT1
+tcp      0        0        coolshell.cn:80    110.194.134.189:4796   ESTABLISHED
+tcp      0        0        coolshell.cn:80    183.60.212.163:51082   TIME_WAIT
+tcp      0        1        coolshell.cn:80    208.115.113.92:50601   LAST_ACK
+tcp      0        0        coolshell.cn:80    123.169.124.111:49840  ESTABLISHED
+tcp      0        0        coolshell.cn:80    117.136.20.85:50025    FIN_WAIT2
+tcp      0        0        :::22              :::*                   LISTEN
+
+
+
 
 四、输出重定向
 
@@ -122,9 +220,80 @@ print items | command
 /dev/stderr: 错误输出
 /dev/fd/N: 某特定文件描述符，如/dev/stdin就相当于/dev/fd/0；
 
-例子：
+折分文件
+    awk拆分文件很简单，使用重定向就好了
+
+例1：
 # awk -F: '{printf "%-15s %i\n",$1,$3 > "/dev/stderr" }' /etc/passwd
 
+例2：下面这个例子，是按第6例分隔文件，相当的简单（其中的NR!=1表示不处理表头）。
+$ awk 'NR!=1{print > $6}' netstat.txt
+ 
+$ ls
+ESTABLISHED  FIN_WAIT1  FIN_WAIT2  LAST_ACK  LISTEN  netstat.txt  TIME_WAIT
+ 
+$ cat ESTABLISHED
+tcp        0      0 coolshell.cn:80        110.194.134.189:1032        ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49809       ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49829       ESTABLISHED
+tcp        0   4166 coolshell.cn:80        61.148.242.38:30901         ESTABLISHED
+tcp        0      0 coolshell.cn:80        110.194.134.189:4796        ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49840       ESTABLISHED
+ 
+$ cat FIN_WAIT1
+tcp        0      1 coolshell.cn:80        124.152.181.209:26825       FIN_WAIT1
+ 
+$ cat FIN_WAIT2
+tcp        0      0 coolshell.cn:80        61.140.101.185:37538        FIN_WAIT2
+tcp        0      0 coolshell.cn:80        116.234.127.77:11502        FIN_WAIT2
+tcp        0      0 coolshell.cn:80        117.136.20.85:50025         FIN_WAIT2
+ 
+$ cat LAST_ACK
+tcp        0      1 coolshell.cn:80        208.115.113.92:50601        LAST_ACK
+ 
+$ cat LISTEN
+tcp        0      0 0.0.0.0:3306           0.0.0.0:*                   LISTEN
+tcp        0      0 0.0.0.0:80             0.0.0.0:*                   LISTEN
+tcp        0      0 127.0.0.1:9000         0.0.0.0:*                   LISTEN
+tcp        0      0 :::22                  :::*                        LISTEN
+ 
+$ cat TIME_WAIT
+tcp        0      0 coolshell.cn:80        124.205.5.146:18245         TIME_WAIT
+tcp        0      0 coolshell.cn:80        183.60.215.36:36970         TIME_WAIT
+tcp        0      0 coolshell.cn:80        183.60.212.163:51082        TIME_WAIT
+也可以把指定的列输出到文件：awk 'NR!=1{print $4,$5 > $6}' netstat.txt
+
+例3：再复杂一点：（注意其中的if-else-if语句，可见awk其实是个脚本解释器）
+$ awk 'NR!=1{if($6 ~ /TIME|ESTABLISHED/) print > "1.txt";
+else if($6 ~ /LISTEN/) print > "2.txt";
+else print > "3.txt" }' netstat.txt
+ 
+$ ls ?.txt
+1.txt  2.txt  3.txt
+ 
+$ cat 1.txt
+tcp        0      0 coolshell.cn:80        124.205.5.146:18245         TIME_WAIT
+tcp        0      0 coolshell.cn:80        110.194.134.189:1032        ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49809       ESTABLISHED
+tcp        0      0 coolshell.cn:80        123.169.124.111:49829       ESTABLISHED
+tcp        0      0 coolshell.cn:80        183.60.215.36:36970         TIME_WAIT
+tcp        0   4166 coolshell.cn:80        61.148.242.38:30901         ESTABLISHED
+tcp        0      0 coolshell.cn:80        110.194.134.189:4796        ESTABLISHED
+tcp        0      0 coolshell.cn:80        183.60.212.163:51082        TIME_WAIT
+tcp        0      0 coolshell.cn:80        123.169.124.111:49840       ESTABLISHED
+ 
+$ cat 2.txt
+tcp        0      0 0.0.0.0:3306           0.0.0.0:*                   LISTEN
+tcp        0      0 0.0.0.0:80             0.0.0.0:*                   LISTEN
+tcp        0      0 127.0.0.1:9000         0.0.0.0:*                   LISTEN
+tcp        0      0 :::22                  :::*                        LISTEN
+ 
+$ cat 3.txt
+tcp        0      0 coolshell.cn:80        61.140.101.185:37538        FIN_WAIT2
+tcp        0      0 coolshell.cn:80        116.234.127.77:11502        FIN_WAIT2
+tcp        0      1 coolshell.cn:80        124.152.181.209:26825       FIN_WAIT1
+tcp        0      1 coolshell.cn:80        208.115.113.92:50601        LAST_ACK
+tcp        0      0 coolshell.cn:80        117.136.20.85:50025         FIN_WAIT2
 
 六、awk的操作符：
 
@@ -157,6 +326,36 @@ x%y:
 --
 
 需要注意的是，如果某模式为=号，此时使用/=/可能会有语法错误，应以/[=]/替代；
+
+例1：我们再来看看如何过滤记录（下面过滤条件为：第三列的值为0 && 第6列的值为LISTEN）
+$ awk '$3==0 && $6=="LISTEN" ' netstat.txt
+tcp        0      0 0.0.0.0:3306               0.0.0.0:*              LISTEN
+tcp        0      0 0.0.0.0:80                 0.0.0.0:*              LISTEN
+tcp        0      0 127.0.0.1:9000             0.0.0.0:*              LISTEN
+tcp        0      0 :::22                      :::*                   LISTEN
+
+例2：
+$ awk ' $3>0 {print $0}' netstat.txt
+Proto Recv-Q Send-Q Local-Address          Foreign-Address             State
+tcp        0   4166 coolshell.cn:80        61.148.242.38:30901         ESTABLISHED
+tcp        0      1 coolshell.cn:80        124.152.181.209:26825       FIN_WAIT1
+tcp        0      1 coolshell.cn:80        208.115.113.92:50601        LAST_ACK
+
+例3：如果我们需要表头的话，我们可以引入内建变量NR：
+$ awk '$3==0 && $6=="LISTEN" || NR==1 ' netstat.txt
+Proto Recv-Q Send-Q Local-Address          Foreign-Address             State
+tcp        0      0 0.0.0.0:3306           0.0.0.0:*                   LISTEN
+tcp        0      0 0.0.0.0:80             0.0.0.0:*                   LISTEN
+tcp        0      0 127.0.0.1:9000         0.0.0.0:*                   LISTEN
+tcp        0      0 :::22                  :::*                        LISTEN
+
+例3：换个格式输出
+$ awk '$3==0 && $6=="LISTEN" || NR==1 {printf "%-20s %-20s %s\n",$4,$5,$6}' netstat.txt
+Local-Address        Foreign-Address      State
+0.0.0.0:3306         0.0.0.0:*            LISTEN
+0.0.0.0:80           0.0.0.0:*            LISTEN
+127.0.0.1:9000       0.0.0.0:*            LISTEN
+:::22                :::*                 LISTEN
 
 6.4 布尔值
 
@@ -220,6 +419,60 @@ pattern { action }
 		在处理文件之前采取行动，没有BEGIN就会死循环
 5、Empty(空模式)：匹配任意输入行；
 
+例1：几个字符串匹配的示例
+$ awk '$6 ~ /FIN/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+1       Local-Address   Foreign-Address State
+6       coolshell.cn:80 61.140.101.185:37538    FIN_WAIT2
+9       coolshell.cn:80 116.234.127.77:11502    FIN_WAIT2
+13      coolshell.cn:80 124.152.181.209:26825   FIN_WAIT1
+18      coolshell.cn:80 117.136.20.85:50025     FIN_WAIT2
+ 
+$ $ awk '$6 ~ /WAIT/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+1       Local-Address   Foreign-Address State
+5       coolshell.cn:80 124.205.5.146:18245     TIME_WAIT
+6       coolshell.cn:80 61.140.101.185:37538    FIN_WAIT2
+9       coolshell.cn:80 116.234.127.77:11502    FIN_WAIT2
+11      coolshell.cn:80 183.60.215.36:36970     TIME_WAIT
+13      coolshell.cn:80 124.152.181.209:26825   FIN_WAIT1
+15      coolshell.cn:80 183.60.212.163:51082    TIME_WAIT
+18      coolshell.cn:80 117.136.20.85:50025     FIN_WAIT2
+***上面的第一个示例匹配FIN状态， 第二个示例匹配WAIT字样的状态。其实 ~ 表示模式开始。/ /中是模式。这就是一个正则表达式的匹配。
+
+例2：其实awk可以像grep一样的去匹配第一行
+$ awk '/LISTEN/' netstat.txt
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN
+tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN
+tcp        0      0 :::22                   :::*                    LISTEN
+
+例3：我们可以使用 “/FIN|TIME/” 来匹配 FIN 或者 TIME
+$ awk '$6 ~ /FIN|TIME/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+1       Local-Address   Foreign-Address State
+5       coolshell.cn:80 124.205.5.146:18245     TIME_WAIT
+6       coolshell.cn:80 61.140.101.185:37538    FIN_WAIT2
+9       coolshell.cn:80 116.234.127.77:11502    FIN_WAIT2
+11      coolshell.cn:80 183.60.215.36:36970     TIME_WAIT
+13      coolshell.cn:80 124.152.181.209:26825   FIN_WAIT1
+15      coolshell.cn:80 183.60.212.163:51082    TIME_WAIT
+18      coolshell.cn:80 117.136.20.85:50025     FIN_WAIT2
+
+例4：再来看看模式取反的例子
+$ awk '$6 !~ /WAIT/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+1       Local-Address   Foreign-Address State
+2       0.0.0.0:3306    0.0.0.0:*       LISTEN
+3       0.0.0.0:80      0.0.0.0:*       LISTEN
+4       127.0.0.1:9000  0.0.0.0:*       LISTEN
+7       coolshell.cn:80 110.194.134.189:1032    ESTABLISHED
+8       coolshell.cn:80 123.169.124.111:49809   ESTABLISHED
+10      coolshell.cn:80 123.169.124.111:49829   ESTABLISHED
+12      coolshell.cn:80 61.148.242.38:30901     ESTABLISHED
+14      coolshell.cn:80 110.194.134.189:4796    ESTABLISHED
+16      coolshell.cn:80 208.115.113.92:50601    LAST_ACK
+17      coolshell.cn:80 123.169.124.111:49840   ESTABLISHED
+19      :::22   :::*    LISTEN
+或者：awk '!/WAIT/' netstat.txt
+
+
 7.2 常见的Action
 1、Expressions:
 2、Control statements (if,case,for....)
@@ -237,10 +490,57 @@ pattern { action }
 模式，模式：指定一个行的范围。该语法不能包括BEGIN和END模式。
 
 BEGIN：让用户指定在第一条输入记录被处理之前所发生的动作，通常可在这里设置全局变量。
-
+    BEGIN{ 这里面放的是执行前的语句 }
 END：让用户在最后一条输入记录被读取之后发生的动作。
+    END {这里面放的是处理完所有的行后要执行的语句 }
+{}：{这里面放的是处理每一行时要执行的语句}
 
+例1：假设有这么一个文件（学生成绩表）
+$ cat score.txt
+Marry   2143 78 84 77
+Jack    2321 66 78 45
+Tom     2122 48 77 71
+Mike    2537 87 97 95
+Bob     2415 40 57 62
 
+我们的awk脚本如下（我没有写在命令行上是因为命令行上不易读，另外也在介绍另一种用法）：
+$ cat cal.awk
+#!/bin/awk -f
+#运行前
+BEGIN {
+    math = 0
+    english = 0
+    computer = 0
+ 
+    printf "NAME    NO.   MATH  ENGLISH  COMPUTER   TOTAL\n"
+    printf "---------------------------------------------\n"
+}
+#运行中
+{
+    math+=$3
+    english+=$4
+    computer+=$5
+    printf "%-6s %-6s %4d %8d %8d %8d\n", $1, $2, $3,$4,$5, $3+$4+$5
+}
+#运行后
+END {
+    printf "---------------------------------------------\n"
+    printf "  TOTAL:%10d %8d %8d \n", math, english, computer
+    printf "AVERAGE:%10.2f %8.2f %8.2f\n", math/NR, english/NR, computer/NR
+}
+
+我们来看一下执行结果：（也可以这样运行 ./cal.awk score.txt）
+$ awk -f cal.awk score.txt
+NAME    NO.   MATH  ENGLISH  COMPUTER   TOTAL
+---------------------------------------------
+Marry  2143     78       84       77      239
+Jack   2321     66       78       45      189
+Tom    2122     48       77       71      196
+Mike   2537     87       97       95      279
+Bob    2415     40       57       62      159
+---------------------------------------------
+  TOTAL:       319      393      350
+AVERAGE:     63.80    78.60    70.00
 
 
 
@@ -269,6 +569,9 @@ awk -F: '{for(i=1;i<=NF;i++) { if (length($i)>=4) {print $i}}}' /etc/passwd
 for循环还可以用来遍历数组元素：
 语法： for (i in array) {statement1, statement2, ...}
 awk -F: '$NF!~/^$/{BASH[$NF]++}END{for(A in BASH){printf "%15s:%i\n",A,BASH[A]}}' /etc/passwd
+
+例1：打印99乘法表
+seq 9 | sed 'H;g' | awk -v RS='' '{for(i=1;i<=NF;i++)printf("%dx%d=%d%s", i, NR, i*NR, i==NR?"\n":"\t")}'
 
 8.5 case
 语法：switch (expression) { case VALUE or /REGEXP/: statement1, statement2,... default: statement1, ...}
