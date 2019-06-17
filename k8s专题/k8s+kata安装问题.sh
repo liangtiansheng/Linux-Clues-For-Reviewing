@@ -1,8 +1,8 @@
 FAQ
-1、安装过程中出现的问题
----->编译环境出现的依赖问题
-	---->libdevmapper-dev 和 automake依赖包需要安装
-		---->apt install automake 和 https://launchpad.net/ubuntu/xenial/arm64/libdevmapper-dev/2:1.02.110-1ubuntu10 下载的deb包及其依赖
+1???????????
+---->???????????
+	---->libdevmapper-dev ? automake???????
+		---->apt install automake ? https://launchpad.net/ubuntu/xenial/arm64/libdevmapper-dev/2:1.02.110-1ubuntu10 ???deb?????
 
 ---->root@node3:~# ceph -s
     cluster 4a4c83b0-5722-4cd8-815a-f7785deafaa2
@@ -17,11 +17,11 @@ FAQ
             flags sortbitwise,require_jewel_osds
       pgmap v472: 64 pgs, 1 pools, 75148 kB data, 41 objects
             60839 MB used, 4965 GB / 5024 GB avail
-	---->ceph的osd数据目录共用了vespace的目录， vespace停掉之后，sdb被unmount
-		---->重启ceph-osd服务，在每个node上执行systemctl restart ceph.target
+	---->ceph?osd???????vespace???? vespace?????sdb?unmount
+		---->??ceph-osd??????node???systemctl restart ceph.target
 
----->无法map ceph块设备,执行rbd map hyper/test 时一直卡住
-	---->systemd-udevd服务未启动
+---->??map ceph???,??rbd map hyper/test ?????
+	---->systemd-udevd?????
 		---->systemctl start systemd-udevd
 			---->$ rbd map hyper/test
 				 /dev/rbd0
@@ -29,7 +29,7 @@ FAQ
 				 id pool  image snap device
 				 0  hyper test  -    /dev/rbd0
 		
-2、运维过程中出现的问题,以下ceph出现pgs不一致的情况
+2???????????,??ceph??pgs??????
 ---->root@node1:~# ceph -s
 	cluster 31fd5a3d-00ba-443e-95ad-5392d1a593a7
 		health HEALTH_ERR
@@ -43,22 +43,22 @@ FAQ
 			60989 MB used, 4965 GB / 5024 GB avail
 			63 active+clean
 			1 active+clean+inconsistent
-	---->通过查看ceph集群健康详情是1.14pg有问题
+	---->????ceph???????1.14pg???
 		root@node1:~# ceph health detail
 		HEALTH_ERR 1 pgs inconsistent; 3 scrub errors
 		pg 1.14 is active+clean+inconsistent, acting [2,3,1]
 		3 scrub errors
-		---->手动修复
+		---->????
 			root@node1:~# ceph pg repair 1.14
 			instructing pg 1.14 on osd.2 to repair
-			过一会就好了
-	---->再次出现ceph pg repair已不能修复
+			??????
+	---->????ceph pg repair?????
 	    root@node1:~# ceph health detail 
 		HEALTH_ERR 1 pgs inconsistent; 4 scrub errors
 		pg 1.26 is active+clean+inconsistent, acting [1,2,3]
 		4 scrub errors
 		root@node1:~# 
-		---->手动修复不能光靠pg repair要深入挖，参考https://ceph.com/geen-categorie/ceph-manually-repair-object/
+		---->????????pg repair???????https://ceph.com/geen-categorie/ceph-manually-repair-object/
 		bash
 		$ sudo ceph health detail
 		HEALTH_ERR 1 pgs inconsistent; 2 scrub errors
@@ -101,7 +101,7 @@ FAQ
 		Then compare all of them to find the bad object.	
 		
 		Fix the problem
-		Just move the object away 🙂 with the following:
+		Just move the object away ?? with the following:
 
 		stop the OSD that has the wrong object responsible for that PG
 		flush the journal (ceph-osd -i <id> --flush-journal)
@@ -109,13 +109,13 @@ FAQ
 		start the OSD again
 		call ceph pg repair 17.1c1
 		
-		It might look a bit rough to delete an object but in the end it’s job Ceph’s job to do that.
+		It might look a bit rough to delete an object but in the end it?s job Ceph?s job to do that.
 		Of course the above works well when you have 3 replicas when it is easier for Ceph to compare two versions against another one.
 		A situation with 2 replicas can be a bit different, Ceph might not be able to solve this conflict and the problem could persist.
 		So a simple trick could be to chose the latest version of the object, set the noout flag on the cluster, stop the OSD that has a wrong version.
 		Wait a bit, start the OSD again and unset the noout flag.
 		The cluster should sync up the good version of the object to OSD that had a wrong version.
-	---->还有一种没有太多根据但是凑效的方案
+	---->?????????????????
 		ceph osd pool set hyper size 1
 		ceph osd pool set hyper min_size 1
 		ceph pg repaire 1.26
@@ -123,19 +123,19 @@ FAQ
 		ceph osd pool set hyper min_size 2
 		ceph pg repaire 1.26
 		
----->出现孤儿pod的情况
-	 kubelet：
+---->????pod???
+	 kubelet?
 	 Orphaned pod "4db449f0-4eaf-11e8-94ab-90b8d042b91a" found, but volume paths are still present on disk : There were a total of 3 errors similar to this. Turn up verbosity to see them.
 	---->rm -rf /var/lib/kubelet/pods/4db449f0-4eaf-11e8-94ab-90b8d042b91a/volumes/rook.io~rook/pvc-4d3b9c2c-4eaf-11e8-b497-90b8d0abcd2b/
-		 从etcd中删除pod
+		 ?etcd???pod
 		 export ETCDCTL_API=3
 		 alias etcdctl="etcdctl --endpoints=https://109.105.30.155:2379 --cacert=/etc/etcd/ssl/etcd-ca.pem --cert=/etc/etcd/ssl/etcd.pem --key=/etc/etcd/ssl/etcd-key.pem"
 		 etcdctl del /registry/pods/default/wordpress-consul-5b88f4868-4ss8x
 		 
----->kubelet日志中经常出现ImageFsInfo from image service failed
-	---->这种错误是说ImageFS API is not supported in frakti,参考官方说明 https://github.com/kubernetes/frakti/issues/304
+---->kubelet???????ImageFsInfo from image service failed
+	---->??????ImageFS API is not supported in frakti,?????? https://github.com/kubernetes/frakti/issues/304
 	
----->mysql镜像目前支持的平台有限，mariadb支持的平台多一些，包括arm64
+---->mysql????????????mariadb???????????arm64
 	---->root@node3:~# docker run --rm mplatform/mquery mariadb
 		Unable to find image 'mplatform/mquery:latest' locally
 		latest: Pulling from mplatform/mquery
@@ -160,9 +160,9 @@ FAQ
 		 * Supported platforms:
 		   - linux/amd64
 
----->mysql启动一直有问题，pod可以起来，但是pod里面的container异常退出，查看pod中的/var/log/mysql/error.log，可以看到innodb初始化失败或者是指出memory益出
-	---->决定pod内存的进程有以下几个
-		---->frakti默认内存64M，hyperd默认128M，所以现在实际最小pod 是128M，以下参数中可以自定义内存大小，在/lib/systemd/system/xxx.service中可添加
+---->mysql????????pod???????pod???container???????pod??/var/log/mysql/error.log?????innodb??????????memory??
+	---->??pod??????????
+		---->frakti????64M?hyperd??128M?????????pod ?128M?????????????????/lib/systemd/system/xxx.service????
 			root@node3:~# ps aux | grep qemu
 			root      4388  0.0  0.0   9368   576 pts/0    S+   19:42   0:00 grep qemu
 			root     24451  5.5  0.5 3121012 340504 ?      Sl   18:05   5:26 /usr/bin/qemu-system-aarch64 -machine virt,accel=kvm,gic-version=host,usb=off -global kvm-pit.lost_tick_policy=discard -cpu host -kernel /var/lib/hyper/kernel -initrd /var/lib/hyper/hyper-initrd.img -append console=ttyAMA0 panic=1 iommu=no -realtime mlock=off -no-user-config -nodefaults -rtc base=utc,clock=host,driftfix=slew -no-reboot -display none -boot strict=on -m size=1024,slots=1,maxmem=32768M -smp cpus=1,maxcpus=8 -device pci-bridge,chassis_nr=1,id=pci.0 -qmp unix:/var/run/hyper/vm-lwVFDlibDh/qmp.sock,server,nowait -serial unix:/var/run/hyper/vm-lwVFDlibDh/console.sock,server,nowait -device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x2 -device virtio-scsi-pci,id=scsi0,bus=pci.0,addr=0x3 -chardev socket,id=charch0,path=/var/run/hyper/vm-lwVFDlibDh/hyper.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charch0,id=channel0,name=sh.hyper.channel.0 -chardev socket,id=charch1,path=/var/run/hyper/vm-lwVFDlibDh/tty.sock,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charch1,id=channel1,name=sh.hyper.channel.1 -fsdev local,id=virtio9p,path=/var/run/hyper/vm-lwVFDlibDh/share_dir,security_model=none -device virtio-9p-pci,fsdev=virtio9p,mount_tag=share_dir -daemonize -pidfile /var/run/hyper/vm-lwVFDlibDh/pidfile -D /var/log/hyper/qemu/vm-lwVFDlibD.log
@@ -173,18 +173,18 @@ FAQ
 
 			root@node3:~# ps aux | grep hyperd
 			root      1662  0.9  0.1 1764860 113268 ?      Ssl  10:01   5:31 /usr/bin/hyperd --log_dir=/var/log/hyper
-			---->关于运行mariadb容器的问题，我们这边有点头绪了。
-				有两方面的原因：
-				1. 启动服务时，创建/var/run/mysqld/ld/mysqld.sock文件失败文件失败。解决办法是修改是修改my.cnf, 把f, 把/var/run/mysqld改成/var/lib/mysql， /var/lib/mysql使用rdb做volume
-				2. 初始化数据库时，遇到Cannott init tc log。解决办法是办法是my.cnf中添加f中添加log_bin=ON
-				为了解决上述两个问题，需要修改my.cnf,因此我重新build了mariadb的Dockerfile
-				需要重新build mariadb的官方Dockerfile，这是记录的文档
+			---->????mariadb????????????????
+				????????
+				1. ????????/var/run/mysqld/ld/mysqld.sock???????????????????my.cnf, ?f, ?/var/run/mysqld??/var/lib/mysql? /var/lib/mysql??rdb?volume
+				2. ??????????Cannott init tc log?????????my.cnf???f???log_bin=ON
+				???????????????my.cnf,?????build?mariadb?Dockerfile
+				????build mariadb???Dockerfile????????
 
 				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/1
 				https://github.com/Jimmy-Xu/mariadb/tree/patch-for-phytium/10.3/2
-				镜像已推到dockerhub,叫 hyperhq/mariadb-arm64v8:10.3
+				?????dockerhub,? hyperhq/mariadb-arm64v8:10.3
 			
----->基于k8s+kata+ceph+mysql做的基准测试
+---->??k8s+kata+ceph+mysql??????
 ---->root@node1:~# mysqlslap -a -c 50,100,150 --auto-generate-sql-load-type=mixed --create-schema=hellodb --iterations=3 --engine=innodb -
 	h 172.16.4.101 -P 30006 -u root -pEnter password: 
 	mysqlslap: Error when connecting to server: 1049 Unknown database 'hellodb'
@@ -227,10 +227,10 @@ FAQ
 		Maximum number of seconds to run all queries: 2.127 seconds
 		Number of clients running queries: 150
 		Average number of queries per client: 0
-	如果是多个mysql pod做压力测试的时候出现的负载均横数据库会不一致的情况
+	?????mysql pod?????????????????????????
 
----->给kubelet配置参数时没有生效，因为/etc/default/kubelet的优先级高，并且是空的，所以手动配的/etc/systemd/system/kubelet.service.d/05-frakti.conf不能生效，
-    ---->从下面的配置可以看出kubelet会用到很的地方的配置文件,调试kubelet时要从ps aux | grep kubelet开始看哪些参数生效，哪些没有生效，再一步步找配置解决,systemd管理的所有进程不妨都用此方式偿试
+---->?kubelet????????????/etc/default/kubelet??????????????????/etc/systemd/system/kubelet.service.d/05-frakti.conf?????
+    ---->??????????kubelet????????????,??kubelet???ps aux | grep kubelet??????????????????????????,systemd????????????????
         root@compute1:~# cat /etc/systemd/system/kubelet.service.d/10-kubeadm.conf 
         # Note: This dropin only works with kubeadm and kubelet v1.11+
         [Service]
@@ -244,6 +244,6 @@ FAQ
         ExecStart=
         ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
         root@compute1:~# 
-        ---->现在关于kata的内部通信机制的轮廓应该清淅了，api-->kubelet(各种启动参数指向frakti)-->frakti(接受用户传来的参数)-->hyperd-->qemu-kvm(/etc/hyper/config有介绍)-->hyperctl pull images               
+        ---->????kata????????????????api-->kubelet(????????frakti)-->frakti(?????????)-->hyperd-->qemu-kvm(/etc/hyper/config???)-->hyperctl pull images               
 			
 			
