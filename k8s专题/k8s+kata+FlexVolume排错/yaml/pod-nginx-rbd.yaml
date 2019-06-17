@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-rbd-pod
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: nginx-persistent-storage
+      mountPath: /var/lib/nginx
+  volumes:
+  - name: nginx-persistent-storage
+    flexVolume:
+      driver: "hyper/cephrbd"
+      fsType: "ext4"
+      options:
+        pool: "hyper"
+        volumeID: "frakti-rbd-nginx" #rbd create -p hyper --size 1G frakti-rbd-nginx

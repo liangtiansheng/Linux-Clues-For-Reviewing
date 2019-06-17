@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-rbd-pod
+  labels:
+    app: mysql
+spec:
+  containers:
+    - image: lsioarmhf/mariadb-aarch64
+      name: mysql
+      env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+      ports:
+        - containerPort: 3306
+          name: mysql
+      volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+  volumes:
+    - name: mysql-persistent-storage
+      flexVolume:
+        driver: "hyper/cephrbd"
+        fsType: "ext4"
+        options:
+          pool: "hyper"
+          volumeID: "frakti-rbd-mysql" #rbd create -p hyper --size 1G frakti-rbd-mysql
