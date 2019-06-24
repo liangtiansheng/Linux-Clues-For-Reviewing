@@ -409,7 +409,146 @@ A是双网卡绑定。
 这样就可以做到回来让回来的流量也负载均衡。出方向均衡和MODE=5一致，不同地址会根据xor算法算出不同出口，发不同出口发送相应的arp ，mac是对应网卡的mac
 
 
+网卡命名
+一、为什么需要这个
+服务器通常有多块网卡，有板载集成的，同时也有插在PCIe插槽的。Linux系统的命名原来是eth0,eth1这样的形式，但是这个编号往往不一定准确对应网卡接口的物理顺序。
 
+为解决这类问题，dell开发了biosdevname方案。
+
+systemd v197版本中将dell的方案作了进一步的一般化拓展。
+
+目前的Centos既支持dell的biosdevname，也支持systemd的方案。
+
+二、Centos7中的命名策略
+Scheme 1: 如果从BIOS中能够取到可用的，板载网卡的索引号，则使用这个索引号命名，例如: eno1，如不能则尝试Scheme 2
+
+Scheme 2: 如果从BIOS中能够取到可以用的，网卡所在的PCI-E热插拔插槽(注：pci槽位号)的索引号，则使用这个索引号命名，例如: ens1，如不能则尝试Scheme 3
+
+Scheme 3：如果能拿到设备所连接的物理位置（PCI总线号+槽位号？）信息，则使用这个信息命名，例如:enp2s0，如不能则尝试Scheme 5
+
+Scheme 5：传统的kernel命名方法，例如: eth0，这种命名方法的结果不可预知的，即可能第二块网卡对应eth0，第一块网卡对应eth1。
+
+Scheme 4 使用网卡的MAC地址来命名，这个方法一般不使用。
+
+三、biosdevname和net.ifnames两种命名规范
+net.ifnames的命名规范为:   设备类型+设备位置+数字
+
+设备类型：
+
+en 表示Ethernet
+
+wl 表示WLAN
+
+ww 表示无线广域网WWAN
+
+实际的例子:
+
+eno1 板载网卡
+
+enp0s2  pci网卡
+
+ens33   pci网卡
+
+wlp3s0  PCI无线网卡
+
+wwp0s29f7u2i2   4G modem
+
+wlp0s2f1u4u1   连接在USB Hub上的无线网卡
+
+enx78e7d1ea46da pci网卡
+
+biosdevname的命名规范为
+
+实际的例子:
+
+em1 板载网卡
+
+p3p4 pci网卡
+
+p3p4_1 虚拟网卡
+
+四、systemd中的实际执行顺序
+按照如下顺序执行udev的rule
+
+1./usr/lib/udev/rules.d/60-net.rules
+
+2./usr/lib/udev/rules.d/71-biosdevname.rules
+
+3./lib/udev/rules.d/75-net-description.rules
+
+4./usr/lib/udev/rules.d/80-net-name-slot.rules
+
+1）60-net.rules 
+
+使用/lib/udev/rename_device这个程序，去查询/etc/sysconfig/network-scripts/下所有以ifcfg-开头的文件，如果在ifcfg-xx中匹配到HWADDR=xx:xx:xx:xx:xx:xx参数的网卡接口则选取DEVICE=yyyy中设置的名字作为网卡名称。
+
+2）71-biosdevname.rules
+
+如果系统中安装了biosdevname，且内核参数指定biosdevname=1，且上一步没有重命名网卡，则按照biosdevname的命名规范，从BIOS中取相关信息来命名网卡。
+
+主要是取SMBIOS中的type 9 (System Slot) 和 type 41 (Onboard Devices Extended Information)不过要求SMBIOS的版本要高于2.6，且系统中要安装biosdevname程序。
+
+3）75-net-description.rules
+
+udev通过检查网卡信息，填写如下这些udev的属性值
+
+ID_NET_NAME_ONBOARD
+
+ID_NET_NAME_SLOT
+
+ID_NET_NAME_PATH
+
+ID_NET_NAME_MAC 
+
+4）80-net-name-slot.rules
+
+如果在60-net.rules ，71-biosdevname.rules这两条规则中没有重命名网卡，且内核指定net.ifnames=1参数，则udev依次尝试使用以下属性值来命名网卡，如果这些属性值都没有，则网卡不会被重命名。
+
+ID_NET_NAME_ONBOARD
+
+ID_NET_NAME_SLOT
+
+ID_NET_NAME_PATH
+
+上边的71-biosdevname.rules 是实际执行biosdevname的策略
+
+75-net-description.rules和80-net-name-slot.rules实际执行上面策略的1,2,3。
+
+根据上述的过程，可见网卡命名受 biosdevname和net.ifnames这两个内核参数影响。
+
+这两个参数都可以在grub配置中提供。
+
+biosdevname=0是系统默认值（dell服务器默认是1），net.ifnames=1是系统默认值:
+
+修改默认参数：如回归默认命名方式：
+
+1.编辑内核参数
+在GRUB_CMDLINE_LINUX中加入net.ifnames=0即可
+
+[root@centos7 ~]$vim /etc/default/grub
+
+GRUB_CMDLINE_LINUX="crashkernel=auto net.ifnames=0 rhgb quiet"
+
+2.为grub2生成配置文件
+编辑完grub配置文件以后不会立即生效，需要生成配置文件。
+
+[root@centos7 ~]$grub2-mkconfig -o /etc/grub2.cfg
+
+第二节所说的Scheme的策略顺序是系统默认的。
+
+如系统BIOS符合要求，且系统中安装了biosdevname，且biosdevname=1启用，则biosdevname优先；
+
+如果BIOS不符合biosdevname要求或biosdevname=0，则仍然是systemd的规则优先。
+
+如果用户自己定义了udev rule来修改内核设备名字，则用户规则优先。
+
+内核参数组合使用的时候，其结果如下：
+
+默认内核参数(biosdevname=0，net.ifnames=1):  网卡名 "enp5s2"
+
+biosdevname=1，net.ifnames=0：网卡名 "em1"
+
+biosdevname=0，net.ifnames=0：网卡名 "eth0" (最传统的方式,eth0 eth1 傻傻分不清)
 
 
 
