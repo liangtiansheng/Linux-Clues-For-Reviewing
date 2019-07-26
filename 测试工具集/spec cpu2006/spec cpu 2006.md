@@ -26,14 +26,6 @@ benchmark需要用到一套tools，有现成x86的tools，没有ARM64的，所�
 # runspec --test
 ```
 
----
-layout: post
-comments: true
-title: Compile and Debug SPEC CPU2006 in Linux
-categories: Benchmark Simulator
-
----
-
 SPEC CPU 2006是一个比较老的benchmark，所以在较新的Linux系统上编译会出现不兼容的问题。在编译过程中，需要对SPEC CPU 2006的源代码做几处修改来兼容新的Linux系统。本文以CentOS 7系统为例，介绍在Linux系统中SPEC CPU 2006的编译过程。
 
 ## Compile
