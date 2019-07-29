@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE flagsdescription
+    SYSTEM "file:///root/cpu2006/config/cpuflags2.dtd"
+>
+
+<!-- The lines above are NOT optional.  If you're adept at reading DTDs,
+          the one that this file conforms to is at the URL listed above.  
+     
+     But most humans writing a flags file will want to have it automatically 
+     checked using a validating parser such as RXP (available at
+     http://www.ltg.ed.ac.uk/~richard/rxp.html), or use one of the on-line
+     parsers:
+       http://www.stg.brown.edu/service/xmlvalid/
+       http://www.cogsci.ed.ac.uk/~richard/xml-check.html
+     
+     The parser used by the CPU tools is _not_ a validating parser, so it
+     may be possible to sneak things by it that would not pass the checkers
+     above.  However, if the checkers above say that your file is clean, it's
+     clean.
+
+     Flag files submitted to SPEC _will_ be checked by a validating parser.
+     Invalid or not-well-formed flag files will be rejected.
+-->
+
+<!-- **********************************************************************
+          **********************************************************************
+     Unless otherwise explicitly noted, all references to "section n.nn"
+     refer to flag_description.html, available at
+
+     http://www.spec.org/cpu2006/docs/flag_description.html
+     **********************************************************************
+     ********************************************************************** -->
+
+<!--
+          $Id: Example-gcc4x-flags-revA.xml 6738 2011-08-10 21:52:54Z CloyceS $
+-->
+
+<!-- This starts the fun. -->
+<flagsdescription>
+
+<!-- =====================================================================
+       All flag descriptions MUST have a filename.  It'll be used as the base
+  name when saving the flags file on the server, and when extracting it
+  from raw files.
+     ===================================================================-->
+<filename>Example-gcc4x-flags-revA</filename>
+
+<!-- =====================================================================
+       All flag descriptions MUST have a title.  It'll be used as the page
+  title for the full dump, and also as the page heading for both the
+  flag dump and the per-result flag report.
+
+  See section 2.3 for the longer version of this summary.
+     ===================================================================-->
+<title>GCC SPEC CPU2006 Flags</title>
+
+
+<!-- =====================================================================
+       The <style> section is entirely optional.  If the default styling is not
+  to your taste, or if you need to add styles for elements in your flag
+  descriptions, you may put it here.
+  This result doesn't need it; it's just here as an illustration.
+
+  This example puts the stylesheet within a CDATA section.  This is a good
+  idea in general.  See section 2.3.1 for slightly more detail.
+
+  CSS is pretty powerful; please don't try to do sneaky things.  The text
+  of your XML will still be available for review.
+     ===================================================================-->
+
+<style>
+<![CDATA[
+body { background: white; }
+]]>
+</style>
+
+<flag
+      name="gcc"
+      class="compiler"
+      regexp="(?:/\S+/)?gcc\b">
+<example>gcc</example>
+</flag>
+
+<flag name="CC"
+      class="compiler"
+      regexp="(?:/\S+/)?g\+\+(?=\s|$)">
+<example>g++</example>
+</flag>
+
+<flag name="FC"
+      class="compiler"
+      regexp="(?:/\S+/)?gfortran\b">
+<example>gfortran</example>
+</flag>
+
+<flag name="F-O2"
+      class="optimization">
+<example>-O2</example>
+</flag>
+
+<flag name="F-fno-strict-aliasing"
+      class="optimization">
+<example>
+-fno-strict-aliasing
+</example>
+</flag>
+
+<flag name="DSPEC_CPU_LP64"
+      class="portability">
+<example>
+-DSPEC_CPU_LP64
+</example>
+</flag>
+
+<flag name="DSPEC_CPU_LINUX_X64"
+      class="portability">
+<example>
+-DSPEC_CPU_LINUX_X64
+</example>
+</flag>
+
+
+<flag name="DSPEC_CPU_LINUX"
+      class="portability">
+<example>
+-DSPEC_CPU_LINUX
+</example>
+</flag>
+
+<flag name="DSPEC_CPU_CASE_FLAG"
+      class="portability">
+<example>
+-DSPEC_CPU_CASE_FLAG
+</example>
+</flag>
+
+</flagsdescription>
