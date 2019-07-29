@@ -151,3 +151,15 @@ ERROR 2:
         DYLD_LIBRARY_PATH=`pwd`
         ./Configure -Dcc="gcc -lm" -Dlibpth='/usr/local/lib64 /lib64 /usr/lib64' -dOes -Ud_flock $PERLFLAGS -Ddosuid=undef -Dprefix=$INSTALLDIR -Dd_bincompat3=undef -A ldflags=-L${INSTALLDIR}/lib -A ccflags=-I${INSTALLDIR}/include -Ui_db -Ui_gdbm -Ui_ndbm -Ui_dbm -Uuse5005threads ; testordie "error configuring perl"
 ```
+
+## 进行正式测试
+
+```bash
+测试单位时间计算任务的能力
+# cd spec_cpu_2006
+# source shrc
+# runspec --config=/root/cpu2006/config/ft-rate.cfg --flagsurl=/root/cpu2006/config/gcc-ft.xml --reportable --rate --copies=7 int
+
+测试计算单个任务的能力
+# runspec --config=/root/cpu2006/config/ft-rate.cfg --flagsurl=/root/cpu2006/config/gcc-ft.xml --reportable --speed int
+```
