@@ -78,6 +78,9 @@ centos7上编译：
         # qemu-system-aarch64 -m 2048 -cpu cortex-a57 -smp 2 -M virt -bios QEMU_EFI.fd -nographic -drive if=none,file=ubuntu-16.04.3-server-arm64.iso,id=cdrom,media=cdrom -device virtio-scsi-device -device scsi-cd,drive=cdrom -drive if=none,file=ubuntu16.04-arm64.img,id=hd0 -device virtio-blk-device,drive=hd0
 	
 	方法2：用virt-manager实现，可以参考fedora官方的文档https://fedoraproject.org/wiki/Using_UEFI_with_QEMU
+        # wget https://www.kraxel.org/repos/jenkins/edk2/edk2.git-aarch64-0-20190704.1169.gb3d00df69c.noarch.rpm
+
+        或者：
         # 进入 https://www.kraxel.org/repos/ 可以发现有针对aarch64和x86架构的UEFI固件，针对性的下载
         # cd /etc/yum.repo.d/
         # wget https://www.kraxel.org/repos/firmware.repo
