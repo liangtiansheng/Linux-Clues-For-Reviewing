@@ -1,3 +1,5 @@
+# 注意这个配置文件既可以作为ssserver启动服务端的配置文件，也可以作为sslocal启动客户端的配置文件
+# 其中server指的就是服务端的地址和端口，local指的就是客户端的地址和端口
 [root@yidam ~]# cat /etc/shadowsocks/shadowsocks.json 
 {
     "server":"103.214.68.158",  
