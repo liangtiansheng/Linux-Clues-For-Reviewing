@@ -573,22 +573,22 @@ k8s安装：
                     spec:
                         containers:
                         - name: consumer
-                        image: busybox
-                        imagePullPolicy: IfNotPresent
-                        command: ['/bin/sh','-c','mkdir -p /data/web/html;while true;do cat /data/web/html/index.html; sleep 1;done']
-                        volumeMounts:
-                        - name: testvolume
+                          image: busybox
+                          imagePullPolicy: IfNotPresent
+                          command: ['/bin/sh','-c','mkdir -p /data/web/html;while true;do cat /data/web/html/index.html; sleep 1;done']
+                          volumeMounts:
+                          - name: testvolume
                             mountPath: /data/web/html
                         - name: producer
-                        image: busybox
-                        imagePullPolicy: IfNotPresent
-                        volumeMounts:
-                        - name: testvolume
-                                mountPath: /data/web/html
-                        command: ['/bin/sh','-c','while true; do echo `date` >> /data/web/html/index.html; sleep 2;done']
+                          image: busybox
+                          imagePullPolicy: IfNotPresent
+                          volumeMounts:
+                          - name: testvolume
+                            mountPath: /data/web/html
+                          command: ['/bin/sh','-c','while true; do echo `date` >> /data/web/html/index.html; sleep 2;done']
                         volumes:
                         - name: testvolume
-                        emptyDir: {}
+                          emptyDir: {}
                     *****注意: 这里的command放的位置有讲究，经验证，这个yaml文件执行有顺序，如果command放在volumeMount前面会报找不到/data/web/html错误，所以要在command中手动创建/data/web/html;
                              如果command放在volumeMount后面，那么vomumeMount中的/data/web/html即便没有也会自动创建，command命令也就可以用到此目录而无需手动创建
 
