@@ -115,7 +115,7 @@ expect 自动在多台主机创建用户test，并设置初始口令
     #!/bin/bash
     #expect 自动在多台主机创建用户test，并设置初始口令(读取文件)
     ssdzd(){
-    expect <<-EOF 
+    expect <<-EOF # 如果重定向的操作符是<<-，那么分界符（EOF）所在行的开头部分的制表符（Tab）都将被去除。
     set timeout 10 
     spawn ssh $user@$ip 
     expect { 
