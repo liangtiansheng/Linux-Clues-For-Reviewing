@@ -268,3 +268,88 @@ verb 3
 mute 20
 reneg-sec 0
 ```
+
+## 生成客户端证书的脚本如下
+
+```bash
+[root@openvpn 3.0.6]# grep -vE "^#|^$" /usr/local/bin/genovpnuser 
+dir=/etc/openvpn/3.0.6
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 USER_NAME"
+    echo "-1"
+    exit -1
+fi
+if ! [[ $1 =~ ^[a-zA-Z0-9_]{3,16}$ ]];then
+    echo "请使用字母数字或下划线开头的3到16个字符的名字"
+    echo "-1"
+    exit -1
+fi
+cd $dir
+if ./easyrsa show-cert $1 &> /dev/null;then
+    echo "此用户已存在，请重新输入"
+    echo "-1"
+    exit -1
+fi
+expect <<-EOF
+spawn ./easyrsa gen-req $1 nopass
+expect {
+"$1" { send "\n" }}
+expect eof
+EOF
+./easyrsa import-req $dir/pki/reqs/${1}.req $1
+expect <<-EOF
+spawn ./easyrsa sign client $1
+expect {
+"Confirm" { send "yes\n" }
+}
+expect eof
+EOF
+if [ -d /client.certs/$1 ]; then
+    rm -rf /client.certs/$1
+    mkdir -pv /client.certs/$1
+else
+    mkdir -pv /client.certs/$1
+fi
+cp $dir/pki/ca.crt /client.certs/$1
+cp $dir/pki/ta.key /client.certs/$1
+cp $dir/pki/issued/${1}.crt /client.certs/$1
+cp $dir/pki/private/${1}.key /client.certs/$1
+cd /client.certs
+cp clientsample.ovpn client.ovpn
+sed -i s@sample.crt@${1}.crt@g client.ovpn
+sed -i s@sample.key@${1}.key@g client.ovpn
+mv client.ovpn $1/
+[root@openvpn 3.0.6]# 
+```
+
+## 吊销客户端证书的脚本如下
+
+```bash
+[root@openvpn 3.0.6]# grep -vE "^#|^$" /usr/local/bin/delovpnuser 
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 USER_NAME"
+    echo "-1"
+    exit -1
+fi
+if ! [[ $1 =~ ^[a-zA-Z0-9_]{3,16}$ ]];then
+    echo "请使用字母数字或下划线开头的3到16个字符的名字"
+    echo "-1"
+    exit -1
+fi
+dir=/etc/openvpn/3.0.6
+cd $dir
+if ! ./easyrsa show-cert $1 &> /dev/null;then
+    echo "没有这个用户,无法删除"
+    echo "-1"
+    exit -1
+fi
+expect <<-EOF
+spawn ./easyrsa revoke $1
+expect {
+"revocation" { send "yes\n" }}
+expect eof
+EOF
+./easyrsa gen-crl
+rm -rf /client.certs/$1
+[root@openvpn 3.0.6]# 
+```
