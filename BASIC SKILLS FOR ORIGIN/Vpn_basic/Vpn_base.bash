@@ -291,7 +291,7 @@
                 # 相同类别的信息只有前20条会输出到日志文件中。
                 ;mute 20
         4、配置内核和防火墙，启动服务
-            ***开启路由转发功能
+            ***开启路由转发功能，如果路由转发没有开启，客户端是不能跟server以外的其它主机通信
             # sed -i '/net.ipv4.ip_forward/s/0/1/' /etc/sysctl.conf
             # sed -i '/net.ipv4.ip_forward/s/#//' /etc/sysctl.conf
             # sysctl -p

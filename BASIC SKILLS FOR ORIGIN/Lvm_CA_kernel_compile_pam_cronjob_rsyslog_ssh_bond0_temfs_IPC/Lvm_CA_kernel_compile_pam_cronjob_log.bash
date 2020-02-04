@@ -2982,7 +2982,7 @@ apr_date.h          apr_reslist.h         mod_cgi.h
 apr_dbd.h           apr_ring.h            mod_core.h
 apr_dbm.h           apr_rmm.h             mod_dav.h
 [root@RHEL6 apache]# ln -sv /usr/local/apache/include /usr/include/httpd
-`/usr/include/httpd' -> `/usr/local/apache/include'
+/usr/include/httpd -> /usr/local/apache/include
 [root@RHEL6 apache]# ls bin/
 ab            apu-1-config  dbmmanage    htcacheclean  htpasswd   logresolve
 apachectl     apxs          envvars      htdbm         httpd      rotatelogs
