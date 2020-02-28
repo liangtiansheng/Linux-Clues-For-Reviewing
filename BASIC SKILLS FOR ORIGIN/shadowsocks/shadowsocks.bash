@@ -12,6 +12,8 @@
     "fast_open": false,  
     "workers": 1  
 }
+
+## 注意如果是配置 server 端，则用 ssserver 启动，如果是客户端，则是 ssslocal 启动
 [root@yidam ~]# cat /etc/systemd/system/shadowsocks.service 
 [Unit]
 Description=Shadowsocks
