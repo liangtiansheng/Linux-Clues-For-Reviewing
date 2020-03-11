@@ -1,0 +1,19 @@
+1、通过reposync把centos75官方的rpm包下下来时，没有repodata
+2、如果自己制作repodata，用createrepo就可以完成
+3、如果想要像官方源一样使用yum groups install，需要制作group，制作group需要xml说明文件，通过排查，只有base源中才有组文件xxx-c7-aarch64-comps.xml，复制过来直接使用
+4、wget http://archive.kernel.org/centos-vault/altarch/7.6.1810/os/aarch64/repodata/aced7d22b338fdf7c0a71ffcf32614e058f4422c42476d1f4b9e9364d567702f-c7-x86_64-comps.xml
+5、centos7.5 写得是 xxx-c7-aarch64-comps.xml，centos7.6 写得是 xxx-c7-x86_64-comps.xml，这种文件应该是 x86 aarch64 通用
+
+[root@localhost ~]# mv base/xxx-c7-aarch64-comps.xml base/base-aarch64-comps.xml
+[root@localhost ~]# createrepo -g base-aarch64-comps.xml base/
+[root@localhost base]# ls
+base-aarch64-comps.xml  Packages  repodata
+[root@localhost base]#
+[root@localhost ~]# createrepo updates/
+[root@localhost updates]# ls
+Packages  repodata
+[root@localhost updates]# 
+[root@localhost ~]# createrepo extras/
+[root@localhost extras]# ls
+Packages  repodata
+[root@localhost extras]# 
