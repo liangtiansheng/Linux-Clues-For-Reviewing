@@ -305,7 +305,7 @@ reneg-sec 0
 if ! rpm -q expect; then
     yum install expect -y
     if ! [ $? == 0 ]; then
-        echo "you must install expect manually!"
+        echo "Error: you must install expect manually!"
         exit -1
     fi
 fi
