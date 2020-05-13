@@ -124,6 +124,32 @@ set_var EASYRSA_REQ_OU		"Product Department"
 [root@openvpn ~]# 
 ```
 
+## easyrsa 命令使用
+
+```bash
+// 查看整体帮助
+[root@openvpn 3.0.6]# ./easyrsa -h
+
+// 查看某个子命令的详细帮助
+[root@openvpn 3.0.6]# ./easyrsa help import-req
+
+Note: using Easy-RSA configuration from: ./vars
+
+  import-req <request_file_path> <short_basename>
+      Import a certificate request from a file
+
+      This will copy the specified file into the reqs/ dir in
+      preparation for signing.
+      The <short_basename> is the filename base to create.
+
+      Example usage:
+        import-req /some/where/bob_request.req bob
+[root@openvpn 3.0.6]#
+
+// 查看可以用到的 options
+[root@openvpn 3.0.6]# ./easyrsa help options
+```
+
 ## 创建 PKI 和 CA
 
 ```bash
