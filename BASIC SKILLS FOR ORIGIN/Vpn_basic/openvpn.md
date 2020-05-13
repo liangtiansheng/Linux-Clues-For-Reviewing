@@ -333,11 +333,37 @@ expect {
 }
 expect eof
 EOF
+
+if ! [ -d /client.certs/ ]; then
+    mkdir /client.certs/
+fi
+
+cat > /client.certs/clientsample.ovpn < EOF
+client
+dev tun
+proto tcp
+remote 61.187.64.38 11940
+resolv-retry infinite
+persist-key
+persist-tun
+mute-replay-warnings
+ca ca.crt
+cert yll.crt
+key yll.key
+remote-cert-tls server
+tls-auth ta.key 1
+cipher AES-256-CBC
+comp-lzo
+verb 3
+mute 20
+reneg-sec 0
+EOF
+
 if [ -d /client.certs/$1 ]; then
     rm -rf /client.certs/$1
-    mkdir -pv /client.certs/$1
+    mkdir /client.certs/$1
 else
-    mkdir -pv /client.certs/$1
+    mkdir /client.certs/$1
 fi
 cp $dir/pki/ca.crt /client.certs/$1
 cp $dir/pki/ta.key /client.certs/$1
