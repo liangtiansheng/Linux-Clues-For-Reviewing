@@ -108,12 +108,12 @@ Nothing to do
 /usr/share/easy-rsa/3.0.6/easyrsa
 [root@openvpn ~]# cp -r /usr/share/easy-rsa/3.0.6/ /etc/openvpn/3.0.6/
 [root@openvpn ~]# cp /usr/share/doc/easy-rsa-3.0.6/vars.example /etc/openvpn/3.0.6/vars
-[root@openvpn ~]# grep -v "^#\|^$" /etc/openvpn/3.0.6/vars 
+[root@openvpn ~]# grep -v "^#\|^$" /etc/openvpn/3.0.6/vars
 if [ -z "$EASYRSA_CALLER" ]; then
-	echo "You appear to be sourcing an Easy-RSA 'vars' file." >&2
-	echo "This is no longer necessary and is disallowed. See the section called" >&2
-	echo "'How to use this file' near the top comments for more details." >&2
-	return 1
+    echo "You appear to be sourcing an Easy-RSA 'vars' file." >&2
+    echo "This is no longer necessary and is disallowed. See the section called" >&2
+    echo "'How to use this file' near the top comments for more details." >&2
+    return 1
 fi
 set_var EASYRSA_REQ_COUNTRY	"CN"
 set_var EASYRSA_REQ_PROVINCE	"HuNan"
