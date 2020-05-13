@@ -348,8 +348,8 @@ persist-key
 persist-tun
 mute-replay-warnings
 ca ca.crt
-cert yll.crt
-key yll.key
+cert sample.crt
+key sample.key
 remote-cert-tls server
 tls-auth ta.key 1
 cipher AES-256-CBC
