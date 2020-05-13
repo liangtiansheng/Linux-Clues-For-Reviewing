@@ -302,6 +302,14 @@ reneg-sec 0
 
 ```bash
 [root@openvpn 3.0.6]# grep -vE "^#|^$" /usr/local/bin/genovpnuser 
+if ! rpm -q expect; then
+    yum install expect -y
+    if ! [ $? == 0 ]; then
+        echo "you must install expect manually!"
+        exit -1
+    fi
+fi
+
 dir=/etc/openvpn/3.0.6
 if [ $# -ne 1 ]; then
     echo "Usage: $0 USER_NAME"
