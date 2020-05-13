@@ -190,7 +190,7 @@ easyrsa  openssl-easyrsa.cnf  pki  vars  x509-types
 [root@openvpn 3.0.6]# ./easyrsa sign client jiajia
 ```
 
-注意: 注意这里的客户端证书用到的pki目录跟服务器端的pki目录是一样的，所以可以直接 sign签署，如果客户端重新生成了pki，那每次生成的证书请求文件都需要用 ./easyrsa import-req $PATH/jiajia.req jiajia 导入并取一个短名字jiajia，然后执行 ./easyrsa sign client jiajia
+注意: 注意这里的客户端证书用到的pki目录跟服务器端的pki目录是一样的，所以可以直接 sign签署，如果客户端重新生成了pki，那每次生成的证书请求文件都需要用 ./easyrsa import-req $PATH/jiajia.req jiajia 导入并取一个短名字jiajia，然后执行 ./easyrsa sign client jiajia；参见 ./easy-rsa help import-req
 
 ## 生成ta.key文件（防DDos攻击、UDP淹没等恶意攻击）
 
