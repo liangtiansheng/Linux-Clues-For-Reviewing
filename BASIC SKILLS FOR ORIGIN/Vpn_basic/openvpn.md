@@ -275,6 +275,26 @@ crl-verify /etc/openvpn/3.0.6/pki/crl.pem
 [root@openvpn 3.0.6]#
 ```
 
+## 启动 openvpn 服务
+
+```bash
+[root@openvpn ~]# systemctl start openvpn@server.service
+[root@openvpn ~]# systemctl enable openvpn@server.service
+```
+
+## 配置 iptables 规则
+
+为了可以让客户端访问服务器所在局域网的其它主机，需要配置如下规则
+
+```bash
+[root@openvpn ~]# iptables -t nat -A POSTROUTING -s 10.8.0.0/8 -j MASQUERADE
+[root@openvpn ~]# cat /proc/sys/net/ipv4/ip_forward
+0
+[root@openvpn ~]# echo "1" > /proc/sys/net/ipv4/ip_forward
+[root@openvpn ~]# cat /proc/sys/net/ipv4/ip_forward
+1
+```
+
 ## 客户端的配置文件
 
 ```bash
