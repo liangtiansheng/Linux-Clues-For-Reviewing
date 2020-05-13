@@ -270,7 +270,7 @@ verb 3
 reneg-sec 0
 
 # 注意，这个文件用来记录被吊销的证书，阻止被吊销的客户再次登陆
-# 默认没有这个文件，必须 ./easyrsa gen-crl 手动生成，否则服务启不来
+# 默认没有这个文件，必须执行 ./easyrsa gen-crl 更新生成，否则服务启不来
 crl-verify /etc/openvpn/3.0.6/pki/crl.pem
 [root@openvpn 3.0.6]#
 ```
