@@ -338,7 +338,7 @@ if ! [ -d /client.certs/ ]; then
     mkdir /client.certs/
 fi
 
-cat > /client.certs/clientsample.ovpn < EOF
+cat > /client.certs/clientsample.ovpn << EOF
 client
 dev tun
 proto tcp
