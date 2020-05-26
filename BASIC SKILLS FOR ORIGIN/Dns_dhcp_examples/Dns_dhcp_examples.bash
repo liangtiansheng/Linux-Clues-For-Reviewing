@@ -429,7 +429,7 @@ _default/mageedu.com/IN: file not found
 [root@RHEL6 ~]# vim /var/named/mageedu.com.zone
 $TTL 600
 #SOA 记录
-mageedu.com.    IN      SOA     ns1.mageedu.com.        admin.mageedu.com (
+mageedu.com.    IN      SOA     ns1.mageedu.com.        admin.mageedu.com. (
                                 2016041701
                                 1H
                                 5M
@@ -532,7 +532,7 @@ zone "3.168.192.in-addr.arpa" IN {
 };
 [root@RHEL6 named]# vim /var/named/3.168.192.in-addr.arpa 
 $TTL 600
-@               IN      SOA     ns1.mageedu.com.        admin.mageedu.com (
+@               IN      SOA     ns1.mageedu.com.        admin.mageedu.com. (
                                 2016041701
                                 1H
                                 5M
@@ -886,14 +886,14 @@ total 8
 3、同步的前提条件一定是主DNS的serial比辅DNS的serial版本高(手动加1)
 4、以前的内核在主DNS服务器中要加上notify yes;
 [root@RHEL6 ~]# vim /var/named/yu.com 
-yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com (
+yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com. (
                                 2016041702
 yuliang.com.    IN      NS      ns2.yuliang.com.
 ns2             IN      A       192.168.3.99
 
 hello           IN      A       192.168.3.88
 [root@RHEL6 ~]# vim /var/named/yu.arpa.com 
-3.168.192.in-addr.arpa. IN      SOA     ns1.yuliang.com.        admin.yuliang.com (
+3.168.192.in-addr.arpa. IN      SOA     ns1.yuliang.com.        admin.yuliang.com. (
                                 2016041702
 
 3.168.192.in-addr.arpa.         IN      NS      ns2.yuliang.com.
@@ -1058,7 +1058,7 @@ server is up and running
 *强调一下：1、改序列号让辅DNS同步；2、本域内同样要声明本域管理者NS是谁；3、子域地址一般与授权父域地址是不一样的（这里为实验一样）；
 4、父域授权多个子域时，子域独立，可以在不同的网段内
 $TTL 600
-yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com (
+yuliang.com.    IN      SOA     ns1.yuliang.com.        admin.yuliang.com. (
                                 2016041703
                                 1D
                                 5M
