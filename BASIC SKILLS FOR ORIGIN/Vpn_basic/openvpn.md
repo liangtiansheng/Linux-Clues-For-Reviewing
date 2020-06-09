@@ -203,43 +203,25 @@ easyrsa  openssl-easyrsa.cnf  pki  vars  x509-types
 ```bash
 [root@openvpn 3.0.6]# pwd
 /etc/openvpn/3.0.6
-[root@openvpn 3.0.6]# ll pki/private/
-total 52
--rw------- 1 root root 1675 Dec 14 10:00 ca.key
--rw------- 1 root root 1704 Dec 24 10:11 cyf.key
--rw------- 1 root root 1704 Dec 26 11:28 dasdasda.key
--rw------- 1 root root 1708 Dec 26 11:37 fdasfasd.key
--rw------- 1 root root 1704 Dec 23 14:56 liufeng.key
--rw------- 1 root root 1704 Dec 31 08:30 p2000.key
--rw------- 1 root root 1708 Jan 16 09:49 SecureCRTVPN.key
--rw------- 1 root root 1708 Dec 14 10:03 server.key
--rw------- 1 root root 1704 Jan  7 13:40 SSS.key
--rw------- 1 root root 1704 Dec 26 11:19 tsetopn.key
--rw------- 1 root root 1704 Dec 23 15:00 VPN001.key
--rw------- 1 root root 1708 Jan 18 09:48 yidam.key
--rw------- 1 root root 1708 Jan  6 13:53 zdrjypsm_kylin.key
-[root@openvpn 3.0.6]# ll pki/issued/
-total 96
--rw------- 1 root root 4425 Dec 24 10:11 cyf.crt
--rw------- 1 root root 4438 Dec 26 11:28 dasdasda.crt
--rw------- 1 root root 4438 Dec 26 11:37 fdasfasd.crt
--rw------- 1 root root 4433 Dec 23 14:56 liufeng.crt
--rw------- 1 root root 4431 Dec 31 08:30 p2000.crt
--rw------- 1 root root 4446 Jan 16 09:49 SecureCRTVPN.crt
--rw------- 1 root root 4552 Dec 14 10:03 server.crt
--rw------- 1 root root 4425 Jan  7 13:40 SSS.crt
--rw------- 1 root root 4437 Dec 26 11:19 tsetopn.crt
--rw------- 1 root root 4432 Dec 23 15:00 VPN001.crt
--rw------- 1 root root 4431 Jan 18 09:48 yidam.crt
--rw------- 1 root root 4452 Jan  6 13:53 zdrjypsm_kylin.crt
-[root@openvpn 3.0.6]# ll pki/ca.crt 
--rw------- 1 root root 1172 Dec 14 10:00 pki/ca.crt
-[root@openvpn 3.0.6]# ll pki/dh.pem 
--rw------- 1 root root 424 Dec 14 10:14 pki/dh.pem
-[root@openvpn 3.0.6]# 
-[root@openvpn 3.0.6]# ll pki/ta.key 
--rw------- 1 root root 636 Dec 14 10:16 pki/ta.key
-[root@openvpn 3.0.6]#
+[root@compute3 3.0.6]# ll pki/private/
+total 8
+-rw-------. 1 root root 1679 Jun  9 21:05 ca.key
+-rw-------. 1 root root 1708 Jun  9 21:06 server.key
+[root@compute3 3.0.6]#
+[root@compute3 3.0.6]# ll pki/issued/
+total 8
+-rw-------. 1 root root 4552 Jun  9 21:18 server.crt
+[root@compute3 3.0.6]#
+[root@compute3 3.0.6]# ll pki/ca.crt 
+-rw-------. 1 root root 1172 Jun  9 21:05 pki/ca.crt
+[root@compute3 3.0.6]# 
+[root@compute3 3.0.6]# ll pki/dh.pem 
+-rw-------. 1 root root 424 Jun  9 21:10 pki/dh.pem
+[root@compute3 3.0.6]#
+[root@compute3 3.0.6]# cp ta.key pki/
+[root@compute3 3.0.6]# ll pki/ta.key 
+-rw-------. 1 root root 636 Jun  9 21:31 pki/ta.key
+[root@compute3 3.0.6]# 
 ```
 
 以上配置文件将会在服务器端和端户端配置文件中指出
