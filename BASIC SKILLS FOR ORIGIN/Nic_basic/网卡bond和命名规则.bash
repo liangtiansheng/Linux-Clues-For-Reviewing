@@ -1,5 +1,17 @@
-linux有七种网卡绑定模式：0. round robin，1.active-backup，2.load balancing (xor)，  3.fault-tolerance (broadcast)， 4.lacp，  5.transmit load balancing， 6.adaptive load balancing。
+linux有七种网卡绑定模式：0. round robin，1.active-backup，2.load balancing (xor)，  3.fault-tolerance (broadcast)， 4.lacp (Link Aggregation Control Protocol，链路聚合控制协议)，  5.transmit load balancing， 6.adaptive load balancing。
+摘要：
+bond模式：
+Mode=0(balance-rr) 表示负载分担round-robin，和交换机的聚合强制不协商的方式配合。
+Mode=1(active-backup) 表示主备模式，只有一块网卡是active,另外一块是备的standby，这时如果交换机配的是捆绑，将不能正常工作，因为交换机往两块网卡发包，有一半包是丢弃的。
+Mode=2(balance-xor) 表示XOR Hash负载分担，和交换机的聚合强制不协商方式配合。（需要xmit_hash_policy）
+Mode=3(broadcast) 表示所有包从所有interface发出，这个不均衡，只有冗余机制...和交换机的聚合强制不协商方式配合。
+Mode=4(802.3ad) 表示支持802.3ad协议，和交换机的聚合LACP(基于IEEE802.3ad标准的协议)方式配合（需要xmit_hash_policy）
+Mode=5(balance-tlb) 是根据每个slave的负载情况选择slave进行发送，接收时使用当前轮到的slave
+Mode=6(balance-alb) 在5的tlb基础上增加了rlb。
+5和6不需要交换机端的设置，网卡能自动聚合。4需要支持802.3ad。0，2和3理论上需要静态聚合方式
+但实测中0可以通过mac地址欺骗的方式在交换机不设置的情况下不太均衡地进行接收。
 
+详述：
 第一种：bond0:round robin
 标准文档定义：round-robin policy: Transmit packets in sequential order from the first available slave through the last. This mode provides load balancing and fault tolerance.
 
